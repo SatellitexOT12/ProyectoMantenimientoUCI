@@ -1,1 +1,31 @@
 {% extends "master.html" %}
+
+    {% block title%}
+    Lista de Usuarios
+    {%endblock%}
+
+    {%block content%}
+    <div class="container mt-3">
+        <h1>Usuarios</h1>
+        <table class="table table-hover">
+            <thead>
+                <tr class="table-dark">
+                    <th>Nombre</th>
+                    <th>Apellidos</th>
+                    <th>Telefono</th>
+                    <th>Fecha de Entrada</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for x in tableUsuario %}
+            <tr>
+                <td>{{x.nombre}}</td>
+                <td>{{x.apellido}}</td>
+                <td>{{x.telefono}}</td>
+                <td>{{x.fecha}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {%endblock%}
