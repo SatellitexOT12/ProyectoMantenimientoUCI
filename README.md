@@ -26,4 +26,4 @@ Este proyecto es una **página web de mantenimiento** diseñada para gestionar i
 1. Tener Python 3.x instalado.
 2. Clonar el repositorio:
    ```bash
-   git clone https://github.com/tu-usuario/tu-repositorio.git
+   git clone https://github.com/SatellitexOT12/ProyectoMantenimientoUCI.git
