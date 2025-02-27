@@ -10,19 +10,21 @@
         <table class="table table-hover">
             <thead>
                 <tr class="table-dark">
-                    <th>Nombre</th>
-                    <th>Apellidos</th>
-                    <th>Telefono</th>
-                    <th>Fecha de Entrada</th>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Activo</th>
+                    <th>Ultima Conexion</th>
+                    <th>Fecha de Creacion</th>
                 </tr>
             </thead>
             <tbody>
             {% for x in tableUsuario %}
             <tr>
-                <td>{{x.nombre}}</td>
-                <td>{{x.apellido}}</td>
-                <td>{{x.telefono}}</td>
-                <td>{{x.fecha}}</td>
+                <td>{{x.username}}</td>
+                <td>{{x.email}}</td>
+                <td>{{x.is_active}}</td>
+                <td>{{x.last_login}}</td>
+                <td>{{x.date_joined}}</td>
             </tr>
             {% endfor %}
             </tbody>

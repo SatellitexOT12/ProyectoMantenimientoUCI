@@ -1,15 +1,25 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import loader
-from .models import Usuario
+from django.contrib.auth import authenticate,login
+from django.contrib.auth.models import User
 # Create your views here.
 
-def login(request):
-    template = loader.get_template('login.html')
-    return HttpResponse(template.render())
+def custom_login(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('main/')
+        else:
+            return HttpResponse("Invalid login credentials")
+    else:
+        return render(request, 'login.html')
 
 def usuarios(request):
-    tableUsuario = Usuario.objects.all().values()
+    tableUsuario = User.objects.all().values()
     template = loader.get_template('all_usuarios.html')
     
     context = {
