@@ -9,12 +9,17 @@ def custom_login(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
+        
+        template = loader.get_template('login.html')
+        context = {
+            'credenciales':1,
+        }
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             return redirect('main/')
         else:
-            return HttpResponse("Invalid login credentials")
+            return render(request, 'login.html', {'error': 'Credenciales inválidas'})
     else:
         return render(request, 'login.html')
 
