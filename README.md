@@ -1,8 +1,5 @@
 # Sistema de Gestión de Incidencias Universitarias
 
-<<<<<<< HEAD
-Este repositorio esta
-=======
 Este proyecto es una **página web de mantenimiento** diseñada para gestionar incidencias en la universidad de manera eficiente. El sistema permite a los **usuarios (clientes)** reportar problemas o incidencias relacionadas con el mantenimiento, como fallas técnicas, problemas de infraestructura, entre otros. Además, contiene una **lista centralizada de incidencias** donde se puede consultar el estado y el historial de reportes.
 
 ## Características Principales
@@ -30,4 +27,3 @@ Este proyecto es una **página web de mantenimiento** diseñada para gestionar i
 2. Clonar el repositorio:
    ```bash
    git clone https://github.com/SatellitexOT12/ProyectoMantenimientoUCI.git
->>>>>>> 8d0dc321f451a0b1118713077c737966d833d055
