@@ -31,11 +31,21 @@ def usuarios(request):
     
     if request.method == 'POST':
         username = request.POST['username']
-        
+        name = request.POST['name']
+        lastname = request.POST['lastname']  
+        email = request.POST['email']
+        password = request.POST['password']  
         if User.objects.filter(username=username).exists():
             return HttpResponse("El usuario ya existe")
         else:
-            return HttpResponse("Usuario registrado")
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=name,
+                last_name=lastname
+            )
+            return HttpResponse(template.render(context,request))
         
     return HttpResponse(template.render(context,request))
 
