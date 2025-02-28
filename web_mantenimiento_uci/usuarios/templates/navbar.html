@@ -9,13 +9,29 @@
         <div class="collapse navbar-collapse" id="mynavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/main">INICIO</a>
+                    <a class="nav-link" href="/main">Inicio</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/usuarios">USUARIOS</a>
+                <li class="nav-item dropdown">
+                    <button type="button" class="btn nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        Usuarios
+                    </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/usuarios">Lista de Usuarios</a></li>
+                            <li><a class="dropdown-item" href="#">Registrar Usuario</a></li>
+                            <li><a class="dropdown-item" href="#">Link 3</a></li>
+                        </ul>
+                    </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="javascript:void(0)">INCIDENCIAS</a>
+                <li class="nav-item dropdown">
+                    <button type="button" class="btn nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        Incidencias
+                    </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/usuarios">Lista de Incidencias</a></li>
+                            <li><a class="dropdown-item" href="#">Reportar Incidencia</a></li>
+                            <li><a class="dropdown-item" href="#">Historial</a></li>
+                        </ul>
+                    </a>
                 </li>
             </ul>
             <form class="d-flex">

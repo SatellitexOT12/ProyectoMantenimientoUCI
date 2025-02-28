@@ -1,0 +1,82 @@
+<!-- The Modal -->
+<div class="modal" id="ModalRegistrar">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <h4 class="modal-title">Registrar Usuario</h4>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <!-- Modal body -->
+        <div class="modal-body">
+            <form method="post" action="{% url 'usuarios' %}" class="was-validated">
+                <div class="username mb-3 mt-3">
+                <label for="uname" class="form-label">Usuario:</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" required>
+                <div class="valid-feedback">Valido.</div>
+                <div class="invalid-feedback">Por favor llena este campo.</div>
+                </div>
+                <div class="name mb-3 mt-3">
+                    <label for="name" class="form-label">Nombre:</label>
+                    <input type="text" class="form-control" id="name" placeholder="Enter name" name="name" required>
+                    <div class="valid-feedback">Valido.</div>
+                    <div class="invalid-feedback">Por favor llena este campo.</div>
+                    </div>
+                <div class="lastname mb-3 mt-3">
+                        <label for="lastname" class="form-label">Apellidos:</label>
+                        <input type="text" class="form-control" id="lastname" placeholder="Enter lastname" name="lastname" required>
+                        <div class="valid-feedback">Valido.</div>
+                        <div class="invalid-feedback">Por favor llena este campo.</div>
+                </div>
+                <div class="email mb-3 mt-3">
+                    <label for="email" class="form-label">Correo:</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter email" name="email" required>
+                    <div class="valid-feedback">Valido.</div>
+                    <div class="invalid-feedback">No es un correo valido.</div>
+                    </div>
+                <div class="password mb-3">
+                <label for="pwd" class="form-label">Contraseña:</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" required>
+                <div class="valid-feedback">Valido.</div>
+                <div class="invalid-feedback">Por favor llena este campo.</div>
+                </div>
+
+                <div class="Confpassword mb-3">
+                    <label for="pwd" class="form-label">Confirmar Contraseña:</label>
+                    <input type="password" class="form-control" id="Confpassword" placeholder="Enter password" name="Confpassword" required>
+                    <div class="valid-feedback">Valido.</div>
+                    <div class="invalid-feedback">Por favor llena este campo.</div>
+                    </div>
+                {% csrf_token %}
+                
+                <!-- Modal footer -->
+                <div class="modal-footer d-flex justify-content-between">
+                    
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+                
+            </form> 
+        </div>
+
+        
+
+    </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("registroForm").addEventListener("submit",function(event){
+        const password = document.getElementById("password").value();
+        const Confpassword = document.getElementById("password").value();
+
+        if(password != Confpassword){
+            alert("Las contraseñas no coinciden. Por favor, verifica");
+            event.preventDefault();
+        }
+    });
+
+</script>

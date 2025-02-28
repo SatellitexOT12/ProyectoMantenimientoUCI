@@ -1,4 +1,3 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,42 +7,35 @@
     {% load bootstrap5 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
-    <link rel="stylesheet" href="{% static 'log.css' %}">
 </head>
 <body>
 
-    <div class="row">
-    <div class="presentacion col justify-content-center align-items-centerdiv m-5 p-5 text-white rounded"">
-        <h1 class="text-prest">Bienvenido</h1>
-        <h2 class="text-sub">Sistema de mantenimiento de la Universidad de Ciencias Informaticas</h2>
+    <div class="container d-flex justify-content-center align-items-centerdiv mt-4 p-5 bg-primary text-white rounded"">
+        <h1 class="display-4">Mantenimiento UCI</h1>
     </div>
-    
-    <div class="col d-flex justify-content-center align-items-center ">
-    <form method="post"  action="{% url 'login' %}" class="was-validated p-5 my-5  rounded">
-        <h4 class="form-label d-flex justify-content-center align-items-center text-white">Iniciar Sesion</h4>
+
+    <div class="d-flex justify-content-center align-items-center bg-light">
+    <form method="post"  action="{% url 'login' %}" class="was-validated p-5 my-5 border">
+        
         <div class="mb-3 mt-3">
-        <label for="uname" class="form-label text-white">Usuario:</label>
+        <label for="uname" class="form-label">Usuario:</label>
         <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" required>
-        <div class="valid-feedback">Valido.</div>
-        <div class="invalid-feedback ">Por favor llena este campo.</div>
-        </div>
-        <div class="mb-3">
-        <label for="pwd" class="form-label text-white">Contraseña:</label>
-        <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" required>
         <div class="valid-feedback">Valido.</div>
         <div class="invalid-feedback">Por favor llena este campo.</div>
         </div>
         <div class="mb-3">
-            {% if error %}
-            <div class="err">{{ error }}</div>
-            {%endif%}
+        <label for="pwd" class="form-label">Contraseña:</label>
+        <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" required>
+        <div class="valid-feedback">Valido.</div>
+        <div class="invalid-feedback">Por favor llena este campo.</div>
+        </div>
+        <div class="form-check mb-3">
+            
         </div>
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Acceder</button>
     </form> 
     </div>
-
-    </div>
-
+    
 </body>
 </html>

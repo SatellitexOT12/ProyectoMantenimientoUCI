@@ -10,7 +10,6 @@ def custom_login(request):
         username = request.POST['username']
         password = request.POST['password']
         
-        template = loader.get_template('login.html')
         context = {
             'credenciales':1,
         }
@@ -26,11 +25,18 @@ def custom_login(request):
 def usuarios(request):
     tableUsuario = User.objects.all().values()
     template = loader.get_template('all_usuarios.html')
-    
     context = {
         'tableUsuario': tableUsuario,
     }
     
+    if request.method == 'POST':
+        username = request.POST['username']
+        
+        if User.objects.filter(username=username).exists():
+            return HttpResponse("El usuario ya existe")
+        else:
+            return HttpResponse("Usuario registrado")
+        
     return HttpResponse(template.render(context,request))
 
 def main(request):

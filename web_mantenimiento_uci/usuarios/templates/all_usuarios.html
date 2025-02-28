@@ -6,7 +6,15 @@
 
     {%block content%}
     <div class="container mt-3 mx-3">
-        <h1>Usuarios</h1>
+        <div class="row container">
+        <div class="col"><h1>Usuarios</h1></div>
+        <div class="col d-flex flex-row-reverse p-3 ">
+            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
+        </div>
+
+        {% include 'modalRegistrarUsuario.html' %}
+            
+        </div>
         <table class="table table-hover">
             <thead>
                 <tr class="table-dark">
