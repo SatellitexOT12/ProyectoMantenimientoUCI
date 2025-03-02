@@ -7,7 +7,7 @@
     {%block content%}
     <div class="container mt-3 mx-3">
         <div class="row container">
-        <div class="col"><h1>Usuarios</h1></div>
+        <div class="col"><h1>Lista de Usuarios</h1></div>
         <div class="col d-flex flex-row-reverse p-3 ">
             <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
             
@@ -34,6 +34,7 @@
                     <th>Seleccionar Todos
                         <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
                     </th>
+                    <th>Modificar</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,11 +46,13 @@
                 <td>{{x.last_login}}</td>
                 <td>{{x.date_joined}}</td>
                 <td> 
-                <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                    <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{x.id}}" >
-                </div>
-            
-            </td>
+                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
+                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{x.id}}" >
+                    </div>            
+                </td>
+                <td>
+                    <a class="nav-link" href="/main">Editar...</a>
+                </td>
             </tr>
             {% endfor %}
             </tbody>
