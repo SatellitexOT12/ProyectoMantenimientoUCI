@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.http import HttpResponse,JsonResponse
 from django.template import loader
 from django.contrib.auth import authenticate,login
@@ -33,7 +33,7 @@ def usuarios(request):
     
     if request.method == 'POST':
             action=request.POST.get('action')
-
+                
             if action != 'delete':
                 username = request.POST['username']
                 name = request.POST['name']
@@ -57,6 +57,9 @@ def usuarios(request):
                 
     return HttpResponse(template.render(context,request))
     
+def seleccionar_usuario(request,item_id):
+        user = get_object_or_404(User, id=item_id)  # Buscar el ítem en la base de datos
+        return render(request, 'editar_usuario.html', {'user': user})
 
 def main(request):
     template = loader.get_template('main.html')

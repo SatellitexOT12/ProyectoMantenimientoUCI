@@ -21,7 +21,7 @@
         </div>
         <form id="eliminar_usuario" method="post" action="{% url 'usuarios' %}">
             {% csrf_token %}
-            <input type="hidden" name="action" value="delete">
+            <input type="hidden" id="action" name="action" value="">
             
         <table class="table table-hover">
             <thead>
@@ -37,6 +37,8 @@
                     <th>Modificar</th>
                 </tr>
             </thead>
+
+                
             <tbody>
             {% for x in tableUsuario %}
             <tr>
@@ -51,11 +53,12 @@
                     </div>            
                 </td>
                 <td>
-                    <a class="nav-link" href="/main">Editar...</a>
+                    <a class="nav-link"  href="{% url 'editar_usuario' x.id %}">Editar...</button>
                 </td>
             </tr>
             {% endfor %}
             </tbody>
+            </form>
         </table>
         </form>
     </div>
@@ -82,6 +85,7 @@
     checkboxes.forEach((checkbox) => {
         checkbox.checked = masterCheckbox.checked;
     });
+    
 }
 
 
