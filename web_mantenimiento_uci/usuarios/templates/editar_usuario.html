@@ -8,6 +8,8 @@
 <h1 class="display-1">Editar Usuario</h1>
 <h3 class="display-6">{{user.username}}</h3>
 
+<form method="post">
+{% csrf_token %}
 <div class="container p-3 mx-0 usuario-contraseña">
 
     <div class="row border-bottom py-3">
@@ -15,7 +17,7 @@
             <p class="form-label"><strong>Usuario:</strong></p>
         </div>
         <div class="col-5">
-            <input type="text" value="{{user.username}}" class="form-control w-75 " >
+            <input type="text" id="username" name="username" value="{{user.username}}" class="form-control w-75 " >
         </div>
         
     </div>
@@ -25,7 +27,7 @@
             <p class="form-label"><strong>Contraseña:</strong></p>
         </div>
         <div class="col-5">
-            <input type="password" value="{{user.password}}" class="form-control w-75 " >
+            <input type="password" id="password name="password" value="{{user.password}}" class="form-control w-75 " >
         </div>
         
     </div>
@@ -42,7 +44,7 @@
             <p class="form-label"><strong>Nombre:</strong></p>
         </div>
         <div class="col-5">
-            <input type="text" value="{{user.first_name}}" class="form-control w-75 " >
+            <input type="text" id="first_name" name="first_name" value="{{user.first_name}}" class="form-control w-75 " >
         </div>
         
     </div>
@@ -52,7 +54,7 @@
             <p class="form-label"><strong>Apellidos:</strong></p>
         </div>
         <div class="col-5">
-            <input type="text" value="{{user.last_name}}" class="form-control w-75 " >
+            <input type="text" id="last_name" name="last_name" value="{{user.last_name}}" class="form-control w-75 " >
         </div>
         
     </div>
@@ -62,7 +64,7 @@
             <p class="form-label"><strong>Correo:</strong></p>
         </div>
         <div class="col-5">
-            <input type="email" value="{{user.email}}" class="form-control w-75 " >
+            <input type="email" id="email" name="email" value="{{user.email}}" class="form-control w-75 " >
         </div>
         
     </div>
@@ -75,9 +77,11 @@
     </div>
 
     <div>
-    <a type="submit" class="btn btn-danger" href="{% url 'usuarios' %}">Cancelar</a>
+    <a type="button" class="btn btn-danger" href="{% url 'usuarios' %}">Cancelar</a>
     </div>
-
+</form>
 </div>
+
+
 
 {%endblock%}

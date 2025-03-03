@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect,get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse,JsonResponse
 from django.template import loader
 from django.contrib.auth import authenticate,login
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 import json
 # Create your views here.
 
@@ -57,9 +58,26 @@ def usuarios(request):
                 
     return HttpResponse(template.render(context,request))
     
+@login_required
 def seleccionar_usuario(request,item_id):
         user = get_object_or_404(User, id=item_id)  # Buscar el ítem en la base de datos
-        return render(request, 'editar_usuario.html', {'user': user})
+        
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+            email = request.POST.get('email')
+            
+            # Actualizar los campos del usuario
+            user.username = username
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.save()  # Guardar los cambios en la base de datos
+            return redirect('usuarios')
+            
+        else:
+            return render(request, 'editar_usuario.html', {'user': user})
 
 def main(request):
     template = loader.get_template('main.html')
