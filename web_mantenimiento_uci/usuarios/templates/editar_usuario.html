@@ -9,7 +9,7 @@
 <h1 class="display-1">Editar Usuario</h1>
 <h3 class="display-6">{{user.username}}</h3>
 
-<form method="post">
+<form method="post" class="was-validated">
 {% csrf_token %}
 <div class="container p-3 mx-0 usuario-contraseña">
 
@@ -18,7 +18,9 @@
             <p class="form-label"><strong>Usuario:</strong></p>
         </div>
         <div class="col-5">
-            <input type="text" id="username" name="username" value="{{user.username}}" class="form-control w-75 " >
+            <input type="text" id="username" name="username" value="{{user.username}}" class="form-control w-75 " required>
+            <div class="valid-feedback">Valido.</div>
+            <div class="invalid-feedback">Por favor llena este campo.</div>
         </div>
         
     </div>
@@ -65,10 +67,13 @@
             <p class="form-label"><strong>Correo:</strong></p>
         </div>
         <div class="col-5">
-            <input type="email" id="email" name="email" value="{{user.email}}" class="form-control w-75 " >
+            <input type="email" id="email" name="email" value="{{user.email}}" class="form-control w-75" required >
+            <div class="valid-feedback">Valido.</div>
+            <div class="invalid-feedback">Por favor llena este campo.</div>
         </div>
         
     </div>
+
 
 </div>
 
