@@ -1,0 +1,75 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title%}
+Reportar Incidencia
+{%endblock%}
+
+{% block content %}
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h3 class="card-title text-center">Reportar Incidencia</h3>
+                    </div>
+                    <div class="card-body">
+                        <form action="{% url 'reportar_incidencia' %}" method="post" enctype="multipart/form-data">
+
+                            {% csrf_token %}
+                            <!-- Campo: Tipo de Incidencia -->
+                            <div class="mb-3">
+                                <label for="tipo_incidencia" class="form-label">Tipo de Incidencia</label>
+                                <select class="form-select" id="tipo_incidencia" name="tipo_incidencia" required>
+                                    <option value="" disabled selected>Seleccione un tipo</option>
+                                    <option value="plomeria">Plomería</option>
+                                    <option value="electricidad">Electricidad</option>
+                                    <option value="infraestructura">Infraestructura</option>
+                                    <option value="limpieza">Limpieza</option>
+                                    <option value="seguridad">Seguridad</option>
+                                </select>
+                            </div>
+
+                            <!-- Campo: Prioridad -->
+                            <div class="mb-3">
+                                <label for="prioridad" class="form-label">Prioridad</label>
+                                <select class="form-select" id="prioridad" name="prioridad" required>
+                                    <option value="" disabled selected>Seleccione una prioridad</option>
+                                    <option value="alta">Alta</option>
+                                    <option value="media">Media</option>
+                                    <option value="baja">Baja</option>
+                                </select>
+                            </div>
+
+                            <!-- Campo: Ubicación -->
+                            <div class="mb-3">
+                                <label for="ubicacion" class="form-label">Ubicación</label>
+                                <input type="text" class="form-control" id="ubicacion" name="ubicacion" placeholder="Ej: Edificio A, Aula 101" required>
+                            </div>
+
+                            <!-- Campo: Descripción -->
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4" placeholder="Describa la incidencia..." required></textarea>
+                            </div>
+
+                            <!-- Campo: Adjuntar Imagen (opcional) -->
+                            <div class="mb-3">
+                                <label for="imagen" class="form-label">Adjuntar Imagen (opcional)</label>
+                                <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*">
+                            </div>
+
+                            <!-- Botón de Enviar -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-dark">Reportar Incidencia</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

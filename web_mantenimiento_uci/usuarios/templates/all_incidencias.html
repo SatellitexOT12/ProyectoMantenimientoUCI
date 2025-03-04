@@ -32,6 +32,7 @@
                     <th>Descripcion</th>
                     <th>Estado</th>
                     <th>Usuario</th>
+                    <th>Imagen</th>
                     <th>Seleccionar Todos
                         <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
                     </th>
@@ -50,6 +51,13 @@
                 <td>{{x.descripcion}}</td>
                 <td>{{x.get_estado_display}}</td>
                 <td>{{x.usuario_reporte.username}}</td>
+                <td>
+                    {% if x.imagen %}
+                        <img src="{{ x.imagen.url }}" alt="Imagen de la incidencia" class="img-fluid">
+                    {% else %}
+                        <p>No hay imagen disponible.</p>
+                    {% endif %}
+                </td>
                 <td> 
                     <div class="form-check d-flex justify-content-center align-items-centerdiv">
                         <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{x.id}}" >

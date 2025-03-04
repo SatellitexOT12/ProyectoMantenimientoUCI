@@ -33,9 +33,10 @@ class Incidencia(models.Model):
     tipo = models.CharField(max_length=50, choices=TIPO_CHOICES, default='plomeria')
     prioridad = models.CharField(max_length=10, choices=PRIORIDAD_CHOICES, default='media')
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
-    fecha = models.DateField()
+    fecha = models.DateTimeField()
     ubicacion = models.CharField(max_length=100)
     descripcion = models.TextField()
+    imagen = models.ImageField(upload_to='incidencias/', null=True, blank=True)
     
     #Llave foraneo del usuario que reporta la incidencia
     usuario_reporte = models.ForeignKey(User, on_delete=models.CASCADE)

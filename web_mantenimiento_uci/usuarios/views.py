@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate,login
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from .models import Incidencia
 from django.core.paginator import Paginator
 import json
@@ -124,6 +125,30 @@ def incidencias(request):
         'page_obj': page_obj
     }
     return HttpResponse(template.render(context,request))
+
+
+def reportar_incidencia(request):
+    
+    if request.method == "POST":
+        tipo = request.POST.get('tipo_incidencia')
+        prioridad = request.POST.get('prioridad')
+        ubicacion = request.POST.get('ubicacion')
+        descripcion = request.POST.get('descripcion')
+        imagen = request.FILES.get('imagen')
+        
+        incidencia = Incidencia (
+            tipo=tipo,
+            prioridad=prioridad,
+            ubicacion=ubicacion,
+            descripcion=descripcion,
+            fecha = timezone.now(),
+            usuario_reporte=request.user,
+            imagen=imagen
+        )
+        incidencia.save()
+        return redirect('incidencias')
+    
+    return render(request , 'reportar_incidencia.html')
 
 def main(request):
     template = loader.get_template('main.html')
