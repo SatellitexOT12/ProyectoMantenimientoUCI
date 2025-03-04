@@ -28,9 +28,9 @@
                     </a>
                 </li>
             </ul>
-            <form class="d-flex">
-                <input class="form-control me-2" type="text" placeholder="Search">
-                <button class="btn btn-primary" type="button">Search</button>
+            <form class="d-flex" method="get" >
+                <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ request.GET.q }}">
+                <button class="btn btn-primary" type="submit">Buscar</button>
             </form>
         </div>
     </div>

@@ -28,13 +28,25 @@ def custom_login(request):
         return render(request, 'login.html')
 
 def usuarios(request):
-    tableUsuario = User.objects.all().values()
+    tableUsuario = User.objects.all()
     template = loader.get_template('all_usuarios.html')
     
+    #Obtener palabra a buscar
+    query = request.GET.get('q')
+    
+    #Condicion para buscar elementos en la tabla
+    if query:
+        tableUsuario = (tableUsuario.filter(username__icontains=query) | tableUsuario.filter(email__icontains=query) 
+        | tableUsuario.filter(is_active__icontains=query) | tableUsuario.filter(last_login__icontains=query)
+        | tableUsuario.filter(date_joined__icontains=query) 
+        )
+    #Paginacion
     paginator = Paginator(tableUsuario,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    
+    #Contenido mostrado en la pagina
     context = {
         'tableUsuario': tableUsuario,
         'page_obj': page_obj
@@ -92,6 +104,17 @@ def incidencias(request):
     template = loader.get_template('all_incidencias.html')
     tableIncidencia = Incidencia.objects.all()
     
+    #Obtener elemento a buscar
+    query = request.GET.get('q')
+    
+    #Condicion para buscar elementos en la tabla
+    if query:
+        tableIncidencia =( tableIncidencia.filter(tipo__icontains=query) | tableIncidencia.filter(prioridad__icontains=query)
+        | tableIncidencia.filter(estado__icontains=query) | tableIncidencia.filter(fecha__icontains=query)
+        | tableIncidencia.filter(ubicacion__icontains=query) | tableIncidencia.filter(descripcion__icontains=query)
+        )
+        
+    #Paginacion
     paginator = Paginator(tableIncidencia,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

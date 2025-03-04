@@ -1,3 +1,5 @@
+
+//Verificar contraseñas
 document.getElementById("registroForm").addEventListener("submit", function(event) {
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
@@ -12,10 +14,13 @@ document.getElementById("registroForm").addEventListener("submit", function(even
     }
 });
 
+//Seleccionar todos los checkbox
 function toggleCheckboxes(masterCheckbox) {
 const checkboxes = document.querySelectorAll('.checkbox');
 checkboxes.forEach((checkbox) => {
     checkbox.checked = masterCheckbox.checked;
 });
+
+
 
 }

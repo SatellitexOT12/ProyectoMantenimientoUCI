@@ -1,13 +1,13 @@
 {% extends "master.html" %}
 {% load static %}
     {% block title%}
-    Lista de Usuarios
+    Gestionar Usuarios
     {%endblock%}
 
     {%block content%}
     <div class="container mt-3 mx-3">
         <div class="row container">
-        <div class="col"><h1>Lista de Usuarios</h1></div>
+        <div class="col"><h1>Gestionar Usuarios</h1></div>
         <div class="col d-flex flex-row-reverse p-3 ">
             <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
             
@@ -23,7 +23,7 @@
             {% csrf_token %}
             <input type="hidden" id="action" name="action" value="">
             
-        <table class="table table-hover">
+        <table class="table table-hover" id="userTable">
             <thead>
                 <tr class="table-dark">
                     <th>Usuario</th>
