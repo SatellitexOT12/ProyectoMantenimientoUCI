@@ -15,6 +15,7 @@ Este proyecto es una **página web de mantenimiento** diseñada para gestionar i
 - **Frontend**:
   - HTML5
   - CSS3
+  - Javascript
   - Bootstrap 5
 - **Backend**:
   - Django
