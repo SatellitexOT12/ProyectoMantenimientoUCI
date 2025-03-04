@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate,login
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from .models import Incidencia
+from django.core.paginator import Paginator
 import json
 # Create your views here.
 
@@ -28,8 +30,14 @@ def custom_login(request):
 def usuarios(request):
     tableUsuario = User.objects.all().values()
     template = loader.get_template('all_usuarios.html')
+    
+    paginator = Paginator(tableUsuario,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
         'tableUsuario': tableUsuario,
+        'page_obj': page_obj
     }
     
     if request.method == 'POST':
@@ -78,6 +86,21 @@ def seleccionar_usuario(request,item_id):
             
         else:
             return render(request, 'editar_usuario.html', {'user': user})
+        
+        
+def incidencias(request):
+    template = loader.get_template('all_incidencias.html')
+    tableIncidencia = Incidencia.objects.all()
+    
+    paginator = Paginator(tableIncidencia,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'tableIncidencia': tableIncidencia,
+        'page_obj': page_obj
+    }
+    return HttpResponse(template.render(context,request))
 
 def main(request):
     template = loader.get_template('main.html')
