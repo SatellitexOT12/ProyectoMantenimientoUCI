@@ -19,7 +19,7 @@
 
             
         </div>
-        <form id="eliminar_incidencia" method="post" action="{% url 'usuarios' %}">
+        <form id="eliminar_incidencia" method="post" action="{% url 'incidencias' %}">
             {% csrf_token %}
             <input type="hidden" id="action" name="action" value="">
             
@@ -44,19 +44,20 @@
                 
             <tbody>
             {% for x in page_obj %}
-            {% if x.estado == "pendiente" %}
-            <tr style="background-color:rgba(253, 191, 4, 0.36);">
-            {%elif x.estado == "resuelto"%}
-            <tr style="background-color:rgba(12, 253, 4, 0.36);">
-            {%else%}
-            <tr style="background-color:rgba(216, 214, 214, 0.36);">
-            {%endif%}
+            <tr>
                 <td>{{x.get_tipo_display}}</td>
                 <td>{{x.get_prioridad_display}}</td>
                 <td>{{x.fecha}}</td>
                 <td>{{x.ubicacion}}</td>
                 <td>{{x.descripcion}}</td>
-                <td>{{x.get_estado_display}}</td>
+                {% if x.estado == "pendiente" %}
+                <td style="background-color:rgba(253, 191, 4, 0.36);">{{x.get_estado_display}}</td>
+                {%elif x.estado == "resuelto"%}
+                <td style="background-color:rgba(12, 253, 4, 0.36);">{{x.get_estado_display}}</td>
+                {%else%}
+                <td style="background-color:rgba(216, 214, 214, 0.36);">{{x.get_estado_display}}</td>
+                {%endif%}
+            
                 <td>{{x.usuario_reporte.username}}</td>
                 <td>
                     {% if x.imagen %}

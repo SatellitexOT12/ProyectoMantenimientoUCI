@@ -105,6 +105,14 @@ def incidencias(request):
     template = loader.get_template('all_incidencias.html')
     tableIncidencia = Incidencia.objects.all()
     
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == "delete":
+                ids=request.POST.getlist('ids')
+                Incidencia.objects.filter(id__in=ids).delete()
+                return redirect('incidencias')
+    
     #Obtener elemento a buscar
     query = request.GET.get('q')
     
@@ -130,6 +138,8 @@ def incidencias(request):
 def reportar_incidencia(request):
     
     if request.method == "POST":
+            
+        
         tipo = request.POST.get('tipo_incidencia')
         prioridad = request.POST.get('prioridad')
         ubicacion = request.POST.get('ubicacion')
