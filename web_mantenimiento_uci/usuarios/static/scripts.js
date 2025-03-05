@@ -20,7 +20,11 @@ const checkboxes = document.querySelectorAll('.checkbox');
 checkboxes.forEach((checkbox) => {
     checkbox.checked = masterCheckbox.checked;
 });
+}
 
+function abrirImagen(url) {
+    // Asignar la URL de la imagen al modal
+    document.getElementById('imagenEnFoco').src = url;
 
-
+    // Mostrar el modal
 }

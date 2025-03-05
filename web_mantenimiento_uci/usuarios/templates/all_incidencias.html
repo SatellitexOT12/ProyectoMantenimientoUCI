@@ -16,6 +16,7 @@
 
     
         {% include 'modalEliminarUsuario.html' %}
+
             
         </div>
         <form id="eliminar_incidencia" method="post" action="{% url 'usuarios' %}">
@@ -53,7 +54,8 @@
                 <td>{{x.usuario_reporte.username}}</td>
                 <td>
                     {% if x.imagen %}
-                        <img src="{{ x.imagen.url }}" alt="Imagen de la incidencia" class="img-fluid">
+                        <img src="{{ x.imagen.url }}" alt="Imagen de la incidencia" class="img-thumbnail" style="width: 100px; cursor: pointer;"
+                        onclick='abrirImagen("{{ x.imagen.url }}")' data-bs-toggle="modal" data-bs-target="#imagenModal">
                     {% else %}
                         <p>No hay imagen disponible.</p>
                     {% endif %}
@@ -64,20 +66,35 @@
                     </div>            
                 </td>
                 <td>
-                    <a class="nav-link"  href="{% url 'editar_usuario' x.id %}">Editar...</button>
+                    <a class="nav-link"  href="{% url 'editar_usuario' x.id %}">Editar...</a>
                 </td>
             </tr>
             {% endfor %}
             </tbody>
-            </form>
         </table>
 
         {% include 'paginacion.html' %}
+        
 
         </form>
+
+        <div class="modal fade" id="imagenModal" tabindex="-1" aria-labelledby="imagenModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imagenModalLabel">Imagen de la Incidencia</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img id="imagenEnFoco" src="" alt="Imagen en foco" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     
 
-    <script src="{% static '../static/scripts.js'  %}""></script>
+    <script src="{% static '../static/scripts.js'  %}"></script>
     {%endblock%}
