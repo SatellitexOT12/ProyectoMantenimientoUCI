@@ -15,7 +15,7 @@
         </div>
 
     
-        {% include 'modalEliminarUsuario.html' %}
+        {% include 'modalEliminarIncidencia.html' %}
 
             
         </div>
@@ -44,7 +44,13 @@
                 
             <tbody>
             {% for x in page_obj %}
-            <tr>
+            {% if x.estado == "pendiente" %}
+            <tr style="background-color:rgba(253, 191, 4, 0.36);">
+            {%elif x.estado == "resuelto"%}
+            <tr style="background-color:rgba(12, 253, 4, 0.36);">
+            {%else%}
+            <tr style="background-color:rgba(216, 214, 214, 0.36);">
+            {%endif%}
                 <td>{{x.get_tipo_display}}</td>
                 <td>{{x.get_prioridad_display}}</td>
                 <td>{{x.fecha}}</td>
@@ -57,7 +63,7 @@
                         <img src="{{ x.imagen.url }}" alt="Imagen de la incidencia" class="img-thumbnail" style="width: 100px; cursor: pointer;"
                         onclick='abrirImagen("{{ x.imagen.url }}")' data-bs-toggle="modal" data-bs-target="#imagenModal">
                     {% else %}
-                        <p>No hay imagen disponible.</p>
+                        <p>No img</p>
                     {% endif %}
                 </td>
                 <td> 
