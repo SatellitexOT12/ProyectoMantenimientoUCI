@@ -12,9 +12,12 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/main">Inicio</a>
                 </li>
+
+                {% if perms.auth.view_user %}
                 <li class="nav-item">
                     <a class="nav-link" href="/usuarios">Usuarios</a>
                 </li>
+                {%endif%}
                 
                 <li class="nav-item dropdown">
                     <button type="button" class="btn nav-link dropdown-toggle" data-bs-toggle="dropdown">

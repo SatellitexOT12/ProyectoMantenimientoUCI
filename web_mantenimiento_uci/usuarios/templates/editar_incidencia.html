@@ -1,0 +1,103 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block title%}
+    Editar incidencia
+{%endblock%}
+
+{% block content %}
+<h1 class="display-1">Editar Incidencia</h1>
+<h3 class="display-6">{{incidencia.id}}</h3>
+
+<form method="post" class="was-validated">
+{% csrf_token %}
+<div class="container p-3 mx-0">
+
+    <div class="row border-bottom py-3">
+    
+        <div class="col-5">
+            <label for="tipo_incidencia" class="form-label">Tipo de Incidencia</label>
+            <select class="form-select" id="tipo" name="tipo" required>
+                <option value="plomeria" {% if incidencia.tipo == "plomeria" %}selected {% endif %} >Plomería</option>
+                <option value="electricidad" {% if incidencia.tipo == "electricidad" %}selected {% endif %}>Electricidad</option>
+                <option value="infraestructura" {% if incidencia.tipo == "infraestructura" %}selected {% endif %}>Infraestructura</option>
+                <option value="limpieza" {% if incidencia.tipo == "limpieza" %}selected {% endif %}>Saneamiento</option>
+                <option value="seguridad" {% if incidencia.tipo == "seguridad" %}selected {% endif %}>Seguridad</option>
+            </select>
+        </div>
+        
+    </div>
+
+    <div class="row border-bottom py-3">
+
+        <div class="col-5">
+            <label for="prioridad" class="form-label">Prioridad</label>
+            <select class="form-select" id="prioridad" name="prioridad"  required>
+                <option value="alta" {% if incidencia.prioridad == "alta" %}selected {% endif %} >Alta</option>
+                <option value="media"{% if incidencia.prioridad == "media" %}selected {% endif %} >Media</option>
+                <option value="baja" {% if incidencia.prioridad == "baja" %}selected {% endif %}>Baja</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row border-bottom py-3">
+        <div class="col-2">
+            <p class="form-label"><strong>Fecha:</strong></p>
+        </div>
+        <div class="col-5">
+            <input type="text" id="fecha" name="fecha" value="{{ incidencia.fecha|date:'Y-m-d H:i' }}" class="form-control w-75 " >
+        </div>
+        
+    </div>
+
+    <div class="row border-bottom py-3">
+        <div class="col-2">
+            <p class="form-label"><strong>Ubicación:</strong></p>
+        </div>
+        <div class="col-5">
+            <input type="text" id="ubicacion" name="ubicacion" value="{{incidencia.ubicacion}}" class="form-control w-75">
+        </div>
+        
+    </div>
+
+    <div class="row border-bottom py-3">
+
+        <div class="col-5">
+
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="4" placeholder="Describa la incidencia..."  > {{incidencia.descripcion}}</textarea>
+        </div>
+    </div>
+
+    <div class="row border-bottom py-3">
+
+    <div class="col-5">
+    <label for="estado" class="form-label">Estado</label>
+            <select class="form-select" id="estado" name="estado" >
+                <option value="pendiente" {% if incidencia.estado == "pendiente" %}selected {% endif %}>Pendiente</option>
+                <option value="en_proceso"{% if incidencia.estado == "en_proceso" %}selected {% endif %}>En Proceso</option>
+                <option value="resuelto" {% if incidencia.estado == "resuelto" %}selected {% endif %}>Resuelto</option>
+            </select>
+    </div>
+    </div>
+
+
+</div>
+
+
+</div>
+
+<div class="d-flex p-5">
+    <div class="px-5">
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+
+    <div>
+    <a type="button" class="btn btn-danger" href="{% url 'incidencias' %}">Cancelar</a>
+    </div>
+</form>
+</div>
+
+
+
+{%endblock%}

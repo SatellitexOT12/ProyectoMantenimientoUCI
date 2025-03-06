@@ -28,3 +28,4 @@ function abrirImagen(url) {
 
     // Mostrar el modal
 }
+

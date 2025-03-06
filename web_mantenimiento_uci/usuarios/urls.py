@@ -11,6 +11,7 @@ urlpatterns = [
     path('incidencias/',views.incidencias,name='incidencias'),
     path('main/', views.main, name='main'),
     path('usuarios/editar/<int:item_id>/',views.seleccionar_usuario,name='editar_usuario'),
+    path('incidencia/editar/<int:item_id>/',views.seleccionar_incidencia,name='editar_incidencia'),
     path('reportar_incidencia',views.reportar_incidencia, name='reportar_incidencia')
 ]
 

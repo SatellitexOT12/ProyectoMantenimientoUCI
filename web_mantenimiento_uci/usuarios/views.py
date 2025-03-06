@@ -4,13 +4,16 @@ from django.template import loader
 from django.contrib.auth import authenticate,login
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required ,permission_required,user_passes_test
 from django.utils import timezone
 from .models import Incidencia
 from django.core.paginator import Paginator
+from datetime import datetime
 import json
 # Create your views here.
 
+
+#Vista para el login
 def custom_login(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -28,6 +31,10 @@ def custom_login(request):
     else:
         return render(request, 'login.html')
 
+def es_administrador(user):
+    return user.groups.filter(name='Administradores').exists()
+
+@user_passes_test(es_administrador)
 def usuarios(request):
     tableUsuario = User.objects.all()
     template = loader.get_template('all_usuarios.html')
@@ -103,7 +110,12 @@ def seleccionar_usuario(request,item_id):
         
 def incidencias(request):
     template = loader.get_template('all_incidencias.html')
-    tableIncidencia = Incidencia.objects.all()
+    
+    if request.user.is_superuser:
+        tableIncidencia = Incidencia.objects.all()
+    else:
+        current_user = request.user
+        tableIncidencia = Incidencia.objects.filter(usuario_reporte=current_user)
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -160,9 +172,38 @@ def reportar_incidencia(request):
     
     return render(request , 'reportar_incidencia.html')
 
+
+@login_required
+@permission_required('usuarios.change_incidencia', raise_exception=True)
+def seleccionar_incidencia(request,item_id):
+        incidencia = get_object_or_404(Incidencia, id=item_id)  # Buscar el ítem en la base de datos
+        
+        if request.method == 'POST':
+            tipo = request.POST.get('tipo')
+            prioridad = request.POST.get('prioridad')
+            estado = request.POST.get('estado')
+            fecha = request.POST.get('fecha')
+            ubicacion = request.POST.get('ubicacion')
+            descripcion = request.POST.get('descripcion')
+            
+            # Actualizar los campos del usuario
+            incidencia.tipo = tipo
+            incidencia.prioridad = prioridad
+            incidencia.estado = estado
+            incidencia.fecha = fecha
+            incidencia.ubicacion = ubicacion
+            incidencia.descripcion = descripcion
+            incidencia.save()  # Guardar los cambios en la base de datos
+            return redirect('incidencias')
+            
+        else:
+            return render(request, 'editar_incidencia.html', {'incidencia': incidencia})
+    
+
+
 def main(request):
-    template = loader.get_template('main.html')
-    return HttpResponse(template.render())
+    
+    return render(request,'main.html')
 
 
 
