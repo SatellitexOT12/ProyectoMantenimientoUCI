@@ -200,6 +200,8 @@ def seleccionar_incidencia(request,item_id):
             return render(request, 'editar_incidencia.html', {'incidencia': incidencia})
     
 
+def materiales(request):
+    return render(request,'materiales.html')
 
 def main(request):
     

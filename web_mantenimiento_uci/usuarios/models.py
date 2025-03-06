@@ -6,9 +6,9 @@ from django.contrib.auth.models import User
 class Incidencia(models.Model):
     
     PRIORIDAD_CHOICES = [
-        ('alta', 'Alta'),
-        ('media', 'Media'),
-        ('baja', 'Baja'),
+        ('3', 'Alta'),
+        ('2', 'Media'),
+        ('1', 'Baja'),
     ]
     
     TIPO_CHOICES = [

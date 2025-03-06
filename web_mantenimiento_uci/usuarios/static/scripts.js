@@ -1,4 +1,20 @@
 
+const togglePassword = document.querySelector('#togglePassword');
+const password = document.querySelector('#password');
+
+togglePassword.addEventListener('click', function () {
+      // Cambiar el tipo de input entre "password" y "text"
+    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+    password.setAttribute('type', type);
+
+      // Cambiar el ícono del ojo
+    this.querySelector('i').classList.toggle('bi-eye');
+    this.querySelector('i').classList.toggle('bi-eye-slash');
+});
+
+
+
+
 //Verificar contraseñas
 document.getElementById("registroForm").addEventListener("submit", function(event) {
     const password = document.getElementById("password").value;
@@ -22,10 +38,16 @@ checkboxes.forEach((checkbox) => {
 });
 }
 
+//Funcion para abrir la imangen de la lista de incidencia 
 function abrirImagen(url) {
     // Asignar la URL de la imagen al modal
     document.getElementById('imagenEnFoco').src = url;
 
     // Mostrar el modal
 }
+
+
+
+
+
 

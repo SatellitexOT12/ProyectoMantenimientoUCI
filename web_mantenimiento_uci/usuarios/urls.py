@@ -9,6 +9,7 @@ urlpatterns = [
     path('', views.custom_login, name='login'),
     path('usuarios/', views.usuarios, name='usuarios'),
     path('incidencias/',views.incidencias,name='incidencias'),
+    path('usuarios/',views.materiales,name="materiales"),
     path('main/', views.main, name='main'),
     path('usuarios/editar/<int:item_id>/',views.seleccionar_usuario,name='editar_usuario'),
     path('incidencia/editar/<int:item_id>/',views.seleccionar_incidencia,name='editar_incidencia'),

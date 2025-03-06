@@ -8,6 +8,7 @@
     {% load bootstrap5 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'log.css' %}">
 </head>
 <body>
@@ -29,7 +30,12 @@
         </div>
         <div class="mb-3">
         <label for="pwd" class="form-label text-white">Contraseña:</label>
+        <div class="input-group">
         <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" required>
+        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+            <i class="bi bi-eye"></i> <!-- Ícono de ojo cerrado -->
+        </button>
+        </div>
         <div class="valid-feedback">Valido.</div>
         <div class="invalid-feedback">Por favor llena este campo.</div>
         </div>
@@ -44,6 +50,8 @@
     </div>
 
     </div>
+
+    <script src="{% static '../static/togglePassword.js'  %}" ></script>
 
 </body>
 </html>
