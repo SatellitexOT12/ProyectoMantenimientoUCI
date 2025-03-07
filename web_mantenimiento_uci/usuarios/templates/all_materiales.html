@@ -1,0 +1,68 @@
+{% extends "master.html" %}
+{% load static %}
+    {% block title%}
+    Gestionar Materiales
+    {%endblock%}
+
+    {%block content%}
+    <div class="container mt-3 mx-3">
+        <div class="row container">
+        <div class="col"><h1>Gestionar Materiales</h1></div>
+        <div class="col d-flex flex-row-reverse p-3 ">
+            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
+            
+            <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar" type="button">Eliminar</button>
+
+        </div>
+
+        {% include 'modalRegistrarMaterial.html' %}
+        {% include 'modalEliminarMaterial.html' %}
+            
+        </div>
+        <form id="eliminar_material" method="post" action="{% url 'materiales' %}">
+            {% csrf_token %}
+            <input type="hidden" id="action" name="action" value="">
+            
+        <table class="table table-hover" id="userTable">
+            <thead>
+                <tr class="table-dark">
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Cantidad</th>
+                    <th>Seleccionar Todos
+                        <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
+                    </th>
+                    <th>Modificar</th>
+                </tr>
+            </thead>
+
+                
+            <tbody>
+            {% for x in tableMaterial %}
+            <tr>
+                <td>{{x.nombre}}</td>
+                <td>{{x.tipo}}</td>
+                <td>{{x.cantidad}}</td>
+                <td> 
+                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
+                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{x.id}}" >
+                    </div>            
+                </td>
+                <td>
+                    <a class="nav-link"  href="{% url 'editar_usuario' x.id %}">Editar...</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            </form>
+        </table>
+
+        {% include 'paginacion.html' %}
+
+        </form>
+
+    </div>
+
+<script src="{% static '../static/scripts.js'  %}"></script>
+
+    {%endblock%}

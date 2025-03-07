@@ -40,3 +40,11 @@ class Incidencia(models.Model):
     
     #Llave foraneo del usuario que reporta la incidencia
     usuario_reporte = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    
+class Material(models.Model):
+    
+    nombre = models.CharField(max_length=100)
+    tipo=models.CharField(max_length=100)
+    cantidad=models.IntegerField()
+    

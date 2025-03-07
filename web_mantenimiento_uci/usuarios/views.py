@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required ,permission_required,user_passes_test
 from django.utils import timezone
-from .models import Incidencia
+from .models import Incidencia,Material
 from django.core.paginator import Paginator
 from datetime import datetime
 import json
@@ -201,7 +201,34 @@ def seleccionar_incidencia(request,item_id):
     
 
 def materiales(request):
-    return render(request,'materiales.html')
+    tableMaterial = Material.objects.all()
+    
+    context = {
+        'tableMaterial':tableMaterial,
+    }
+    
+    if request.method == 'POST':
+        
+        action = request.POST.get('action')
+        
+        if action == "delete":
+                ids=request.POST.getlist('ids')
+                Material.objects.filter(id__in=ids).delete()
+                return redirect('materiales')
+        
+        nombre = request.POST.get('nombre')
+        tipo = request.POST.get('tipo_material')
+        cantidad = request.POST.get('cantidad')
+        
+        material = Material(
+            nombre = nombre,
+            tipo = tipo,
+            cantidad = cantidad
+        )
+        material.save()
+        return redirect('materiales')
+    
+    return render(request,'all_materiales.html',context)
 
 def main(request):
     
