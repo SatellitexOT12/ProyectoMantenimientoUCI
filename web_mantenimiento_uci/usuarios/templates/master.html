@@ -9,12 +9,15 @@
     {% bootstrap_javascript %}
     
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
     {%include 'navbar.html' %}
 
+    <div class="flex-grow-1">
     {%block content%}
     {%endblock%}
+    </div>
+    {%include 'footer.html' %}
 
 </body>
 </html>
