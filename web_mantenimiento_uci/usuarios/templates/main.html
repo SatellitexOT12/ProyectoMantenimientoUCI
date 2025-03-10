@@ -4,17 +4,64 @@
     MainPage
 {%endblock%}
 
+<style>
+    /* Estilos personalizados */
+    .service-card {
+    transition: transform 0.3s ease;
+    }
+    .service-card:hover {
+    transform: translateY(-10px);
+    }
+</style>
+
 {%block content%}
 <div class="container p-5 my-5  bg-dark text-white rounded">
 <h1>Mantenimiento UCI</h1>
 <p> Sistema de gestion de mantenimiento de la Universidad de Ciencias Informaticas</p>
 </div>
-<div class="row">
-    <h2 class="d-flex justify-content-center">Nuestros servicios</h2>
-</div>
-<div class="row d-flex justify-content-center mt-5">
-    <div class="col-3  d-flex justify-content-center">INCIDENCIAS</div>
-    <div class="col-4  d-flex justify-content-center">MATERIALES</div>
-    <div class="col-3  d-flex justify-content-center">REPORTES</div>
-</div>
+
+<section class="py-5">
+    <div class="container">
+    <!-- Título -->
+    <h2 class="text-center mb-5">Nuestros Servicios</h2>
+
+    <!-- Tarjetas de servicios -->
+    <div class="row">
+        <!-- Servicio 1: Incidencias -->
+        <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4 service-card">
+            <div class="card-body d-flex flex-column">
+            <h3 class="card-title">Incidencias</h3>
+            <p class="card-text flex-grow-1">Reporta y gestiona incidencias de manera eficiente. Nuestro sistema te permite realizar un seguimiento en tiempo real.</p>
+            <a href="/incidencias" class="btn btn-primary mt-auto">Más información</a>
+            </div>
+        </div>
+        </div>
+
+        <!-- Servicio 2: Materiales -->
+        <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4 service-card">
+            <div class="card-body d-flex flex-column">
+            <h3 class="card-title">Materiales</h3>
+            <p class="card-text flex-grow-1">Gestiona el inventario de materiales de manera sencilla. Controla entradas, salidas y stock en un solo lugar.</p>
+            <a href="/materiales" class="btn btn-primary mt-auto">Más información</a>
+            </div>
+        </div>
+        </div>
+
+        <!-- Servicio 3: Reportes -->
+        <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4 service-card">
+            <div class="card-body d-flex flex-column">
+            <h3 class="card-title">Reportes</h3>
+            <p class="card-text flex-grow-1">Genera reportes detallados para análisis y toma de decisiones. Exporta datos en diferentes formatos.</p>
+            <a href="/reportes" class="btn btn-primary mt-auto">Más información</a>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+</section>
+
+
 {%endblock%}

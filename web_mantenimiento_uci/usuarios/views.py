@@ -34,6 +34,7 @@ def custom_login(request):
 def es_administrador(user):
     return user.groups.filter(name='Administradores').exists()
 
+@login_required
 @user_passes_test(es_administrador)
 def usuarios(request):
     tableUsuario = User.objects.all()
@@ -107,7 +108,7 @@ def seleccionar_usuario(request,item_id):
         else:
             return render(request, 'editar_usuario.html', {'user': user})
         
-        
+@login_required  
 def incidencias(request):
     template = loader.get_template('all_incidencias.html')
     
@@ -146,7 +147,7 @@ def incidencias(request):
     }
     return HttpResponse(template.render(context,request))
 
-
+@login_required
 def reportar_incidencia(request):
     
     if request.method == "POST":
@@ -199,7 +200,7 @@ def seleccionar_incidencia(request,item_id):
         else:
             return render(request, 'editar_incidencia.html', {'incidencia': incidencia})
     
-
+@login_required
 def materiales(request):
     tableMaterial = Material.objects.all()
     
@@ -229,6 +230,9 @@ def materiales(request):
         return redirect('materiales')
     
     return render(request,'all_materiales.html',context)
+
+def reportes(request):
+    return render(request,'all_reportes.html')
 
 def main(request):
     

@@ -1,0 +1,62 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title%}
+    Lista de Reportes
+{%endblock%}
+
+{% block content%}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Reportes</h1>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+    <div class="col-md-4">
+        <label for="fechaInicio" class="form-label">Fecha de inicio</label>
+        <input type="date" class="form-control" id="fechaInicio">
+    </div>
+    <div class="col-md-4">
+        <label for="fechaFin" class="form-label">Fecha de fin</label>
+        <input type="date" class="form-control" id="fechaFin">
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-primary w-100">Filtrar</button>
+    </div>
+    </div>
+
+    <!-- Tabla de reportes -->
+    <div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1</td>
+            <td>2023-10-01</td>
+            <td>Reporte de incidencia en el servidor</td>
+            <td>Resuelto</td>
+            <td>
+            <button class="btn btn-sm btn-info">Ver</button>
+            <button class="btn btn-sm btn-danger">Eliminar</button>
+            </td>
+        </tr>
+        <!-- Más filas aquí -->
+        </tbody>
+    </table>
+    </div>
+
+    <!-- Botón de exportar -->
+    <div class="text-center mt-4">
+    <button class="btn btn-success">Exportar a Excel</button>
+    </div>
+</div>
+
+{%endblock%}
