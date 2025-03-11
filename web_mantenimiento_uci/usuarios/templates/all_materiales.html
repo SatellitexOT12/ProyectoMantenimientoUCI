@@ -38,7 +38,7 @@
 
                 
             <tbody>
-            {% for x in tableMaterial %}
+            {% for x in page_obj %}
             <tr>
                 <td>{{x.nombre}}</td>
                 <td>{{x.tipo}}</td>
@@ -49,7 +49,7 @@
                     </div>            
                 </td>
                 <td>
-                    <a class="nav-link"  href="{% url 'editar_usuario' x.id %}">Editar...</a>
+                    <a class="nav-link"  href="{% url 'editar_material' x.id %}">Editar...</a>
                 </td>
             </tr>
             {% endfor %}

@@ -1,0 +1,73 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block title%}
+    Editar material
+{%endblock%}
+
+{% block content %}
+<h1 class="display-1">Editar Material</h1>
+<h3 class="display-6">{{material.nombre}}</h3>
+
+<form method="post" class="was-validated">
+{% csrf_token %}
+<div class="container p-3 mx-0">
+
+    <div class="row border-bottom py-3">
+        <div class="col-2">
+            <p class="form-label"><strong>Nombre:</strong></p>
+        </div>
+        <div class="col-5">
+            <input type="text" id="nombre" name="nombre" value="{{material.nombre}}" class="form-control w-75">
+        </div>
+        
+    </div>
+    
+    <div class="row border-bottom py-3">
+        <div class="col-2">
+            <p class="form-label"><strong>Cantidad:</strong></p>
+        </div>
+        <div class="col-5">
+            <input type="number" id="cantidad" name="cantidad" value="{{material.cantidad}}" class="form-control w-75">
+        </div>
+        
+    </div>
+
+    <div class="row border-bottom py-3">
+    
+        <div class="col-5">
+            <label for="tipo_material" class="form-label">Tipo de Material</label>
+            <select class="form-select" id="tipo" name="tipo" required>
+                <option value="plomeria" {% if material.tipo == "plomeria" %}selected {% endif %} >Plomería</option>
+                <option value="electricidad" {% if material.tipo == "electricidad" %}selected {% endif %}>Electricidad</option>
+                <option value="infraestructura" {% if material.tipo == "infraestructura" %}selected {% endif %}>Infraestructura</option>
+                <option value="limpieza" {% if material.tipo == "limpieza" %}selected {% endif %}>Saneamiento</option>
+                <option value="seguridad" {% if material.tipo == "seguridad" %}selected {% endif %}>Seguridad</option>
+            </select>
+        </div>
+        
+    </div>
+
+
+
+
+
+</div>
+
+
+</div>
+
+<div class="d-flex p-5">
+    <div class="px-5">
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+
+    <div>
+    <a type="button" class="btn btn-danger" href="{% url 'materiales' %}">Cancelar</a>
+    </div>
+</form>
+</div>
+
+
+
+{%endblock%}

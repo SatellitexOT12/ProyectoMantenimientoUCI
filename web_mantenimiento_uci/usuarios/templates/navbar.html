@@ -29,12 +29,17 @@
                             <li><a class="dropdown-item" href="#">Historial</a></li>
                         </ul>
                 </li>
+                {% if perms.auth.view_material %}
                 <li class="nav-item">
                     <a class="nav-link" href="/materiales">Materiales</a>
                 </li>
+                {%endif%}
+
+                {% if perms.auth.view_material %}
                 <li class="nav-item">
                     <a class="nav-link" href="/reportes">Reportes</a>
                 </li>
+                {%endif%}
             </ul>
             <form class="d-flex" method="get" >
                 <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ request.GET.q }}">

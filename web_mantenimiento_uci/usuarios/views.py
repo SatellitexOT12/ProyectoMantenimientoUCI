@@ -204,8 +204,14 @@ def seleccionar_incidencia(request,item_id):
 def materiales(request):
     tableMaterial = Material.objects.all()
     
+    #Paginacion
+    paginator = Paginator(tableMaterial,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
         'tableMaterial':tableMaterial,
+        'page_obj':page_obj
     }
     
     if request.method == 'POST':
@@ -230,6 +236,22 @@ def materiales(request):
         return redirect('materiales')
     
     return render(request,'all_materiales.html',context)
+
+def seleccionar_material(request,item_id):
+    material= get_object_or_404(Material,id = item_id)
+    
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        tipo = request.POST.get('tipo')
+        cantidad = request.POST.get('cantidad')
+        
+        material.nombre = nombre
+        material.tipo = tipo
+        material.cantidad = cantidad
+        material.save()
+        return redirect('materiales')
+    else:
+        return render(request, 'editar_material.html', {'material': material})
 
 def reportes(request):
     return render(request,'all_reportes.html')
