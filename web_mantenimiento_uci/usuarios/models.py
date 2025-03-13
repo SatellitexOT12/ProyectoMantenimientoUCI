@@ -47,4 +47,30 @@ class Material(models.Model):
     nombre = models.CharField(max_length=100)
     tipo=models.CharField(max_length=100)
     cantidad=models.IntegerField()
+
+
+class Reporte(models.Model):
     
+        
+
+    fecha = models.DateTimeField()
+    descripcion = models.TextField()
+    estado = models.CharField(max_length=50,blank=True)
+    
+    reporte_incidencia = models.ForeignKey(Incidencia,on_delete=models.CASCADE,null=True, blank=True)
+    reporte_material = models.ForeignKey(Material,on_delete=models.CASCADE,null=True, blank=True)
+    
+    
+    def save(self, *args, **kwargs):
+        self.estado = self.reporte_incidencia.estado
+        super().save(*args, **kwargs)
+    
+
+    @property
+    def tipo(self):
+        if self.reporte_incidencia is not None:
+            return "Incidencia"
+        elif self.reporte_material is not None:
+            return "Material"
+        else:
+            return "Sin tipo"

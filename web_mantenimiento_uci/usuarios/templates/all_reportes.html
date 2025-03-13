@@ -26,30 +26,40 @@
 
     <!-- Tarjetas de Resumen -->
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-white bg-primary mb-3">
                 <div class="card-header">Reportes Totales</div>
                 <div class="card-body">
-                    <h5 class="card-title">150</h5>
+                    <h5 class="card-title">{{totalReportes}}</h5>
                     <p class="card-text">Reportes generados en el periodo.</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-white bg-success mb-3">
                 <div class="card-header">Reportes Resueltos</div>
                 <div class="card-body">
-                    <h5 class="card-title">120</h5>
+                    <h5 class="card-title">{{reporte_resuelto}}</h5>
                     <p class="card-text">Reportes resueltos en el periodo.</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-white bg-danger mb-3">
                 <div class="card-header">Reportes Pendientes</div>
                 <div class="card-body">
-                    <h5 class="card-title">30</h5>
+                    <h5 class="card-title">{{reporte_pendiente}}</h5>
                     <p class="card-text">Reportes pendientes de resolver.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary mb-3">
+                <div class="card-header">Reportes En Proceso</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{reporte_enProceso}}</h5>
+                    <p class="card-text">Reportes en proceso de resolver.</p>
                 </div>
             </div>
         </div>
@@ -82,22 +92,28 @@
                 <tr>
                     <th>ID</th>
                     <th>Fecha</th>
+                    <th>Tipo</th>
                     <th>Descripción</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
+                
+                {% for x in tableReporte %}
                 <tr>
-                    <td>1</td>
-                    <td>2023-10-01</td>
-                    <td>Reporte de incidencia en el servidor</td>
-                    <td>Resuelto</td>
+                    <td>{{x.id}}</td>
+                    <td>{{x.fecha}}</td>
+                    <td>{{x.tipo}}</td>
+                    <td>{{x.descripcion}}</td>
+                    <td>{{x.reporte_incidencia.get_estado_display}}</td>
                     <td>
                         <button class="btn btn-sm btn-info">Ver</button>
                         <button class="btn btn-sm btn-danger">Eliminar</button>
                     </td>
                 </tr>
+
+                {%endfor%}
                 <!-- Más filas aquí -->
             </tbody>
         </table>
@@ -120,7 +136,7 @@
             labels: ['Pendiente', 'Resuelto', 'En Proceso'], // Etiquetas para cada estado
             datasets: [{
                 label: 'Reportes por Estado',
-                data: [30, 120, 50], // Datos dinámicos (ejemplo: 30 pendientes, 120 resueltos, 50 en proceso)
+                data: [{{reporte_pendiente}}, {{reporte_resuelto}}, {{reporte_enProceso}}], // Datos dinámicos (ejemplo: 30 pendientes, 120 resueltos, 50 en proceso)
                 backgroundColor: [
                     'rgba(255, 205, 86, 0.6)', // Amarillo para Pendiente
                     'rgba(75, 192, 192, 0.6)', // Verde para Resuelto
@@ -153,10 +169,10 @@
     var mesChart = new Chart(ctxMes, {
         type: 'bar',
         data: {
-            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
+            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
             datasets: [{
                 label: 'Reportes por Mes',
-                data: [12, 19, 3, 5, 2, 3, 7],
+                data: [12, 19, 3, 5, 2, 3, 7,8,2,7,9,11],
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1

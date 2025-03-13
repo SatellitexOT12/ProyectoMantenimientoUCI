@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required ,permission_required,user_passes_test
 from django.utils import timezone
-from .models import Incidencia,Material
+from .models import Incidencia,Material,Reporte
 from django.core.paginator import Paginator
 from datetime import datetime
 import json
@@ -255,7 +255,21 @@ def seleccionar_material(request,item_id):
         return render(request, 'editar_material.html', {'material': material})
 
 def reportes(request):
-    return render(request,'all_reportes.html')
+    tableReporte = Reporte.objects.all()
+    
+    totalReportes = tableReporte.count()
+    reporte_resuelto = tableReporte.filter(estado='resuelto').count()
+    reporte_pendiente = tableReporte.filter(estado='pendiente').count()
+    reporte_enProceso = tableReporte.filter(estado = 'en_proceso').count()
+    context = {
+        'tableReporte' : tableReporte,
+        'totalReportes' : totalReportes,
+        'reporte_resuelto' : reporte_resuelto,
+        'reporte_pendiente' : reporte_pendiente,
+        'reporte_enProceso' : reporte_enProceso
+    }
+    
+    return render(request,'all_reportes.html',context)
 
 def main(request):
     
