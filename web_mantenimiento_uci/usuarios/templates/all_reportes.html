@@ -1,62 +1,179 @@
 {% extends "master.html" %}
 {% load static %}
 
-{% block title%}
-    Lista de Reportes
-{%endblock%}
+{% block title %}
+    Reportes
+{% endblock %}
 
-{% block content%}
-
+{% block content %}
 <div class="container mt-5">
     <h1 class="text-center mb-4">Reportes</h1>
 
     <!-- Filtros -->
     <div class="row mb-4">
-    <div class="col-md-4">
-        <label for="fechaInicio" class="form-label">Fecha de inicio</label>
-        <input type="date" class="form-control" id="fechaInicio">
+        <div class="col-md-4">
+            <label for="fechaInicio" class="form-label">Fecha de inicio</label>
+            <input type="date" class="form-control" id="fechaInicio">
+        </div>
+        <div class="col-md-4">
+            <label for="fechaFin" class="form-label">Fecha de fin</label>
+            <input type="date" class="form-control" id="fechaFin">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary w-100">Filtrar</button>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label for="fechaFin" class="form-label">Fecha de fin</label>
-        <input type="date" class="form-control" id="fechaFin">
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Reportes Totales</div>
+                <div class="card-body">
+                    <h5 class="card-title">150</h5>
+                    <p class="card-text">Reportes generados en el periodo.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Reportes Resueltos</div>
+                <div class="card-body">
+                    <h5 class="card-title">120</h5>
+                    <p class="card-text">Reportes resueltos en el periodo.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-header">Reportes Pendientes</div>
+                <div class="card-body">
+                    <h5 class="card-title">30</h5>
+                    <p class="card-text">Reportes pendientes de resolver.</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4 d-flex align-items-end">
-        <button class="btn btn-primary w-100">Filtrar</button>
-    </div>
+
+    <!-- Gráficos -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Reportes por Estado</div>
+                <div class="card-body">
+                    <canvas id="estadoChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Reportes por Mes</div>
+                <div class="card-body">
+                    <canvas id="mesChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Tabla de reportes -->
     <div class="table-responsive">
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Fecha</th>
-            <th>Descripción</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td>1</td>
-            <td>2023-10-01</td>
-            <td>Reporte de incidencia en el servidor</td>
-            <td>Resuelto</td>
-            <td>
-            <button class="btn btn-sm btn-info">Ver</button>
-            <button class="btn btn-sm btn-danger">Eliminar</button>
-            </td>
-        </tr>
-        <!-- Más filas aquí -->
-        </tbody>
-    </table>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>2023-10-01</td>
+                    <td>Reporte de incidencia en el servidor</td>
+                    <td>Resuelto</td>
+                    <td>
+                        <button class="btn btn-sm btn-info">Ver</button>
+                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                    </td>
+                </tr>
+                <!-- Más filas aquí -->
+            </tbody>
+        </table>
     </div>
 
     <!-- Botón de exportar -->
     <div class="text-center mt-4">
-    <button class="btn btn-success">Exportar a Excel</button>
+        <button class="btn btn-success">Exportar a Excel</button>
     </div>
 </div>
 
-{%endblock%}
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de Reportes por Estado
+    var ctxEstado = document.getElementById('estadoChart').getContext('2d');
+    var estadoChart = new Chart(ctxEstado, {
+        type: 'pie', // Tipo de gráfico (puede ser 'pie', 'doughnut', etc.)
+        data: {
+            labels: ['Pendiente', 'Resuelto', 'En Proceso'], // Etiquetas para cada estado
+            datasets: [{
+                label: 'Reportes por Estado',
+                data: [30, 120, 50], // Datos dinámicos (ejemplo: 30 pendientes, 120 resueltos, 50 en proceso)
+                backgroundColor: [
+                    'rgba(255, 205, 86, 0.6)', // Amarillo para Pendiente
+                    'rgba(75, 192, 192, 0.6)', // Verde para Resuelto
+                    'rgba(169, 169, 169, 0.6)' // Gris para En Proceso
+                ],
+                borderColor: [
+                    'rgba(255, 205, 86, 1)', // Borde amarillo
+                    'rgba(75, 192, 192, 1)', // Borde verde
+                    'rgba(169, 169, 169, 1)' // Borde gris
+                ],
+                borderWidth: 1 // Ancho del borde
+            }]
+        },
+        options: {
+            responsive: true, // Hace que el gráfico sea responsive
+            plugins: {
+                legend: {
+                    position: 'top', // Posición de la leyenda
+                },
+                title: {
+                    display: true,
+                    text: 'Reportes por Estado' // Título del gráfico
+                }
+            }
+        }
+    });
+
+    // Gráfico de Reportes por Mes
+    var ctxMes = document.getElementById('mesChart').getContext('2d');
+    var mesChart = new Chart(ctxMes, {
+        type: 'bar',
+        data: {
+            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio'],
+            datasets: [{
+                label: 'Reportes por Mes',
+                data: [12, 19, 3, 5, 2, 3, 7],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Reportes por Mes'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

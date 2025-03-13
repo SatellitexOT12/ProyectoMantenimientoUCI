@@ -80,6 +80,7 @@ def usuarios(request):
                         first_name=name,
                         last_name=lastname
                     )
+                    return redirect('usuarios')
             else:
                 ids=request.POST.getlist('ids')
                 User.objects.filter(id__in=ids).delete()
