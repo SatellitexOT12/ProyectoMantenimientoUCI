@@ -74,3 +74,11 @@ class Reporte(models.Model):
             return "Material"
         else:
             return "Sin tipo"
+        
+class Notificacion(models.Model):
+    mensaje = models.TextField()
+    leida = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.mensaje

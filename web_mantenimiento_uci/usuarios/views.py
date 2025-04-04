@@ -6,9 +6,10 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required ,permission_required,user_passes_test
 from django.utils import timezone
-from .models import Incidencia,Material,Reporte
+from .models import Incidencia,Material,Reporte,Notificacion
 from django.core.paginator import Paginator
 from datetime import datetime
+from django.urls import reverse
 import json
 # Create your views here.
 
@@ -275,8 +276,19 @@ def main(request):
     
     return render(request,'main.html')
 
+def obtener_notificaciones(request):
+    notificaciones = Notificacion.objects.filter(leida=False).values('id', 'mensaje', 'fecha_creacion')
+    return JsonResponse(list(notificaciones), safe=False)
 
 
+@csrf_exempt
+def marcar_leida(request, notificacion_id):
+    if request.method == 'POST':
+        notificacion = Notificacion.objects.get(id=notificacion_id)
+        notificacion.leida = True
+        notificacion.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
 
     
     

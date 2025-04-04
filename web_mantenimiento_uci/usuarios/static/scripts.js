@@ -47,7 +47,41 @@ function abrirImagen(url) {
 }
 
 
+$(document).ready(function() {
+    function cargarNotificaciones() {
+        $.ajax({
+            url: "{% url 'obtener_notificaciones' %}",
+            method: 'GET',
+            success: function(data) {
+                const dropdown = $('#notificationDropdown');
+                dropdown.empty(); // Limpiar notificaciones anteriores
 
+                if (data.length > 0) {
+                    data.forEach(function(notificacion) {
+                        dropdown.append(
+                            `<li><a class="dropdown-item" href="#">${notificacion.mensaje} - ${new Date(notificacion.fecha_creacion).toLocaleString()}</a></li>`
+                        );
+                    });
+                    $('#notificationCount').text(data.length); // Actualizar contador
+                } else {
+                    dropdown.append('<li><a class="dropdown-item" href="#">No hay notificaciones nuevas.</a></li>');
+                    $('#notificationCount').text('0');
+                }
+            },
+            error: function() {
+                $('#notificationDropdown').html('<li><a class="dropdown-item" href="#">Error al cargar notificaciones.</a></li>');
+            }
+        });
+    }
+
+    // Cargar notificaciones al abrir el dropdown
+    $('#navbarDropdown').on('click', function() {
+        cargarNotificaciones();
+    });
+
+    // Cargar notificaciones al cargar la página
+    cargarNotificaciones();
+});
 
 
 
