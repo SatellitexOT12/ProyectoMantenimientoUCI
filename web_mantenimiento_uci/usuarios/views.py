@@ -170,7 +170,14 @@ def reportar_incidencia(request):
             usuario_reporte=request.user,
             imagen=imagen
         )
+        reporte = Reporte (
+            fecha = timezone.now(),
+            descripcion = " Reporte de Incidencia en el Servidor",
+            estado ="pendiente",
+            reporte_incidencia = incidencia
+        )
         incidencia.save()
+        reporte.save()
         return redirect('incidencias')
     
     return render(request , 'reportar_incidencia.html')
@@ -179,7 +186,8 @@ def reportar_incidencia(request):
 @login_required
 @permission_required('usuarios.change_incidencia', raise_exception=True)
 def seleccionar_incidencia(request,item_id):
-        incidencia = get_object_or_404(Incidencia, id=item_id)  # Buscar el ítem en la base de datos
+        incidencia = get_object_or_404(Incidencia, id=item_id)  # Buscar el ítem de incidencia en la base de datos
+        reporte = get_object_or_404(Reporte,reporte_incidencia=incidencia) #Buscar el item de reporte para actualizar en la tabla de reportes
         
         if request.method == 'POST':
             tipo = request.POST.get('tipo')
@@ -196,7 +204,11 @@ def seleccionar_incidencia(request,item_id):
             incidencia.fecha = fecha
             incidencia.ubicacion = ubicacion
             incidencia.descripcion = descripcion
-            incidencia.save()  # Guardar los cambios en la base de datos
+            reporte.estado = estado
+            
+            # Guardar los cambios en la base de datos
+            incidencia.save()  
+            reporte.save()
             return redirect('incidencias')
             
         else:

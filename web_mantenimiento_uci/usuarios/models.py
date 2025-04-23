@@ -60,12 +60,6 @@ class Reporte(models.Model):
     reporte_incidencia = models.ForeignKey(Incidencia,on_delete=models.CASCADE,null=True, blank=True)
     reporte_material = models.ForeignKey(Material,on_delete=models.CASCADE,null=True, blank=True)
     
-    
-    def save(self, *args, **kwargs):
-        self.estado = self.reporte_incidencia.estado
-        super().save(*args, **kwargs)
-    
-
     @property
     def tipo(self):
         if self.reporte_incidencia is not None:
