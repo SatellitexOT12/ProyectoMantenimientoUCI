@@ -4,49 +4,30 @@ document.addEventListener('DOMContentLoaded', function() {
         {inputId: 'username', errorId: 'errorUsuario'},
         {inputId: 'name', errorId: 'errorNombre'},
         {inputId: 'lastname', errorId: 'errorApellido'},
-        {inputId: 'cantidad', errorId: 'errorCantidad', tipo: 'numero'}
+        
     ];
-    function validarCampo(inputId, errorId, tipo = 'texto') {
+
+    // Función de validación para campos de texto
+    function validarCampoTexto(inputId, errorId) {
         const input = document.getElementById(inputId);
         const errorElement = document.getElementById(errorId);
-        const valor = input.value;
-    
-        if (tipo === 'numero') {
-            // Validación especial para input type="number"
-            const numero = parseFloat(valor);
-            const esValido = !isNaN(numero) && numero > 0;
-            
-            if (valor === '' || isNaN(numero)) {
-                input.classList.add('is-invalid');
-                errorElement.textContent = 'Este campo es obligatorio';
-                return false;
-            }
-            
-            if (!esValido) {
-                input.classList.add('is-invalid');
-                errorElement.textContent = 'Debe ser un número positivo mayor a 0';
-                return false;
-            }
-            
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-            errorElement.textContent = '';
-            return true;
-        }
+        const valor = input.value.trim();
         
-        // Resto de tu validación original para texto...
+        // Expresión regular que permite letras, números (solo para username), espacios, acentos y ñ/Ñ
         const regex = inputId === 'username' 
-            ? /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s0-9]+$/
-            : /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/;
+            ? /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s0-9]+$/  // Permite números solo en username
+            : /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/;   // No permite números en name y lastname
         
         if (valor === '') {
             input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
             errorElement.textContent = 'Este campo es obligatorio';
             return false;
         }
         
         if (!regex.test(valor)) {
             input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
             errorElement.textContent = inputId === 'username' 
                 ? 'No se permiten caracteres especiales' 
                 : 'No se permiten caracteres especiales ni números';
@@ -63,8 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('registroForm').addEventListener('submit', function(e) {
         let formularioValido = true;
         
+        // Validar campos de texto
         camposValidacion.forEach(campo => {
-            if (!validarCampo(campo.inputId, campo.errorId, campo.tipo)) {
+            if (!validarCampoTexto(campo.inputId, campo.errorId)) {
                 formularioValido = false;
             }
         });
@@ -95,16 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validación en tiempo real para los campos
     camposValidacion.forEach(campo => {
-        const input = document.getElementById(campo.inputId);
-        
-        input.addEventListener('input', function() {
-            if (campo.tipo === 'numero') {
-                // Asegurar que el valor no sea negativo
-                if (parseFloat(this.value) < 0) {
-                    this.value = '';
-                }
-            }
-            validarCampo(campo.inputId, campo.errorId, campo.tipo);
+        document.getElementById(campo.inputId).addEventListener('input', function() {
+            validarCampoTexto(campo.inputId, campo.errorId);
         });
     });
 
@@ -122,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPasswordInput.setAttribute('type', type);
         this.querySelector('i').classList.toggle('bi-eye-slash');
     });
-    
 });
 
 

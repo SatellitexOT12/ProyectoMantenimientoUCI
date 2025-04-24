@@ -9,20 +9,24 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4">Reportes</h1>
 
+    <form id="registroForm" method="post"  class="needs-validation" novalidate>
     <!-- Filtros -->
-    <div class="row mb-4">
+    <div class="row mb-5 align-items-start"> <!-- Cambio aquí -->
         <div class="col-md-4">
             <label for="fechaInicio" class="form-label">Fecha de inicio</label>
-            <input type="date" class="form-control" id="fechaInicio">
+            <input type="date" class="form-control" id="fechaInicio" required>
+            <div id="errorFechaInicio" class="invalid-feedback"></div>
         </div>
         <div class="col-md-4">
             <label for="fechaFin" class="form-label">Fecha de fin</label>
-            <input type="date" class="form-control" id="fechaFin">
+            <input type="date" class="form-control" id="fechaFin" required>
+            <div id="errorFechaFin" class="invalid-feedback"></div>
         </div>
-        <div class="col-md-4 d-flex align-items-end">
-            <button class="btn btn-primary w-100">Filtrar</button>
+        <div class="col-md-4 mt-auto"> <!-- Cambio aquí -->
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
         </div>
     </div>
+    </form>
 
     <!-- Tarjetas de Resumen -->
     <div class="row mb-4">
@@ -192,4 +196,6 @@
         }
     });
 </script>
+
+<script src="{% static 'js/validarFechaReporte.js'  %}"></script>
 {% endblock %}
