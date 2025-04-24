@@ -12,29 +12,25 @@
 
         <!-- Modal body -->
         <div class="modal-body">
-            <form id="registroForm" method="post" action="{% url 'usuarios' %}" class="was-validated">
+            <form id="registroForm" method="post" action="{% url 'usuarios' %}" class="needs-validation" novalidate>
                 <div class="username mb-3 mt-3">
                 <label for="uname" class="form-label">Usuario:</label>
                 <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" required>
-                <div class="valid-feedback">Valido.</div>
-                <div class="invalid-feedback">Por favor llena este campo.</div>
+                <div id="errorUsuario" class="invalid-feedback">Por favor llena este campo.</div>
                 </div>
                 <div class="name mb-3 mt-3">
                     <label for="name" class="form-label">Nombre:</label>
                     <input type="text" class="form-control" id="name" placeholder="Enter name" name="name" required>
-                    <div class="valid-feedback">Valido.</div>
-                    <div class="invalid-feedback">Por favor llena este campo.</div>
+                    <div id="errorNombre" class="invalid-feedback">Por favor llena este campo.</div>
                     </div>
                 <div class="lastname mb-3 mt-3">
                         <label for="lastname" class="form-label">Apellidos:</label>
                         <input type="text" class="form-control" id="lastname" placeholder="Enter lastname" name="lastname" required>
-                        <div class="valid-feedback">Valido.</div>
-                        <div class="invalid-feedback">Por favor llena este campo.</div>
+                        <div id="errorApellido" class="invalid-feedback">Por favor llena este campo.</div>
                 </div>
                 <div class="email mb-3 mt-3">
                     <label for="email" class="form-label">Correo:</label>
                     <input type="email" class="form-control" id="email" placeholder="Enter email" name="email" required>
-                    <div class="valid-feedback">Valido.</div>
                     <div class="invalid-feedback">No es un correo valido.</div>
                     </div>
                 <div class="password mb-3">
@@ -45,7 +41,6 @@
                     <i class="bi bi-eye"></i> <!-- Ícono de ojo cerrado -->
                 </button>
                 </div>
-                <div class="valid-feedback">Valido.</div>
                 <div class="invalid-feedback">Por favor llena este campo.</div>
                 
                 </div>
@@ -58,7 +53,6 @@
                         <i class="bi bi-eye"></i> <!-- Ícono de ojo cerrado -->
                     </button>
                     </div>
-                    <div class="valid-feedback">Valido.</div>
                     <div class="invalid-feedback">Por favor llena este campo.</div>
                     <div id="error-message" class="text-danger mt-1" style="display: none;">⚠️ Las contraseñas no coinciden.</div>
                     </div>

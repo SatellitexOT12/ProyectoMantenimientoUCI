@@ -12,12 +12,11 @@
 
         <!-- Modal body -->
         <div class="modal-body">
-            <form id="registroForm" method="post" action="{% url 'materiales' %}" class="was-validated">
-                <div class="username mb-3 mt-3">
-                <label for="uname" class="form-label">Nombre:</label>
-                <input type="text" class="form-control" id="nombre" placeholder="Introducir material" name="nombre" required>
-                <div class="valid-feedback">Valido.</div>
-                <div class="invalid-feedback">Por favor llena este campo.</div>
+            <form id="registroForm" method="post" action="{% url 'materiales' %}" class="needs-validation" novalidate>
+                <div class="name mb-3 mt-3">
+                <label for="username" class="form-label">Nombre:</label>
+                <input type="text" class="form-control" id="username" placeholder="Introducir material" name="username" required>
+                <div id="errorUsuario" class="invalid-feedback">Por favor llena este campo.</div>
                 </div>
                 <div class="name mb-3 mt-3">
                     <label for="tipo_material" class="form-label">Tipo de Material</label>
@@ -29,14 +28,13 @@
                                     <option value="limpieza">Saneamiento</option>
                                     <option value="seguridad">Seguridad</option>
                                 </select>
-                <div class="valid-feedback">Valido.</div>
                 <div class="invalid-feedback">Por favor llena este campo.</div>
                 </div>
-                <div class="lastname mb-3 mt-3">
-                        <label for="lastname" class="form-label">Cantidad:</label>
-                        <input type="number" class="form-control" id="cantidad" placeholder="Enter lastname" name="cantidad" required>
-                        <div class="valid-feedback">Valido.</div>
-                        <div class="invalid-feedback">Por favor llena este campo.</div>
+
+                <div class="cantidad mb-3 mt-3">
+                        <label for="cantidad" class="form-label">Cantidad:</label>
+                        <input type="number" class="form-control" id="cantidad" min="1" step="1" placeholder="Introducir cantidad de material" name="cantidad" required>
+                        <div id="errorCantidad" class="invalid-feedback">Por favor llena este campo.</div>
                 </div>
                 
                 {% csrf_token %}

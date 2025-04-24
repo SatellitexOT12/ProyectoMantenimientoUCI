@@ -237,7 +237,7 @@ def materiales(request):
                 Material.objects.filter(id__in=ids).delete()
                 return redirect('materiales')
         
-        nombre = request.POST.get('nombre')
+        nombre = request.POST.get('username')
         tipo = request.POST.get('tipo_material')
         cantidad = request.POST.get('cantidad')
         
@@ -255,7 +255,7 @@ def seleccionar_material(request,item_id):
     material= get_object_or_404(Material,id = item_id)
     
     if request.method == 'POST':
-        nombre = request.POST.get('nombre')
+        nombre = request.POST.get('username')
         tipo = request.POST.get('tipo')
         cantidad = request.POST.get('cantidad')
         
