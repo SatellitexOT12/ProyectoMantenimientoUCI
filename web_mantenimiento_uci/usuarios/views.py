@@ -1,17 +1,29 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse,JsonResponse
+from django.http import HttpResponse,JsonResponse, HttpResponseForbidden
 from django.template import loader
-from django.contrib.auth import authenticate,login
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate,login, logout
+from django.contrib.auth.models import User,Group
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required ,permission_required,user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Incidencia,Material,Reporte,Notificacion
 from django.core.paginator import Paginator
-from datetime import datetime
-from django.urls import reverse
-import json
+from functools import wraps
+
 # Create your views here.
+
+#Decorador personalizado para verificar los grupos a q mi usuario pertenece
+def grupo_requerido(*nombres_grupos):
+    """Decorador para verificar pertenencia a grupos"""
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if request.user.groups.filter(name__in=nombres_grupos).exists():
+                return view_func(request, *args, **kwargs)
+            return HttpResponseForbidden("No tienes permiso para acceder")
+        return wrapper
+    return decorator
+
 
 
 #Vista para el login
@@ -32,11 +44,10 @@ def custom_login(request):
     else:
         return render(request, 'login.html')
 
-def es_administrador(user):
-    return user.groups.filter(name='Administradores').exists()
+
 
 @login_required
-@user_passes_test(es_administrador)
+@grupo_requerido('administrador')
 def usuarios(request):
     tableUsuario = User.objects.all()
     template = loader.get_template('all_usuarios.html')
@@ -90,6 +101,7 @@ def usuarios(request):
     return HttpResponse(template.render(context,request))
     
 @login_required
+@grupo_requerido('administrador')
 def seleccionar_usuario(request,item_id):
         user = get_object_or_404(User, id=item_id)  # Buscar el ítem en la base de datos
         
@@ -98,8 +110,14 @@ def seleccionar_usuario(request,item_id):
             first_name = request.POST.get('first_name')
             last_name = request.POST.get('last_name')
             email = request.POST.get('email')
+            rol = request.POST.get('rol')
+            
+            #limpiar todos los roles 
+            user.groups.clear()
+            grupo = Group.objects.get(name=rol)
             
             # Actualizar los campos del usuario
+            user.groups.add(grupo)
             user.username = username
             user.first_name = first_name
             user.last_name = last_name
@@ -184,7 +202,6 @@ def reportar_incidencia(request):
 
 
 @login_required
-@permission_required('usuarios.change_incidencia', raise_exception=True)
 def seleccionar_incidencia(request,item_id):
         incidencia = get_object_or_404(Incidencia, id=item_id)  # Buscar el ítem de incidencia en la base de datos
         reporte = get_object_or_404(Reporte,reporte_incidencia=incidencia) #Buscar el item de reporte para actualizar en la tabla de reportes
@@ -200,11 +217,17 @@ def seleccionar_incidencia(request,item_id):
             # Actualizar los campos del usuario
             incidencia.tipo = tipo
             incidencia.prioridad = prioridad
-            incidencia.estado = estado
             incidencia.fecha = fecha
             incidencia.ubicacion = ubicacion
             incidencia.descripcion = descripcion
-            reporte.estado = estado
+           
+            
+            if estado is None:
+                incidencia.estado = "pendiente"
+                reporte.estado = "pendiente"
+            else:
+                incidencia.estado = estado
+                reporte.estado = estado
             
             # Guardar los cambios en la base de datos
             incidencia.save()  
@@ -215,6 +238,7 @@ def seleccionar_incidencia(request,item_id):
             return render(request, 'editar_incidencia.html', {'incidencia': incidencia})
     
 @login_required
+@grupo_requerido('almacenero','administrador')
 def materiales(request):
     tableMaterial = Material.objects.all()
     
@@ -251,6 +275,7 @@ def materiales(request):
     
     return render(request,'all_materiales.html',context)
 
+@grupo_requerido('almacenero','administrador')
 def seleccionar_material(request,item_id):
     material= get_object_or_404(Material,id = item_id)
     
@@ -267,6 +292,7 @@ def seleccionar_material(request,item_id):
     else:
         return render(request, 'editar_material.html', {'material': material})
 
+@grupo_requerido('almacenero','administrador')
 def reportes(request):
     tableReporte = Reporte.objects.all()
     
@@ -283,6 +309,11 @@ def reportes(request):
     }
     
     return render(request,'all_reportes.html',context)
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 def main(request):
     
@@ -302,5 +333,4 @@ def marcar_leida(request, notificacion_id):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
 
-    
-    
+ 

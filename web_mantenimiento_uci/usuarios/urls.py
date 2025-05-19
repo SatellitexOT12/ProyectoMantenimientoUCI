@@ -18,6 +18,7 @@ urlpatterns = [
     path('reportar_incidencia',views.reportar_incidencia, name='reportar_incidencia'),
     path('marcar_leida/<int:notificacion_id>/', views.marcar_leida, name='marcar_leida'),
     path('obtener_notificaciones/', views.obtener_notificaciones, name='obtener_notificaciones'),
+    path('logout/',views.logout_view,name='logout')
 ]
 
 if settings.DEBUG:

@@ -1,6 +1,6 @@
 {% extends 'master.html' %}
 {% load static %}
-
+{% load auth_extras %}
 {% block title%}
     Editar incidencia
 {%endblock%}
@@ -69,8 +69,8 @@
         </div>
     </div>
 
+    {% if request.user|has_groups:"tecnico,administrador" %}
     <div class="row border-bottom py-3">
-
     <div class="col-5">
     <label for="estado" class="form-label">Estado</label>
             <select class="form-select" id="estado" name="estado" >
@@ -80,6 +80,7 @@
             </select>
     </div>
     </div>
+    {%endif%}
 
 
 </div>
