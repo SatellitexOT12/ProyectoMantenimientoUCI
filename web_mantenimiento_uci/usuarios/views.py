@@ -13,11 +13,19 @@ from functools import wraps
 # Create your views here.
 
 #Decorador personalizado para verificar los grupos a q mi usuario pertenece
+#Se pasan por parametro los nombre de los grupos
 def grupo_requerido(*nombres_grupos):
     """Decorador para verificar pertenencia a grupos"""
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
+            """
+            Función principal que realiza la verificación:
+            
+            - Comprueba si el usuario autenticado pertenece a alguno de los grupos indicados.
+            - Si pertenece: ejecuta la vista original.
+            - Si NO pertenece: devuelve un error 403 (acceso prohibido).
+            """
             if request.user.groups.filter(name__in=nombres_grupos).exists():
                 return view_func(request, *args, **kwargs)
             return HttpResponseForbidden("No tienes permiso para acceder")
