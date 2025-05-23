@@ -1,6 +1,6 @@
 asgiref==3.8.1
 attrs==25.3.0
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
 begins==0.9
 certifi==2025.4.26
 cffi==1.17.1
