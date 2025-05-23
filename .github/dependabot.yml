@@ -9,5 +9,4 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
-    metadata:
-      - "uses vulnerable dependencies" # Etiqueta opcional para alertas de seguridad
+
