@@ -4,10 +4,10 @@
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
-            <img src="{% static '../static/logoSGUM.png' %}" alt="Avatar Logo" style="width:70px;" > 
+            <img src="{% static '../static/logoSGUM.png' %}" alt="Avatar Logo" style="width:70px;">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
-        <span class="navbar-toggler-icon"></span>
+            <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mynavbar">
             <ul class="navbar-nav me-auto">
@@ -20,16 +20,16 @@
                     <a class="nav-link" href="/usuarios">Usuarios</a>
                 </li>
                 {%endif%}
-                
+
                 <li class="nav-item dropdown">
                     <button type="button" class="btn nav-link dropdown-toggle" data-bs-toggle="dropdown">
                         Incidencias
                     </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/incidencias">Lista de Incidencias</a></li>
-                            <li><a class="dropdown-item" href="/reportar_incidencia">Reportar Incidencia</a></li>
-                            <li><a class="dropdown-item" href="#">Historial</a></li>
-                        </ul>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/incidencias">Lista de Incidencias</a></li>
+                        <li><a class="dropdown-item" href="/reportar_incidencia">Reportar Incidencia</a></li>
+                        <li><a class="dropdown-item" href="#">Historial</a></li>
+                    </ul>
                 </li>
                 {% if request.user|has_groups:"almacenero,administrador" %}
                 <li class="nav-item">
@@ -43,29 +43,23 @@
                 </li>
                 {%endif%}
             </ul>
-            
-            <form class="d-flex" method="get" >
+
+            <form class="d-flex" method="get">
                 <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ request.GET.q }}">
                 <button class="btn btn-primary" type="submit">Buscar</button>
             </form>
-            
+
             <div class="dropdown px-5">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="fas fa-bell"></i>
-                  <span class="badge bg-danger" id="notificationCount">3</span>
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge bg-danger" id="notificationCount">0</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton" id="notificationDropdown">
-                    {% for notificacion in notificaciones %}
-                    <li>
-                        {{ notificacion.mensaje }} - {{ notificacion.fecha_creacion }}
-                        <form action="{% url 'marcar_leida' notificacion.id %}" method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit">Marcar como leída</button>
-                        </form>
-                    </li>
-                {% empty %}
-                    <li>No hay notificaciones nuevas.</li>
-                {% endfor %}
+
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton"
+                    id="notificationDropdown">
+                    <!-- Aquí se cargarán las notificaciones dinámicamente -->
+                    
                 </ul>
             </div>
             {% if user.is_authenticated %}
@@ -75,4 +69,4 @@
             {% endif %}
         </div>
     </div>
-</nav> 
+</nav>

@@ -69,10 +69,11 @@ class Reporte(models.Model):
         else:
             return "Sin tipo"
         
-class Notificacion(models.Model):
-    mensaje = models.TextField()
-    leida = models.BooleanField(default=False)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.mensaje
+        return f"Noti para {self.user.username}"

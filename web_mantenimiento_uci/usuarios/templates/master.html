@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,12 @@
     {% bootstrap_css %}
     {% bootstrap_javascript %}
     
-    
+    <style>
+  .notification.read {
+    color: #6c757d;
+    font-style: italic;
+  }
+</style>
 </head>
 <body class="d-flex flex-column min-vh-100">
 
@@ -16,11 +22,18 @@
 
     <div class="flex-grow-1">
     {%block content%}
+    
     {%endblock%}
     </div>
     {%include 'footer.html' %}
 
 </body>
+
+<script>
+    const NOTIFICATIONS_URL = "{% url 'get_notifications' %}";
+    const csrftoken = "{{ csrf_token }}";
+</script>
+<script src="{% static 'js/notificaciones.js'  %}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{% static 'notificaciones.js'  %}"></script>
+
 </html>

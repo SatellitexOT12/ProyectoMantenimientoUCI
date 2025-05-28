@@ -1,0 +1,12 @@
+.dropdown-item.read {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0;
+  line-height: 18px;
+  font-size: 12px;
+}

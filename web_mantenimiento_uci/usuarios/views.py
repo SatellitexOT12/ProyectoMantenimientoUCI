@@ -5,10 +5,12 @@ from django.contrib.auth import authenticate,login, logout
 from django.contrib.auth.models import User,Group
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.utils import timezone
-from .models import Incidencia,Material,Reporte,Notificacion
+from .models import Incidencia,Material,Reporte,Notification
 from django.core.paginator import Paginator
 from functools import wraps
+from django.core import serializers
 
 # Create your views here.
 
@@ -324,21 +326,37 @@ def logout_view(request):
     return redirect('login')
 
 def main(request):
-    
-    return render(request,'main.html')
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread_count = notifications.filter(is_read=False).count()
+    return render(request, 'main.html', {
+        'notifications': notifications,
+        'unread_count': unread_count
+    })
 
-def obtener_notificaciones(request):
-    notificaciones = Notificacion.objects.filter(leida=False).values('id', 'mensaje', 'fecha_creacion')
-    return JsonResponse(list(notificaciones), safe=False)
 
 
-@csrf_exempt
-def marcar_leida(request, notificacion_id):
-    if request.method == 'POST':
-        notificacion = Notificacion.objects.get(id=notificacion_id)
-        notificacion.leida = True
-        notificacion.save()
+@require_POST
+@login_required
+def mark_as_read(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+        notification.is_read = True
+        notification.save()
         return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notificación no encontrada'}, status=404)
 
- 
+def get_notifications(request):
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    data = serializers.serialize('json', notifications)
+    return JsonResponse({'notifications': data}, safe=False)
+
+@require_POST
+@login_required
+def delete_notification(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+        notification.delete()
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notificación no encontrada'}, status=404)

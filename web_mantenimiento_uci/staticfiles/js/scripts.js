@@ -4,48 +4,30 @@ document.addEventListener('DOMContentLoaded', function() {
         {inputId: 'username', errorId: 'errorUsuario'},
         {inputId: 'name', errorId: 'errorNombre'},
         {inputId: 'lastname', errorId: 'errorApellido'},
-        {inputId: 'cantidad', errorId: 'errorCantidad', tipo: 'numero'}
+        
     ];
-    function validarCampo(inputId, errorId, tipo = 'texto') {
+
+    // Función de validación para campos de texto
+    function validarCampoTexto(inputId, errorId) {
         const input = document.getElementById(inputId);
         const errorElement = document.getElementById(errorId);
         const valor = input.value.trim();
         
-        if (tipo === 'numero') {
-            // Validación para cantidad (números enteros positivos)
-            const esNumero = /^[0-9]+$/.test(valor) && parseInt(valor) > 0;
-            
-            if (valor === '') {
-                input.classList.add('is-invalid');
-                errorElement.textContent = 'Este campo es obligatorio';
-                return false;
-            }
-            
-            if (!esNumero) {
-                input.classList.add('is-invalid');
-                errorElement.textContent = 'Solo se permiten números enteros positivos';
-                return false;
-            }
-            
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-            errorElement.textContent = '';
-            return true;
-        }
-        
-        // Resto de tu validación original para texto...
+        // Expresión regular que permite letras, números (solo para username), espacios, acentos y ñ/Ñ
         const regex = inputId === 'username' 
-            ? /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s0-9]+$/
-            : /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/;
+            ? /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s0-9]+$/  // Permite números solo en username
+            : /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/;   // No permite números en name y lastname
         
         if (valor === '') {
             input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
             errorElement.textContent = 'Este campo es obligatorio';
             return false;
         }
         
         if (!regex.test(valor)) {
             input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
             errorElement.textContent = inputId === 'username' 
                 ? 'No se permiten caracteres especiales' 
                 : 'No se permiten caracteres especiales ni números';
@@ -62,8 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('registroForm').addEventListener('submit', function(e) {
         let formularioValido = true;
         
+        // Validar campos de texto
         camposValidacion.forEach(campo => {
-            if (!validarCampo(campo.inputId, campo.errorId, campo.tipo)) {
+            if (!validarCampoTexto(campo.inputId, campo.errorId)) {
                 formularioValido = false;
             }
         });
@@ -94,14 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validación en tiempo real para los campos
     camposValidacion.forEach(campo => {
-        const input = document.getElementById(campo.inputId);
-        
-        input.addEventListener('input', function() {
-            // Para el campo cantidad, limpia caracteres no numéricos
-            if (campo.tipo === 'numero') {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            }
-            validarCampo(campo.inputId, campo.errorId, campo.tipo);
+        document.getElementById(campo.inputId).addEventListener('input', function() {
+            validarCampoTexto(campo.inputId, campo.errorId);
         });
     });
 
@@ -119,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPasswordInput.setAttribute('type', type);
         this.querySelector('i').classList.toggle('bi-eye-slash');
     });
-    
 });
 
 
@@ -140,42 +116,5 @@ function abrirImagen(url) {
 
     // Mostrar el modal
 }
-
-
-$(document).ready(function() {
-    function cargarNotificaciones() {
-        $.ajax({
-            url: "{% url 'obtener_notificaciones' %}",
-            method: 'GET',
-            success: function(data) {
-                const dropdown = $('#notificationDropdown');
-                dropdown.empty(); // Limpiar notificaciones anteriores
-
-                if (data.length > 0) {
-                    data.forEach(function(notificacion) {
-                        dropdown.append(
-                            `<li><a class="dropdown-item" href="#">${notificacion.mensaje} - ${new Date(notificacion.fecha_creacion).toLocaleString()}</a></li>`
-                        );
-                    });
-                    $('#notificationCount').text(data.length); // Actualizar contador
-                } else {
-                    dropdown.append('<li><a class="dropdown-item" href="#">No hay notificaciones nuevas.</a></li>');
-                    $('#notificationCount').text('0');
-                }
-            },
-            error: function() {
-                $('#notificationDropdown').html('<li><a class="dropdown-item" href="#">Error al cargar notificaciones.</a></li>');
-            }
-        });
-    }
-
-    // Cargar notificaciones al abrir el dropdown
-    $('#navbarDropdown').on('click', function() {
-        cargarNotificaciones();
-    });
-
-    // Cargar notificaciones al cargar la página
-    cargarNotificaciones();
-});
 
 

@@ -16,8 +16,9 @@ urlpatterns = [
     path('incidencia/editar/<int:item_id>/',views.seleccionar_incidencia,name='editar_incidencia'),
     path('material/editar/<int:item_id>/',views.seleccionar_material, name='editar_material'),
     path('reportar_incidencia',views.reportar_incidencia, name='reportar_incidencia'),
-    path('marcar_leida/<int:notificacion_id>/', views.marcar_leida, name='marcar_leida'),
-    path('obtener_notificaciones/', views.obtener_notificaciones, name='obtener_notificaciones'),
+    path('notifications/<int:notification_id>/read/', views.mark_as_read, name='mark_as_read'),
+    path('notifications/', views.get_notifications, name='get_notifications'),
+    path('notifications/<int:notification_id>/delete/', views.delete_notification, name='delete_notification'),
     path('logout/',views.logout_view,name='logout')
 ]
 
