@@ -1,120 +1,187 @@
 {% extends "master.html" %}
 {% load static %}
-    {% block title%}
-    Lista de Incidencias
-    
-    {%endblock%}
+{% block title %}
+Lista de Incidencias
+{% endblock %}
 
-    {%block content%}
-    <div class="container mt-3 mx-3">
-        <div class="row container">
-        <div class="col"><h1>Gestionar Incidencias</h1></div>
+{% block content %}
+<div class="container mt-3 mx-3">
+    <div class="row container">
+        <div class="col">
+            <h1>Gestionar Incidencias</h1>
+        </div>
         <div class="col d-flex flex-row-reverse p-3 ">
-            <a class="btn btn-primary "type="button"  href="/reportar_incidencia" >Registrar</a>
-            <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar" type="button">Eliminar</button>
-
+            <a class="btn btn-primary" type="button" href="/reportar_incidencia">Registrar</a>
+            <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar"
+                type="button">Eliminar</button>
         </div>
 
-    
         {% include 'modalEliminarIncidencia.html' %}
+    </div>
 
-            
-        </div>
-        <form id="eliminar_incidencia" method="post" action="{% url 'incidencias' %}">
-            {% csrf_token %}
-            <input type="hidden" id="action" name="action" value="">
-            
-        <table class="table table-hover" id="userTable" data-orden="asc">
-            <thead>
-                <tr class="table-dark">
-                    <th>Tipo de Incidencia</th>
-                    <th> Prioridad </th>
-                    <th>Fecha</th>
-                    <th>Ubicación</th>
-                    <th>Descripcion</th>
-                    <th>Estado</th>
-                    <th>Usuario</th>
-                    <th>Imagen</th>
-                    <th>Seleccionar Todos
-                        <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
-                    </th>
-                    <th>Modificar</th>
-                </tr>
-            </thead>
 
-                
-            <tbody>
+    {% csrf_token %}
+    <input type="hidden" id="action" name="action" value="">
+
+    <table class="table table-hover" id="userTable" data-orden="asc">
+        <thead>
+            <tr class="table-dark">
+                <th>Tipo de Incidencia</th>
+                <th>Prioridad</th>
+                <th>Fecha</th>
+                <th>Ubicación</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Usuario</th>
+                <th>Imagen</th>
+                <th>Técnico Asignado</th>
+                <th>Seleccionar Todos
+                    <input class="form-check-input checkbox" type="checkbox" id="selectAll"
+                        onclick="toggleCheckboxes(this)">
+                </th>
+                <th>Modificar</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for x in page_obj %}
             <tr>
                 <td>{{x.get_tipo_display}}</td>
-                
-                <!--Cambiar el color segun la prioridad -->
+
+                <!-- Prioridad con color -->
                 {% if x.prioridad == "2" %}
                 <td style="background-color:rgba(253, 191, 4, 0.36);">{{x.get_prioridad_display}}</td>
-                {%elif x.prioridad == "3"%}
+                {% elif x.prioridad == "3" %}
                 <td style="background-color:rgba(253, 4, 4, 0.4);">{{x.get_prioridad_display}}</td>
-                {%else%}
+                {% else %}
                 <td style="background-color:rgba(216, 214, 214, 0.36);">{{x.get_prioridad_display}}</td>
-                {%endif%}
-                
+                {% endif %}
+
                 <td>{{x.fecha}}</td>
                 <td>{{x.ubicacion}}</td>
                 <td>{{x.descripcion}}</td>
-                <!--Cambiar el color segun el estado -->
+
+                <!-- Estado con color -->
                 {% if x.estado == "pendiente" %}
                 <td style="background-color:rgba(253, 191, 4, 0.36);">{{x.get_estado_display}}</td>
-                {%elif x.estado == "resuelto"%}
+                {% elif x.estado == "resuelto" %}
                 <td style="background-color:rgba(12, 253, 4, 0.36);">{{x.get_estado_display}}</td>
-                {%else%}
+                {% else %}
                 <td style="background-color:rgba(216, 214, 214, 0.36);">{{x.get_estado_display}}</td>
-                {%endif%}
-            
+                {% endif %}
+
                 <td>{{x.usuario_reporte.username}}</td>
                 <td>
                     {% if x.imagen %}
-                        <img src="{{ x.imagen.url }}" alt="Imagen de la incidencia" class="img-thumbnail" style="width: 100px; cursor: pointer;"
-                        onclick='abrirImagen("{{ x.imagen.url }}")' data-bs-toggle="modal" data-bs-target="#imagenModal">
+                    <img src="{{ x.imagen.url }}" alt="Imagen de la incidencia" class="img-thumbnail"
+                        style="width: 100px; cursor: pointer;" onclick='abrirImagen("{{ x.imagen.url }}")'
+                        data-bs-toggle="modal" data-bs-target="#imagenModal">
                     {% else %}
-                        <p>No img</p>
+                    <p>No img</p>
                     {% endif %}
                 </td>
-                <td> 
-                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{x.id}}" >
-                    </div>            
-                </td>
+
+                <!-- Técnico Asignado -->
                 <td>
-                    <a class="nav-link"  href="{% url 'editar_incidencia' x.id %}">Editar...</a>
+                    {% if x.tecnico_asignado %}
+                    {{ x.tecnico_asignado.trabajador.username }}
+                    <br>
+                    <a href="#" class="btn btn-sm btn-warning mt-1" data-bs-toggle="modal"
+                        data-bs-target="#modalAsignarTecnico" onclick="setIncidenciaId({{ x.id }})">
+                        Cambiar
+                    </a>
+                    {% else %}
+                    <a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                        data-bs-target="#modalAsignarTecnico" onclick="setIncidenciaId({{ x.id }})">
+                        Asignar Técnico
+                    </a>
+                    {% endif %}
+                </td>
+
+                <!-- Checkbox -->
+                <td>
+                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
+                        <input class="form-check-input checkbox" type="checkbox" name="ids" value="{{x.id}}">
+                    </div>
+                </td>
+
+                <!-- Editar -->
+                <td>
+                    <a class="nav-link" href="{% url 'editar_incidencia' x.id %}">Editar...</a>
                 </td>
             </tr>
+            {% empty %}
+            <tr>
+                <td colspan="12" class="text-center">No hay incidencias registradas.</td>
+            </tr>
             {% endfor %}
-            </tbody>
-        </table>
+        </tbody>
+    </table>
 
-        {% include 'paginacion.html' %}
-        
+    {% include 'paginacion.html' %}
 
-        </form>
+    <!-- Formulario para eliminar -->
+    <form id="eliminar_incidencia" method="post" action="{% url 'incidencias' %}">
+        {% csrf_token %}
+        <input type="hidden" id="action" name="action" value="eliminar">
+        <div id="checkboxes-seleccionados"></div>
+    </form>
 
-        <div class="modal fade" id="imagenModal" tabindex="-1" aria-labelledby="imagenModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="imagenModalLabel">Imagen de la Incidencia</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img id="imagenEnFoco" src="" alt="Imagen en foco" class="img-fluid">
-                    </div>
+    <!-- Modal Imagen -->
+    <div class="modal fade" id="imagenModal" tabindex="-1" aria-labelledby="imagenModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imagenModalLabel">Imagen de la Incidencia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="imagenEnFoco" src="" alt="Imagen en foco" class="img-fluid">
                 </div>
             </div>
         </div>
-
     </div>
 
-    
+    <!-- Modal Asignar Técnico -->
+    <div class="modal fade" id="modalAsignarTecnico" tabindex="-1" aria-labelledby="modalAsignarTecnicoLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalAsignarTecnicoLabel">Seleccionar Técnico</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="asignarTecnicoForm" method="post" action="{% url 'asignar_tecnico' %}">
+                        {% csrf_token %}
+                        <input type="hidden" id="incidencia_id" name="incidencia_id" value="">
 
-    <script src="{% static 'js/scripts.js'  %}"></script>
+                        <ul class="list-group">
+                            {% for tecnico in tecnicos_disponibles %}
+                            <li class="list-group-item">
+                                <input class="form-check-input me-1" type="radio" name="tecnico_id"
+                                    value="{{ tecnico.id }}">
+                                {{ tecnico.trabajador.username }}
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item text-center text-muted">No hay técnicos disponibles.</li>
+                            {% endfor %}
+                        </ul>
 
-    
-    {%endblock%}
+                        <div class="mt-3 d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Guardar Asignación</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script src="{% static 'js/scripts.js' %}"></script>
+
+
+
+
+{% endblock %}

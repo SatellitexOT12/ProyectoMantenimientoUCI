@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 # Create your models here
+
 
 class Incidencia(models.Model):
     
@@ -41,6 +43,13 @@ class Incidencia(models.Model):
     #Llave foraneo del usuario que reporta la incidencia
     usuario_reporte = models.ForeignKey(User, on_delete=models.CASCADE)
     
+    tecnico_asignado = models.ForeignKey(
+        'Personal',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='incidencias_asignadas'
+    )
     
 class Material(models.Model):
     
@@ -77,3 +86,9 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Noti para {self.user.username}"
+    
+    
+class Personal(models.Model):
+    trabajador = models.ForeignKey(User, on_delete=models.CASCADE)
+    incidencia = models.ForeignKey(Incidencia,on_delete=models.CASCADE,null=True, blank=True)
+    

@@ -1,28 +1,23 @@
-<!-- The Modal -->
-<div class="modal" id="ModalEliminar">
+<!-- Modal Eliminar -->
+<div class="modal fade" id="ModalEliminar" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-            <h4 class="modal-title">Eliminar Incidencia</h4>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
+            <!-- Encabezado -->
+            <div class="modal-header">
+                <h5 class="modal-title">Eliminar Incidencias</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
+            <!-- Cuerpo -->
             <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar las incidencias seleccionadas?</p>
+            </div>
 
-                <h4>¿Estas seguro que desea eliminar las incidencias?</h4>
-
-                {% csrf_token %}
-            
-            <!-- Modal footer -->
-                <div class="modal-footer d-flex justify-content-between">
-                
-            
-                    <button form="eliminar_incidencia" type="submit" class="btn btn-danger" onclick="document.getElementById('action').value = 'delete' ">Eliminar</button>
-
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </div> 
+            <!-- Pie -->
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">Eliminar</button>
+            </div>
         </div>
     </div>
 </div>

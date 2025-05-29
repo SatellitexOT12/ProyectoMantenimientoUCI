@@ -7,11 +7,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from .models import Incidencia,Material,Reporte,Notification
+from .models import Incidencia,Material,Reporte,Notification, Personal
 from django.core.paginator import Paginator
 from functools import wraps
 from django.core import serializers
-
+from django.contrib import messages
 # Create your views here.
 
 #Decorador personalizado para verificar los grupos a q mi usuario pertenece
@@ -102,6 +102,7 @@ def usuarios(request):
                         first_name=name,
                         last_name=lastname
                     )
+                    
                     return redirect('usuarios')
             else:
                 ids=request.POST.getlist('ids')
@@ -133,6 +134,15 @@ def seleccionar_usuario(request,item_id):
             user.last_name = last_name
             user.email = email
             user.save()  # Guardar los cambios en la base de datos
+            
+            if rol == "tecnico":
+                trabajador = Personal.objects.filter(trabajador=user).exists()
+                
+                if not trabajador:
+                    personal = Personal(
+                        trabajador = user
+                    )
+                    personal.save()
             return redirect('usuarios')
             
         else:
@@ -151,7 +161,7 @@ def incidencias(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        if action == "delete":
+        if action == "eliminar":
                 ids=request.POST.getlist('ids')
                 Incidencia.objects.filter(id__in=ids).delete()
                 return redirect('incidencias')
@@ -171,9 +181,17 @@ def incidencias(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    tecnicos_disponibles = Personal.objects.filter(
+        trabajador__groups__name='tecnico',
+        incidencia__isnull=True
+    )
+    tecnicos = Personal.objects.all()
+    
     context = {
         'tableIncidencia': tableIncidencia,
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'tecnicos_disponibles': tecnicos_disponibles,
+        'tecnicos':tecnicos
     }
     return HttpResponse(template.render(context,request))
 
@@ -360,3 +378,67 @@ def delete_notification(request, notification_id):
         return JsonResponse({'status': 'success'})
     except Notification.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Notificación no encontrada'}, status=404)
+    
+
+@login_required
+@grupo_requerido('administrador')
+def personal(request):
+    tablePersonal = Personal.objects.all()
+    template = loader.get_template('all_personal.html')
+    
+    #Obtener palabra a buscar
+    query = request.GET.get('q')
+    
+    #Condicion para buscar elementos en la tabla
+    if query:
+        tablePersonal = (tablePersonal.filter(username__icontains=query) | tablePersonal.filter(email__icontains=query) 
+        | tablePersonal.filter(is_active__icontains=query) | tablePersonal.filter(last_login__icontains=query)
+        | tablePersonal.filter(date_joined__icontains=query) 
+        )
+    #Paginacion
+    paginator = Paginator(tablePersonal,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    
+    #Contenido mostrado en la pagina
+    context = {
+        'tablePersonal': tablePersonal,
+        'page_obj': page_obj
+    }
+    
+    return HttpResponse(template.render(context,request))
+
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Incidencia, Personal
+
+def asignar_tecnico(request):
+    if request.method == 'POST':
+        incidencia_id = request.POST.get('incidencia_id')
+        tecnico_id = request.POST.get('tecnico_id')
+
+        try:
+            incidencia = Incidencia.objects.get(id=incidencia_id)
+            
+            # Desasignar cualquier técnico anterior
+            if incidencia.tecnico_asignado:
+                antiguo_tecnico = incidencia.tecnico_asignado
+                antiguo_tecnico.incidencia = None
+                antiguo_tecnico.save()
+
+            # Asignar nuevo técnico
+            tecnico = Personal.objects.get(id=tecnico_id)
+            incidencia.tecnico_asignado = tecnico
+            incidencia.save()
+
+            tecnico.incidencia = incidencia  # Asegúrate de actualizar también el modelo Personal si lo usas
+            tecnico.save()
+
+            messages.success(request, f"Técnico {tecnico.trabajador.username} asignado correctamente.")
+
+        except (Incidencia.DoesNotExist, Personal.DoesNotExist) as e:
+            messages.error(request, "Error al asignar el técnico.")
+
+        return redirect('incidencias')

@@ -109,12 +109,47 @@ checkboxes.forEach((checkbox) => {
 });
 }
 
-//Funcion para abrir la imangen de la lista de incidencia 
-function abrirImagen(url) {
-    // Asignar la URL de la imagen al modal
-    document.getElementById('imagenEnFoco').src = url;
 
-    // Mostrar el modal
-}
+    // Función para setear el ID de la incidencia antes de abrir el modal
+    function setIncidenciaId(id) {
+        document.getElementById('incidencia_id').value = id;
+    }
+
+    // Abrir imagen en modal
+    function abrirImagen(url) {
+        document.getElementById('imagenEnFoco').src = url;
+    }
+
+    
+    function confirmarEliminacion() {
+
+        console.log("La función confirmarEliminacion() se ha ejecutado"); // <--- Añadimos esto
+
+        // Obtener todos los checkboxes marcados
+        const checkboxes = document.querySelectorAll('input[name="ids"]:checked');
+        const form = document.getElementById('eliminar_incidencia');
+        const contenedor = document.getElementById('checkboxes-seleccionados');
+
+        // Limpiar campos anteriores
+        contenedor.innerHTML = '';
+
+        // Si no hay ninguno seleccionado, mostrar alerta
+        if (checkboxes.length === 0) {
+            alert("Por favor, selecciona al menos una incidencia para eliminar.");
+            return;
+        }
+
+        // Crear inputs ocultos por cada checkbox seleccionado
+        checkboxes.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'ids';
+            input.value = cb.value;
+            contenedor.appendChild(input);
+        });
+
+        // Enviar formulario
+        form.submit();
+    }
 
 
