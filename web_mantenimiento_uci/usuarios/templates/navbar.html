@@ -65,14 +65,25 @@
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton"
                     id="notificationDropdown">
                     <!-- Aquí se cargarán las notificaciones dinámicamente -->
-                    
+
                 </ul>
             </div>
             {% if user.is_authenticated %}
-            <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">
-                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-            </a>
-            {% endif %}
+    <div class="me-3 d-flex flex-column align-items-center text-white">
+        <small><i class="fas fa-user-circle"></i> {{ user.username }}</small>
+        <a href="{% url 'logout' %}" 
+           class="btn btn-danger btn-xs mt-1" 
+           style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+        </a>
+    </div>
+{% else %}
+    <a href="{% url 'login' %}" 
+       class="btn btn-success btn-sm me-3" 
+       style="font-size: 0.8rem; padding: 0.3rem 0.6rem;">
+        <i class="fas fa-sign-in-alt"></i> Iniciar
+    </a>
+{% endif %}
         </div>
     </div>
 </nav>

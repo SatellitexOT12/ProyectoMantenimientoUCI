@@ -9,3 +9,17 @@ def create_notification(sender, instance, created, **kwargs):
             user=instance.usuario_reporte,
             message=f"Nueva acción: Incidencia Reportada"
         )
+    
+    # Notificar al técnico solo si acaba de ser asignado
+    if instance.tecnico_asignado and instance.tecnico_asignado.trabajador:
+        # Verifica que no haya una notificación previa para esta incidencia y este técnico
+        already_notified = Notification.objects.filter(
+            user=instance.tecnico_asignado.trabajador,
+            message__icontains=f"Incidencia: {instance.get_tipo_display()}"
+        ).exists()
+
+        if not already_notified:
+            Notification.objects.create(
+                user=instance.tecnico_asignado.trabajador,
+                message=f"Se te ha asignado una nueva incidencia: {instance.get_tipo_display()}"
+            )
