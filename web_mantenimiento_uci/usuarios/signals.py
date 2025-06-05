@@ -17,9 +17,3 @@ def create_notification(sender, instance, created, **kwargs):
             user=instance.tecnico_asignado.trabajador,
             message__icontains=f"Incidencia: {instance.get_tipo_display()}"
         ).exists()
-
-        if not already_notified:
-            Notification.objects.create(
-                user=instance.tecnico_asignado.trabajador,
-                message=f"Se te ha asignado una nueva incidencia: {instance.get_tipo_display()}"
-            )
