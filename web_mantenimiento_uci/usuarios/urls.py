@@ -22,6 +22,7 @@ urlpatterns = [
     path('logout/',views.logout_view,name='logout'),
     path('personal/',views.personal, name = 'personal'),
     path('asignar-tecnico/', views.asignar_tecnico, name='asignar_tecnico'),
+    path('quitar-tecnico/<int:incidencia_id>/', views.quitar_tecnico, name='quitar_tecnico'),
 ]
 
 if settings.DEBUG:

@@ -443,3 +443,20 @@ def asignar_tecnico(request):
             messages.error(request, "Error al asignar el técnico.")
 
         return redirect('incidencias')
+    
+    
+    
+def quitar_tecnico(request, incidencia_id):
+        incidencia = get_object_or_404(Incidencia, id=incidencia_id)
+    
+        tecnico = incidencia.tecnico_asignado
+        if tecnico:
+            incidencia.tecnico_asignado = None
+            incidencia.save()
+
+        
+        #Opcional: también actualizar el modelo Personal si lo usas
+        tecnico.incidencia = None
+        tecnico.save()
+
+        return redirect('incidencias')
