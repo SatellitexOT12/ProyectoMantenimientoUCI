@@ -100,7 +100,7 @@ Lista de Incidencias
                 <!-- Checkbox -->
                 <td>
                     <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                        <input class="form-check-input checkbox" type="checkbox" name="ids" value="{{x.id}}">
+                        <input class="form-check-input checkbox" type="checkbox" name="ids" value="{{x.id}}" >
                     </div>
                 </td>
 
@@ -142,39 +142,42 @@ Lista de Incidencias
     </div>
 
     <!-- Modal Asignar Técnico -->
-    <div class="modal fade" id="modalAsignarTecnico" tabindex="-1" aria-labelledby="modalAsignarTecnicoLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAsignarTecnicoLabel">Seleccionar Técnico</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="asignarTecnicoForm" method="post" action="{% url 'asignar_tecnico' %}">
-                        {% csrf_token %}
-                        <input type="hidden" id="incidencia_id" name="incidencia_id" value="">
+<div class="modal fade" id="modalAsignarTecnico" tabindex="-1" aria-labelledby="modalAsignarTecnicoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAsignarTecnicoLabel">Seleccionar Técnico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="asignarTecnicoForm" method="post" action="{% url 'asignar_tecnico' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="incidencia_id" name="incidencia_id" value="">
 
-                        <ul class="list-group">
-                            {% for tecnico in tecnicos_disponibles %}
-                            <li class="list-group-item">
-                                <input class="form-check-input me-1" type="radio" name="tecnico_id"
-                                    value="{{ tecnico.id }}">
-                                {{ tecnico.trabajador.username }}
-                            </li>
-                            {% empty %}
-                            <li class="list-group-item text-center text-muted">No hay técnicos disponibles.</li>
-                            {% endfor %}
-                        </ul>
+                    <ul class="list-group">
+                        {% for tecnico in tecnicos_disponibles %}
+                        <li class="list-group-item">
+                            <input class="form-check-input me-1" type="radio" name="tecnico_id" value="{{ tecnico.id }}" required>
+                            {{ tecnico.trabajador.username }}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted">
+                            No hay técnicos disponibles.
+                        </li>
+                        {% endfor %}
+                    </ul>
 
-                        <div class="mt-3 d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">Guardar Asignación</button>
-                        </div>
-                    </form>
-                </div>
+                    <!-- Botón solo aparece si hay técnicos disponibles -->
+                    {% if tecnicos_disponibles %}
+                    <div class="mt-3 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Guardar Asignación</button>
+                    </div>
+                    {% endif %}
+                </form>
             </div>
         </div>
     </div>
+</div>
 
 </div>
 
