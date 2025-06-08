@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from .models import Incidencia,Material,Reporte,Notification, Personal
+from .models import Incidencia,Material,Reporte,Notification, Personal, SolicitudSoporte,RespuestaSoporte
 from django.core.paginator import Paginator
 from functools import wraps
 from django.core import serializers
@@ -458,3 +458,78 @@ def quitar_tecnico(request, incidencia_id):
         tecnico.save()
 
         return redirect('incidencias')
+
+
+def solicitar_soporte(request):
+    if request.method == 'POST':
+        tipo = request.POST.get('tipo')
+        descripcion = request.POST.get('descripcion')
+
+        if tipo and descripcion:
+            SolicitudSoporte.objects.create(
+                usuario=request.user,
+                tipo=tipo,
+                descripcion=descripcion
+            )
+            messages.success(request, "Tu solicitud ha sido enviada correctamente.")
+            return redirect('solicitar_soporte')
+
+    # Obtener todas las solicitudes del usuario actual
+    mis_solicitudes = SolicitudSoporte.objects.filter(usuario=request.user).order_by('-fecha_solicitud')
+
+    # Paginación (opcional)
+    paginator = Paginator(mis_solicitudes, 10)  # 10 por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'soporte/solicitar_soporte.html', {
+        'page_obj': page_obj
+    })
+
+@login_required
+def bandeja_entrada_soporte(request):
+    if not request.user.groups.filter(name='administrador').exists():
+        messages.error(request, "Acceso denegado.")
+        return redirect('inicio')
+
+    # Todas las solicitudes
+    solicitudes = SolicitudSoporte.objects.all().order_by('-fecha_solicitud')
+
+    return render(request, 'soporte/bandeja_entrada_soporte.html', {
+        'solicitudes': solicitudes
+    })
+    
+
+@login_required
+def detalle_solicitud(request, solicitud_id):
+    solicitud = get_object_or_404(SolicitudSoporte, id=solicitud_id)
+
+    # Verificar permisos
+    if solicitud.usuario != request.user and not request.user.groups.filter(name='administrador').exists():
+        messages.error(request, "No tienes acceso a esta solicitud.")
+        return redirect('solicitudes_soporte')
+
+    if request.method == 'POST' and 'mensaje' in request.POST:
+        mensaje = request.POST.get('mensaje', '').strip()
+        if mensaje:
+            RespuestaSoporte.objects.create(
+                solicitud=solicitud,
+                autor=request.user,
+                mensaje=mensaje
+            )
+            return redirect('detalle_solicitud', solicitud_id=solicitud.id)
+
+    return render(request, 'soporte/detalle_solicitud.html', {
+        'solicitud': solicitud
+    })
+    
+@login_required
+def completar_solicitud(request, solicitud_id):
+    solicitud = get_object_or_404(SolicitudSoporte, id=solicitud_id)
+
+    if request.user == solicitud.usuario:
+        solicitud.estado = 'resuelto'
+        solicitud.save()
+        messages.success(request, "La solicitud ha sido marcada como completada.")
+
+    return redirect('detalle_solicitud', solicitud_id=solicitud.id)

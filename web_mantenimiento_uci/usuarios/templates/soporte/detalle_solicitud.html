@@ -1,0 +1,61 @@
+{% extends "master.html" %}
+{% block title %}Detalle de Solicitud{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h3>Solicitud de Soporte</h3>
+            
+            <!-- Mensaje original -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <p><strong>{{ solicitud.usuario.username }}</strong> - {{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</p>
+                    <p>{{ solicitud.descripcion }}</p>
+                </div>
+            </div>
+
+            <!-- Historial de respuestas -->
+            {% for respuesta in solicitud.respuestas.all|dictsort:"fecha" %}
+                {% if respuesta.autor == solicitud.usuario %}
+                    <!-- Usuario -->
+                    <div class="card mb-2 bg-light">
+                        <div class="card-body">
+                            <small class="text-muted">{{ respuesta.autor.username }} - {{ respuesta.fecha|date:"d/m/Y H:i" }}</small>
+                            <p class="mt-2">{{ respuesta.mensaje }}</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Admin/Técnico -->
+                    <div class="card mb-2 border-primary">
+                        <div class="card-body">
+                            <small class="text-muted">{{ respuesta.autor.username }} - {{ respuesta.fecha|date:"d/m/Y H:i" }}</small>
+                            <p class="mt-2">{{ respuesta.mensaje }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p class="text-muted">Aún no hay respuestas.</p>
+            {% endfor %}
+
+            <!-- Formulario de nueva respuesta -->
+            <form method="post" action="{% url 'detalle_solicitud' solicitud.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="mensaje" class="form-label">Tu respuesta:</label>
+                    <textarea name="mensaje" class="form-control" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Enviar</button>
+            </form>
+
+            <!-- Botón para completar -->
+            {% if request.user == solicitud.usuario %}
+                <form method="post" action="{% url 'completar_solicitud' solicitud.id %}" class="mt-3">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">Marcar como Completada</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
