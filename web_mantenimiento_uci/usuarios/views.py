@@ -156,8 +156,7 @@ def incidencias(request):
         tableIncidencia = Incidencia.objects.all()
     else:
         current_user = request.user
-        personal = Personal.objects.get(trabajador=current_user)
-        tableIncidencia = Incidencia.objects.filter(usuario_reporte=current_user) | Incidencia.objects.filter(tecnico_asignado=personal)
+        tableIncidencia = Incidencia.objects.filter(usuario_reporte=current_user) 
     
     if request.method == 'POST':
         action = request.POST.get('action')
