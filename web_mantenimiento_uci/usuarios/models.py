@@ -92,3 +92,36 @@ class Personal(models.Model):
     trabajador = models.ForeignKey(User, on_delete=models.CASCADE)
     incidencia = models.ForeignKey(Incidencia,on_delete=models.CASCADE,null=True, blank=True)
     
+class SolicitudSoporte(models.Model):
+    TIPO_SOFTWARE = 'software'
+    TIPO_HARDWARE = 'hardware'
+    TIPO_OTRO = 'otro'
+    TIPO_CHOICES = [
+        (TIPO_SOFTWARE, 'Software'),
+        (TIPO_HARDWARE, 'Hardware'),
+        (TIPO_OTRO, 'Otro'),
+    ]
+
+    ESTADO_PENDIENTE = 'pendiente'
+    ESTADO_RESUELTO = 'resuelto'
+    ESTADO_CHOICES = [
+        (ESTADO_PENDIENTE, 'Pendiente'),
+        (ESTADO_RESUELTO, 'Resuelto'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    descripcion = models.TextField()
+    respuesta = models.TextField(blank=True, null=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default=ESTADO_PENDIENTE)
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    fecha_respuesta = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Solicitud de {self.usuario.username}"
+    
+class RespuestaSoporte(models.Model):
+    solicitud = models.ForeignKey(SolicitudSoporte, on_delete=models.CASCADE, related_name='respuestas')
+    autor = models.ForeignKey(User, on_delete=models.CASCADE)
+    mensaje = models.TextField()
+    fecha = models.DateTimeField(auto_now_add=True)

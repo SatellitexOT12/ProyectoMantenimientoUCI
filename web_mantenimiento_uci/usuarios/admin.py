@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Incidencia , Material , Reporte,Notification
+from .models import Incidencia , Material , Reporte,Notification , SolicitudSoporte
 
 
 # Register your models here.
@@ -17,3 +17,4 @@ admin.site.register(Incidencia,IncidenciaAdmin)
 admin.site.register(Material,MaterialAdmin)
 admin.site.register(Reporte,ReporteAdmin)
 admin.site.register(Notification)
+admin.site.register(SolicitudSoporte)

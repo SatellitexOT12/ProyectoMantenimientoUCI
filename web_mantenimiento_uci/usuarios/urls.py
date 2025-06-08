@@ -23,6 +23,10 @@ urlpatterns = [
     path('personal/',views.personal, name = 'personal'),
     path('asignar-tecnico/', views.asignar_tecnico, name='asignar_tecnico'),
     path('quitar-tecnico/<int:incidencia_id>/', views.quitar_tecnico, name='quitar_tecnico'),
+    path('soporte/', views.solicitar_soporte, name='solicitar_soporte'),
+    path('soporte/admin/', views.bandeja_entrada_soporte, name='bandeja_entrada_soporte'),
+    path('soporte/detalle/<int:solicitud_id>/', views.detalle_solicitud, name='detalle_solicitud'),
+    path('soporte/completar/<int:solicitud_id>/', views.completar_solicitud, name='completar_solicitud'),
 ]
 
 if settings.DEBUG:
