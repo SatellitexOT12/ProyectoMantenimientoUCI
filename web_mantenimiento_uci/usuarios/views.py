@@ -392,10 +392,8 @@ def personal(request):
     
     #Condicion para buscar elementos en la tabla
     if query:
-        tablePersonal = (tablePersonal.filter(username__icontains=query) | tablePersonal.filter(email__icontains=query) 
-        | tablePersonal.filter(is_active__icontains=query) | tablePersonal.filter(last_login__icontains=query)
-        | tablePersonal.filter(date_joined__icontains=query) 
-        )
+        tablePersonal = (tablePersonal.filter( trabajador__username__icontains=query))
+        
     #Paginacion
     paginator = Paginator(tablePersonal,10)
     page_number = request.GET.get('page')
