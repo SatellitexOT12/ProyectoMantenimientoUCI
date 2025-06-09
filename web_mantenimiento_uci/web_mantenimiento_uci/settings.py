@@ -79,11 +79,14 @@ WSGI_APPLICATION = 'web_mantenimiento_uci.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mantenimientouci',
-        'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'NAME': 'postgres',
+        'USER': 'postgres.usewswadnijtmbovnrpp',
+        'PASSWORD': 'Satellitexot12,031228',
+        'HOST': 'aws-0-us-east-2.pooler.supabase.com',
+        'PORT': '5432',
+        'OPTIONS': {
+        'sslmode': 'require',
+        }
     }
 }
 
