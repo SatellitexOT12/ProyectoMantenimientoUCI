@@ -4,7 +4,6 @@ from django.http import HttpResponse,JsonResponse, HttpResponseForbidden
 from django.template import loader
 from django.contrib.auth import authenticate,login, logout
 from django.contrib.auth.models import User,Group
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -15,10 +14,9 @@ from django.core import serializers
 from django.contrib import messages
 from django.db.models import Count
 from django.db.models.functions import ExtractMonth
-from datetime import datetime
-from openpyxl.chart import BarChart, PieChart, Reference, Series
+from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.styles import Font, Alignment
-from io import BytesIO
+from datetime import datetime
 # Create your views here.
 
 #Decorador personalizado para verificar los grupos a q mi usuario pertenece
@@ -161,6 +159,9 @@ def incidencias(request):
     
     if request.user.is_superuser:
         tableIncidencia = Incidencia.objects.all()
+    elif request.user.groups.filter(name='tecnico').exists():
+        personal = Personal.objects.get(trabajador=request.user)
+        tableIncidencia = Incidencia.objects.filter(tecnico_asignado=personal)
     else:
         current_user = request.user
         tableIncidencia = Incidencia.objects.filter(usuario_reporte=current_user) 
@@ -330,8 +331,20 @@ def seleccionar_material(request,item_id):
 
 @grupo_requerido('almacenero','administrador')
 def reportes(request):
-    tableReporte = Reporte.objects.all()
     
+    
+    fecha_inicial = request.GET.get('fechaInicio')
+    fecha_final = request.GET.get('fechaFin')
+    
+
+    
+    
+        
+    if fecha_inicial and fecha_final:
+        tableReporte = Reporte.objects.filter( fecha__range=[fecha_inicial, fecha_final])
+    else:
+        tableReporte = Reporte.objects.all()
+            
     totalReportes = tableReporte.count()
     reporte_resuelto = tableReporte.filter(estado='resuelto').count()
     reporte_pendiente = tableReporte.filter(estado='pendiente').count()
@@ -371,6 +384,7 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+@login_required
 def main(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     unread_count = notifications.filter(is_read=False).count()
@@ -435,42 +449,39 @@ def personal(request):
     
     return HttpResponse(template.render(context,request))
 
-# views.py
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import Incidencia, Personal
-
+@grupo_requerido('administrador')
 def asignar_tecnico(request):
     if request.method == 'POST':
         incidencia_id = request.POST.get('incidencia_id')
         tecnico_id = request.POST.get('tecnico_id')
 
+
+
         try:
             incidencia = Incidencia.objects.get(id=incidencia_id)
-            
+            tecnico = Personal.objects.get(id=tecnico_id)
+
             # Desasignar cualquier técnico anterior
             if incidencia.tecnico_asignado:
-                antiguo_tecnico = incidencia.tecnico_asignado
-                antiguo_tecnico.incidencia = None
-                antiguo_tecnico.save()
+                antiguo = incidencia.tecnico_asignado
+                antiguo.incidencia = None
+                antiguo.save()
 
             # Asignar nuevo técnico
-            tecnico = Personal.objects.get(id=tecnico_id)
             incidencia.tecnico_asignado = tecnico
             incidencia.save()
 
-            tecnico.incidencia = incidencia  # Asegúrate de actualizar también el modelo Personal si lo usas
+            # Actualizar también el modelo Personal
+            tecnico.incidencia = incidencia
             tecnico.save()
 
             messages.success(request, f"Técnico {tecnico.trabajador.username} asignado correctamente.")
-
         except (Incidencia.DoesNotExist, Personal.DoesNotExist) as e:
-            messages.error(request, "Error al asignar el técnico.")
+            messages.error(request, "Hubo un problema al asignar el técnico.")
+    
+    return redirect('incidencias')   
 
-        return redirect('incidencias')
-    
-    
-    
+@grupo_requerido('administrador')
 def quitar_tecnico(request, incidencia_id):
         incidencia = get_object_or_404(Incidencia, id=incidencia_id)
     
@@ -486,7 +497,7 @@ def quitar_tecnico(request, incidencia_id):
 
         return redirect('incidencias')
 
-
+@login_required
 def solicitar_soporte(request):
     if request.method == 'POST':
         tipo = request.POST.get('tipo')
@@ -514,6 +525,7 @@ def solicitar_soporte(request):
     })
 
 @login_required
+@grupo_requerido('administrador')
 def bandeja_entrada_soporte(request):
     if not request.user.groups.filter(name='administrador').exists():
         messages.error(request, "Acceso denegado.")
@@ -563,7 +575,7 @@ def completar_solicitud(request, solicitud_id):
 
 
 
-
+@grupo_requerido('almacenero','administrador')
 def exportar_dashboard(request):
     # Obtener datos del año actual
     year = timezone.now().year
@@ -671,7 +683,7 @@ def exportar_dashboard(request):
 
 
 
-
+@grupo_requerido('almacenero','administrador')
 def asignar_material(request):
     if request.method == 'POST':
         incidencia_id = request.POST.get('incidencia_id')

@@ -9,17 +9,18 @@ Dashboard de Incidencias
 <div class="container mt-5">
     <h1 class="text-center mb-4">Dashboard de Incidencias</h1>
 
-    <form id="registroForm" method="post" class="needs-validation" novalidate>
+    <form id="registroForm" method="get" class="needs-validation" novalidate>
+        {% csrf_token %}
         <!-- Filtros -->
         <div class="row mb-5 align-items-start"> <!-- Cambio aquí -->
             <div class="col-md-4">
                 <label for="fechaInicio" class="form-label">Fecha de inicio</label>
-                <input type="date" class="form-control" id="fechaInicio" required>
+                <input type="date" class="form-control" name="fechaInicio" required>
                 <div id="errorFechaInicio" class="invalid-feedback"></div>
             </div>
             <div class="col-md-4">
                 <label for="fechaFin" class="form-label">Fecha de fin</label>
-                <input type="date" class="form-control" id="fechaFin" required>
+                <input type="date" class="form-control" name="fechaFin" required>
                 <div id="errorFechaFin" class="invalid-feedback"></div>
             </div>
             <div class="col-md-4 mt-auto"> <!-- Cambio aquí -->
