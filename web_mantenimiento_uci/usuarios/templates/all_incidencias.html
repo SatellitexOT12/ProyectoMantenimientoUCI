@@ -130,7 +130,16 @@ Lista de Incidencias
                         <li class="list-group-item d-flex justify-content-between">
                             <span>{{ mi.material.nombre }}</span>
                             <span class="badge bg-primary">{{ mi.cantidad_usada }}</span>
+                            <!-- Botón para quitar el material -->
+                        <form action="{% url 'quitar_material' %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="material_incidencia_id" value="{{ mi.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger" title="Quitar material">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
                         </li>
+                        
                         {% endfor %}
                     </ul>
                     {% else %}

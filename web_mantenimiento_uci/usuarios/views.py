@@ -716,4 +716,28 @@ def asignar_material(request):
             messages.error(request, f"Error al asignar el material: {e}")
 
         return redirect('incidencias')  # Cambia por tu URL de lista de incidencias
+    
+    
+
+def quitar_material(request):
+    if request.method == 'POST':
+        registro_id = request.POST.get('material_incidencia_id')
+
+        try:
+            registro = get_object_or_404(MaterialIncidencia, id=registro_id)
+            cantidad_devuelta = registro.cantidad_usada
+            material = registro.material
+
+            # Devolver stock al material
+            material.cantidad += cantidad_devuelta
+            material.save()
+            
+
+            # Eliminar el registro
+            registro.delete()
+            
+        except Exception as e:
+            messages.error(request, f"Error al quitar el material: {e}")
+    
+    return redirect(request.META['HTTP_REFERER'])
 
