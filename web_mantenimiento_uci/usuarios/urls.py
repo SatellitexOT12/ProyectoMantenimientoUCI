@@ -27,6 +27,7 @@ urlpatterns = [
     path('soporte/admin/', views.bandeja_entrada_soporte, name='bandeja_entrada_soporte'),
     path('soporte/detalle/<int:solicitud_id>/', views.detalle_solicitud, name='detalle_solicitud'),
     path('soporte/completar/<int:solicitud_id>/', views.completar_solicitud, name='completar_solicitud'),
+    path('dashboard/exportar/', views.exportar_dashboard, name='exportar_dashboard'),
 ]
 
 if settings.DEBUG:

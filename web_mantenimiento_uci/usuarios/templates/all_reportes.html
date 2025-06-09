@@ -2,30 +2,30 @@
 {% load static %}
 
 {% block title %}
-    Reportes
+Dashboard de Incidencias
 {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center mb-4">Reportes</h1>
+    <h1 class="text-center mb-4">Dashboard de Incidencias</h1>
 
-    <form id="registroForm" method="post"  class="needs-validation" novalidate>
-    <!-- Filtros -->
-    <div class="row mb-5 align-items-start"> <!-- Cambio aquí -->
-        <div class="col-md-4">
-            <label for="fechaInicio" class="form-label">Fecha de inicio</label>
-            <input type="date" class="form-control" id="fechaInicio" required>
-            <div id="errorFechaInicio" class="invalid-feedback"></div>
+    <form id="registroForm" method="post" class="needs-validation" novalidate>
+        <!-- Filtros -->
+        <div class="row mb-5 align-items-start"> <!-- Cambio aquí -->
+            <div class="col-md-4">
+                <label for="fechaInicio" class="form-label">Fecha de inicio</label>
+                <input type="date" class="form-control" id="fechaInicio" required>
+                <div id="errorFechaInicio" class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-4">
+                <label for="fechaFin" class="form-label">Fecha de fin</label>
+                <input type="date" class="form-control" id="fechaFin" required>
+                <div id="errorFechaFin" class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-4 mt-auto"> <!-- Cambio aquí -->
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
         </div>
-        <div class="col-md-4">
-            <label for="fechaFin" class="form-label">Fecha de fin</label>
-            <input type="date" class="form-control" id="fechaFin" required>
-            <div id="errorFechaFin" class="invalid-feedback"></div>
-        </div>
-        <div class="col-md-4 mt-auto"> <!-- Cambio aquí -->
-            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-        </div>
-    </div>
     </form>
 
     <!-- Tarjetas de Resumen -->
@@ -91,7 +91,7 @@
 
     <!-- Tabla de reportes -->
     <div class="table-responsive">
-        <table class="table table-striped">
+        <table  id="tablaReportes"  class="table table-striped">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -99,11 +99,10 @@
                     <th>Tipo</th>
                     <th>Descripción</th>
                     <th>Estado</th>
-                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                
+
                 {% for x in tableReporte %}
                 <tr>
                     <td>{{x.id}}</td>
@@ -111,10 +110,6 @@
                     <td>{{x.tipo}}</td>
                     <td>{{x.descripcion}}</td>
                     <td>{{x.reporte_incidencia.get_estado_display}}</td>
-                    <td>
-                        <button class="btn btn-sm btn-info">Ver</button>
-                        <button class="btn btn-sm btn-danger">Eliminar</button>
-                    </td>
                 </tr>
 
                 {%endfor%}
@@ -125,9 +120,11 @@
 
     <!-- Botón de exportar -->
     <div class="text-center mt-4">
-        <button class="btn btn-success">Exportar a Excel</button>
+        <a href="{% url 'exportar_dashboard' %}" class="btn btn-success">Exportar a Excel</a>
     </div>
 </div>
+
+
 
 <!-- Incluir Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -140,43 +137,44 @@
             labels: ['Pendiente', 'Resuelto', 'En Proceso'], // Etiquetas para cada estado
             datasets: [{
                 label: 'Reportes por Estado',
-                data: [{{reporte_pendiente}}, {{reporte_resuelto}}, {{reporte_enProceso}}], // Datos dinámicos (ejemplo: 30 pendientes, 120 resueltos, 50 en proceso)
-                backgroundColor: [
-                    'rgba(255, 205, 86, 0.6)', // Amarillo para Pendiente
-                    'rgba(75, 192, 192, 0.6)', // Verde para Resuelto
-                    'rgba(169, 169, 169, 0.6)' // Gris para En Proceso
-                ],
-                borderColor: [
-                    'rgba(255, 205, 86, 1)', // Borde amarillo
-                    'rgba(75, 192, 192, 1)', // Borde verde
-                    'rgba(169, 169, 169, 1)' // Borde gris
-                ],
-                borderWidth: 1 // Ancho del borde
+                data: [{{ reporte_pendiente }}, {{ reporte_resuelto }}, {{ reporte_enProceso }}], // Datos dinámicos (ejemplo: 30 pendientes, 120 resueltos, 50 en proceso)
+    backgroundColor: [
+        'rgba(255, 205, 86, 0.6)', // Amarillo para Pendiente
+        'rgba(75, 192, 192, 0.6)', // Verde para Resuelto
+        'rgba(169, 169, 169, 0.6)' // Gris para En Proceso
+    ],
+        borderColor: [
+            'rgba(255, 205, 86, 1)', // Borde amarillo
+            'rgba(75, 192, 192, 1)', // Borde verde
+            'rgba(169, 169, 169, 1)' // Borde gris
+        ],
+            borderWidth: 1 // Ancho del borde
             }]
         },
-        options: {
-            responsive: true, // Hace que el gráfico sea responsive
+    options: {
+        responsive: true, // Hace que el gráfico sea responsive
             plugins: {
-                legend: {
-                    position: 'top', // Posición de la leyenda
+            legend: {
+                position: 'top', // Posición de la leyenda
                 },
-                title: {
-                    display: true,
+            title: {
+                display: true,
                     text: 'Reportes por Estado' // Título del gráfico
-                }
             }
         }
+    }
     });
 
     // Gráfico de Reportes por Mes
     var ctxMes = document.getElementById('mesChart').getContext('2d');
+    var incidenciasData = {{ incidencias_data| safe }};
     var mesChart = new Chart(ctxMes, {
         type: 'bar',
         data: {
-            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
             datasets: [{
                 label: 'Reportes por Mes',
-                data: [12, 19, 3, 5, 2, 3, 7,8,2,7,9,11],
+                data: incidenciasData,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
                 borderWidth: 1
@@ -195,7 +193,10 @@
             }
         }
     });
+
+
 </script>
 
 <script src="{% static 'js/validarFechaReporte.js'  %}"></script>
+
 {% endblock %}

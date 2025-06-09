@@ -1,3 +1,4 @@
+import openpyxl
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse,JsonResponse, HttpResponseForbidden
 from django.template import loader
@@ -12,6 +13,12 @@ from django.core.paginator import Paginator
 from functools import wraps
 from django.core import serializers
 from django.contrib import messages
+from django.db.models import Count
+from django.db.models.functions import ExtractMonth
+from datetime import datetime
+from openpyxl.chart import BarChart, PieChart, Reference, Series
+from openpyxl.styles import Font, Alignment
+from io import BytesIO
 # Create your views here.
 
 #Decorador personalizado para verificar los grupos a q mi usuario pertenece
@@ -328,12 +335,32 @@ def reportes(request):
     reporte_resuelto = tableReporte.filter(estado='resuelto').count()
     reporte_pendiente = tableReporte.filter(estado='pendiente').count()
     reporte_enProceso = tableReporte.filter(estado = 'en_proceso').count()
+    
+    # Obtener todas las incidencias del año actual
+    year = timezone.now().year
+    incidencias_por_mes = (
+        Incidencia.objects.filter(fecha__year=year)
+        .annotate(mes=ExtractMonth('fecha'))
+        .values('mes')
+        .annotate(cantidad=Count('id'))
+        .order_by('mes')
+    )
+
+    # Crear lista con 12 posiciones (uno por cada mes)
+    data = [0] * 12  # Inicializar con ceros
+    for item in incidencias_por_mes:
+        mes_index = item['mes'] - 1  # Chart.js empieza en 0 = Enero
+        data[mes_index] = item['cantidad']
+    
+    
     context = {
         'tableReporte' : tableReporte,
         'totalReportes' : totalReportes,
         'reporte_resuelto' : reporte_resuelto,
         'reporte_pendiente' : reporte_pendiente,
-        'reporte_enProceso' : reporte_enProceso
+        'reporte_enProceso' : reporte_enProceso,
+        'incidencias_data': data,
+        'year': year
     }
     
     return render(request,'all_reportes.html',context)
@@ -532,3 +559,113 @@ def completar_solicitud(request, solicitud_id):
         messages.success(request, "La solicitud ha sido marcada como completada.")
 
     return redirect('detalle_solicitud', solicitud_id=solicitud.id)
+
+
+
+
+def exportar_dashboard(request):
+    # Obtener datos del año actual
+    year = timezone.now().year
+    incidencias_por_mes = (
+    Incidencia.objects.filter(fecha__year=year)
+    .annotate(mes=ExtractMonth('fecha'))
+    .annotate(cantidad=Count('id'))
+    .values_list('mes', 'cantidad')
+    .order_by('mes')
+    )
+
+    data_meses = [0] * 12
+    for mes, cantidad in incidencias_por_mes:
+        if 1 <= mes <= 12:
+            data_meses[mes - 1] = cantidad
+
+    # Contar estados
+    pendientes = Incidencia.objects.filter(estado='pendiente').count()
+    resueltos = Incidencia.objects.filter(estado='resuelto').count()
+    en_proceso = Incidencia.objects.filter(estado='en_proceso').count()
+
+    # Crear libro de Excel
+    wb = openpyxl.Workbook()
+
+    # Hoja 1: Datos de gráficos
+    ws_estados = wb.active
+    ws_estados.title = 'Estados'
+
+    ws_estados.append(['Estado', 'Total'])
+    ws_estados['A1'].font = Font(bold=True)
+    ws_estados['B1'].font = Font(bold=True)
+
+    ws_estados.append(['Pendiente', pendientes])
+    ws_estados.append(['Resuelto', resueltos])
+    ws_estados.append(['En Proceso', en_proceso])
+
+    # Gráfico de pie (tarta)
+    chart_estado = PieChart()
+    labels = Reference(ws_estados, min_col=1, min_row=2, max_row=4)
+    data = Reference(ws_estados, min_col=2, min_row=1, max_row=4)
+    chart_estado.add_data(data, titles_from_data=True)
+    chart_estado.set_categories(labels)
+    chart_estado.title = "Reportes por Estado"
+    chart_estado.style = 10  # Estilo de gráfico
+
+    ws_estados.add_chart(chart_estado, "D2")
+
+    # Hoja 2: Reportes por Mes
+    ws_meses = wb.create_sheet(title="Por Mes")
+    meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
+    ws_meses.append(['Mes', 'Reportes'])
+    ws_meses['A1'].font = Font(bold=True)
+    ws_meses['B1'].font = Font(bold=True)
+
+    for i, (mes, valor) in enumerate(zip(meses, data_meses), start=2):
+        ws_meses[f"A{i}"] = mes
+        ws_meses[f"B{i}"] = valor
+
+    # Gráfico de barras
+    chart_mes = BarChart()
+    chart_mes.type = "col"
+    chart_mes.title = "Reportes por Mes"
+    chart_mes.x_axis.title = "Mes"
+    chart_mes.y_axis.title = "Incidencias"
+
+    data_bar = Reference(ws_meses, min_col=2, min_row=1, max_row=13, max_col=2)
+    cats = Reference(ws_meses, min_col=1, min_row=2, max_row=13)
+    chart_mes.add_data(data_bar, titles_from_data=True)
+    chart_mes.set_categories(cats)
+    chart_mes.shape = 4  # Tamaño del gráfico
+
+    ws_meses.add_chart(chart_mes, "D2")
+
+    # Hoja 3: Tabla de reportes
+    ws_reportes = wb.create_sheet(title="Listado")
+
+    headers = ['ID', 'Fecha', 'Tipo', 'Descripción', 'Estado']
+    ws_reportes.append(headers)
+    for cell in ws_reportes["1"]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    incidencias = Incidencia.objects.all().values_list('id', 'fecha', 'tipo', 'descripcion', 'estado')
+
+    rows = []
+    for incidencia in incidencias:
+        id_incidencia, fecha, tipo, descripcion, estado = incidencia
+        # Eliminar tzinfo si es necesario
+        if fecha is not None and timezone.is_aware(fecha):
+            fecha = timezone.make_naive(fecha)
+        rows.append([id_incidencia, fecha, tipo, descripcion, estado])
+
+    # Añadir al archivo Excel
+    for row in rows:
+        ws_reportes.append(row)
+
+    # Guardar el archivo
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=Dashboard_Incidencias.xlsx'
+    
+    wb.save(response)
+    return response
+
+
