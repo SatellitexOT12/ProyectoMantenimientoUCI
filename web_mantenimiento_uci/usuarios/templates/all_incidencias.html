@@ -6,7 +6,7 @@ Lista de Incidencias
 {% endblock %}
 
 {% block content %}
-<div class="container mt-3 mx-3">
+<div class="container-fluid mt-3 px-4">
     <div class="row container">
         <div class="col">
             <h1>Gestionar Incidencias</h1>
@@ -18,7 +18,7 @@ Lista de Incidencias
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
-    {% endif %}
+        {% endif %}
         <div class="col d-flex flex-row-reverse p-3 ">
             <a class="btn btn-primary" type="button" href="/reportar_incidencia">Registrar</a>
             <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar"
@@ -32,7 +32,7 @@ Lista de Incidencias
     {% csrf_token %}
     <input type="hidden" id="action" name="action" value="">
 
-    <table class="table table-hover" id="userTable" data-orden="asc">
+    <table class="table table-hover " id="userTable" data-orden="asc">
         <thead>
             <tr class="table-dark">
                 <th>Tipo de Incidencia</th>
@@ -58,26 +58,30 @@ Lista de Incidencias
                 <td>{{x.get_tipo_display}}</td>
 
                 <!-- Prioridad con color -->
+                <td>
                 {% if x.prioridad == "2" %}
-                <td style="background-color:rgba(253, 191, 4, 0.36);">{{x.get_prioridad_display}}</td>
+                <span class="badge bg-warning text-dark">{{ x.get_prioridad_display }}</span>
                 {% elif x.prioridad == "3" %}
-                <td style="background-color:rgba(253, 4, 4, 0.4);">{{x.get_prioridad_display}}</td>
+                <span class="badge bg-danger text-dark">{{ x.get_prioridad_display }}</span>
                 {% else %}
-                <td style="background-color:rgba(216, 214, 214, 0.36);">{{x.get_prioridad_display}}</td>
+                <span class="badge bg-secondary text-dark">{{ x.get_prioridad_display }}</span>
                 {% endif %}
+                </td>
 
                 <td>{{x.fecha}}</td>
                 <td>{{x.ubicacion}}</td>
                 <td>{{x.descripcion}}</td>
 
                 <!-- Estado con color -->
+                <td>
                 {% if x.estado == "pendiente" %}
-                <td style="background-color:rgba(253, 191, 4, 0.36);">{{x.get_estado_display}}</td>
+                <span class="badge bg-warning text-dark">{{ x.get_estado_display }}</span>
                 {% elif x.estado == "resuelto" %}
-                <td style="background-color:rgba(12, 253, 4, 0.36);">{{x.get_estado_display}}</td>
+                <span class="badge bg-success text-dark">{{ x.get_estado_display }}</span>
                 {% else %}
-                <td style="background-color:rgba(216, 214, 214, 0.36);">{{x.get_estado_display}}</td>
+                <span class="badge bg-secondary text-dark">{{ x.get_estado_display }}</span>
                 {% endif %}
+                </td>
 
                 <td>{{x.usuario_reporte.username}}</td>
                 <td>
@@ -132,7 +136,7 @@ Lista de Incidencias
                     {% else %}
                     <span class="text-muted">Ningún material asignado</span>
                     {% endif %}
-                    
+
                     {% if request.user|has_groups:"administrador,almacenero" %}
                     <!-- Botón Asignar Material -->
                     <div class="mt-2">
@@ -153,7 +157,13 @@ Lista de Incidencias
 
                 <!-- Editar -->
                 <td>
-                    <a class="nav-link" href="{% url 'editar_incidencia' x.id %}">Editar...</a>
+                    {% if x.estado == 'pendiente' or  request.user|has_groups:"administrador,tecnico"%}
+                    <a href="{% url 'editar_incidencia' x.id %}" class="btn btn-sm btn-info">Editar</a>
+                    {% else %}
+                    <button class="btn btn-sm btn-secondary" disabled title="Solo incidencias pendientes">
+                        Editar
+                    </button>
+                    {% endif %}
                 </td>
             </tr>
             {% empty %}
@@ -229,43 +239,46 @@ Lista de Incidencias
     </div>
 
     <!-- Modal Asignar Material -->
-<div class="modal fade" id="modalAsignarMaterial" tabindex="-1" aria-labelledby="modalAsignarMaterialLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form method="post" action="{% url 'asignar_material' %}">
-                {% csrf_token %}
-                <input type="hidden" id="incidencia_id_modal" name="incidencia_id">
+    <div class="modal fade" id="modalAsignarMaterial" tabindex="-1" aria-labelledby="modalAsignarMaterialLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form method="post" action="{% url 'asignar_material' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="incidencia_id_modal" name="incidencia_id">
 
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAsignarMaterialLabel">Asignar Materiales</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <p>Selecciona un material y la cantidad a usar:</p>
-
-                    <select name="material" class="form-select mb-3" required>
-                        <option value="">Selecciona un material</option>
-                        {% for material in materiales_disponibles %}
-                            <option value="{{ material.id }}">{{ material.nombre }} - {{ material.tipo }} (Disponible: {{ material.cantidad }})</option>
-                        {% endfor %}
-                    </select>
-
-                    <input type="number" name="cantidad" class="form-control mb-3" placeholder="Cantidad a usar" min="1" required>
-
-                    <div class="alert alert-warning" role="alert">
-                        Los materiales se descontarán del inventario al guardar.
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalAsignarMaterialLabel">Asignar Materiales</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Guardar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </form>
+                    <div class="modal-body">
+                        <p>Selecciona un material y la cantidad a usar:</p>
+
+                        <select name="material" class="form-select mb-3" required>
+                            <option value="">Selecciona un material</option>
+                            {% for material in materiales_disponibles %}
+                            <option value="{{ material.id }}">{{ material.nombre }} - {{ material.tipo }} (Disponible:
+                                {{ material.cantidad }})</option>
+                            {% endfor %}
+                        </select>
+
+                        <input type="number" name="cantidad" class="form-control mb-3" placeholder="Cantidad a usar"
+                            min="1" required>
+
+                        <div class="alert alert-warning" role="alert">
+                            Los materiales se descontarán del inventario al guardar.
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Guardar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
 </div>
 
@@ -273,13 +286,13 @@ Lista de Incidencias
 <script src="{% static 'js/scripts.js' %}"></script>
 
 <script>
-function setIncidenciaId(id) {
-    document.getElementById('incidencia_id_modal').value = id;
-}
+    function setIncidenciaId(id) {
+        document.getElementById('incidencia_id_modal').value = id;
+    }
 
-function setIncidenciaId_tecnico(id){
-    document.getElementById('incidencia_id').value = id;
-}
+    function setIncidenciaId_tecnico(id) {
+        document.getElementById('incidencia_id').value = id;
+    }
 </script>
 
 
