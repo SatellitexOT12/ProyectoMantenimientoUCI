@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from .models import Incidencia,Material,Reporte,Notification, Personal, SolicitudSoporte,RespuestaSoporte
+from .models import Incidencia,Material,Reporte,Notification, Personal, SolicitudSoporte,RespuestaSoporte,  MaterialIncidencia
 from django.core.paginator import Paginator
 from functools import wraps
 from django.core import serializers
@@ -198,7 +198,8 @@ def incidencias(request):
         'tableIncidencia': tableIncidencia,
         'page_obj': page_obj,
         'tecnicos_disponibles': tecnicos_disponibles,
-        'tecnicos':tecnicos
+        'tecnicos':tecnicos,
+        'materiales_disponibles': Material.objects.filter(cantidad__gt=0),
     }
     return HttpResponse(template.render(context,request))
 
@@ -668,4 +669,39 @@ def exportar_dashboard(request):
     wb.save(response)
     return response
 
+
+
+
+def asignar_material(request):
+    if request.method == 'POST':
+        incidencia_id = request.POST.get('incidencia_id')
+        material_id = request.POST.get('material')
+        cantidad = int(request.POST.get('cantidad', 1))
+
+        try:
+            incidencia = get_object_or_404(Incidencia, id=incidencia_id)
+            material = get_object_or_404(Material, id=material_id)
+
+            # Verificar stock suficiente
+            if material.cantidad < cantidad:
+                messages.error(request, f"No hay suficiente stock de {material.nombre}")
+                return redirect('detalle_incidencia', incidencia_id=incidencia_id)
+
+            # Crear registro de uso
+            MaterialIncidencia.objects.create(
+                incidencia=incidencia,
+                material=material,
+                cantidad_usada=cantidad
+            )
+
+            # Restar del inventario
+            material.cantidad -= cantidad
+            material.save()
+
+            messages.success(request, f"{cantidad} unidad(es) de '{material.nombre}' asignadas correctamente.")
+
+        except Exception as e:
+            messages.error(request, f"Error al asignar el material: {e}")
+
+        return redirect('incidencias')  # Cambia por tu URL de lista de incidencias
 

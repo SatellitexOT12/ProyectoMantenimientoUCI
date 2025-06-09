@@ -125,3 +125,12 @@ class RespuestaSoporte(models.Model):
     autor = models.ForeignKey(User, on_delete=models.CASCADE)
     mensaje = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)
+    
+class MaterialIncidencia(models.Model):
+    incidencia = models.ForeignKey(Incidencia, on_delete=models.CASCADE)
+    material = models.ForeignKey(Material, on_delete=models.CASCADE)
+    cantidad_usada = models.PositiveIntegerField(default=1)
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.material.nombre} - {self.cantidad_usada}"

@@ -28,6 +28,7 @@ urlpatterns = [
     path('soporte/detalle/<int:solicitud_id>/', views.detalle_solicitud, name='detalle_solicitud'),
     path('soporte/completar/<int:solicitud_id>/', views.completar_solicitud, name='completar_solicitud'),
     path('dashboard/exportar/', views.exportar_dashboard, name='exportar_dashboard'),
+    path('incidencia/asignar-material/', views.asignar_material, name='asignar_material'),
 ]
 
 if settings.DEBUG:
