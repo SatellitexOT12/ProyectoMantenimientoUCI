@@ -4,7 +4,7 @@ beautifulsoup4==4.13.3
 begins==0.9
 certifi==2025.4.26
 cffi==1.17.1
-Django==4.2.19
+Django==4.2.23
 django-bootstrap-v5==1.0.11
 django-extensions==4.1
 eralchemy==1.5.0
