@@ -129,7 +129,7 @@ Lista de Incidencias
                         {% for mi in x.materialincidencia_set.all %}
                         <li class="list-group-item d-flex justify-content-between">
                             <span>{{ mi.material.nombre }}</span>
-                            <span class="badge bg-primary">{{ mi.cantidad_usada }}</span>
+                            <button style="display:inline;" class="btn btn-sm btn-primary">{{ mi.cantidad_usada }}</button>
                             <!-- Botón para quitar el material -->
                         <form action="{% url 'quitar_material' %}" method="post" style="display:inline;">
                             {% csrf_token %}
