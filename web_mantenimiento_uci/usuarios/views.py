@@ -533,15 +533,27 @@ def bandeja_entrada_soporte(request):
 
     # Todas las solicitudes
     solicitudes = SolicitudSoporte.objects.all().order_by('-fecha_solicitud')
+    unreadRes = RespuestaSoporte.objects.filter(leido=False)
+    solicitudes_por_leer = []
+    for ur in unreadRes:
+        solicitudes_por_leer.append(ur.solicitud)
+    print("elementos",solicitudes_por_leer)
 
     return render(request, 'soporte/bandeja_entrada_soporte.html', {
-        'solicitudes': solicitudes
+        'solicitudes': solicitudes,
+        'solicitudes_por_leer':solicitudes_por_leer
     })
     
 
 @login_required
 def detalle_solicitud(request, solicitud_id):
     solicitud = get_object_or_404(SolicitudSoporte, id=solicitud_id)
+    # Verificar que el administrador entro al menos 1 vez a leer el chat 
+    respuestas = RespuestaSoporte.objects.filter(solicitud=solicitud)
+    if request.user != solicitud.usuario:
+        for res in respuestas:
+            res.leido = True
+            res.save()
 
     # Verificar permisos
     if solicitud.usuario != request.user and not request.user.groups.filter(name='administrador').exists():

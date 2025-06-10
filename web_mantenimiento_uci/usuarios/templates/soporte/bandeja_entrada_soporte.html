@@ -17,6 +17,7 @@
                 <th>Estado</th>
                 <th>Fecha</th>
                 <th>Acciones</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -36,6 +37,11 @@
                 <td>
                     <a href="{% url 'detalle_solicitud' s.id %}" class="btn btn-sm btn-info">Ver Detalles</a>
                 </td>
+                {% if s in solicitudes_por_leer %}
+                <td>
+                    <span class="text-danger fw-bold">novedades</span>
+                </td>
+                {% endif %}
             </tr>
             {% empty %}
             <tr><td colspan="6" class="text-center">No hay solicitudes.</td></tr>
