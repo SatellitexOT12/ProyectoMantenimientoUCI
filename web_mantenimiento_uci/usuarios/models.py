@@ -83,6 +83,7 @@ class Notification(models.Model):
     message = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    urlAsociated = models.TextField(default="none")
 
     def __str__(self):
         return f"Noti para {self.user.username}"

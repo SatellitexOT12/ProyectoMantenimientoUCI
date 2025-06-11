@@ -78,11 +78,13 @@ def notify_on_new_response(sender, instance, created, **kwargs):
             for admin in admins:
                 Notification.objects.create(
                     user=admin,
-                    message=f"{autor.username} respondió a su solicitud: {mensaje_respuesta}"
+                    message=f"{autor.username} respondió a su solicitud: {mensaje_respuesta}",
+                    urlAsociated = "soporte/admin/"
                 )
         else:
             # Un admin respondió → notificar al usuario
             Notification.objects.create(
                 user=solicitud.usuario,
-                message=f"El administrador {autor.username} respondió a tu solicitud: {mensaje_respuesta}"
+                message=f"El administrador {autor.username} respondió a tu solicitud: {mensaje_respuesta}",
+                urlAsociated = "soporte"
             )

@@ -53,6 +53,7 @@ function markAsRead(notificationId) {
           item.setAttribute('data-id', noti.pk);
 
           item.innerHTML = `
+          <a href="/${fields.urlAsociated}" id="irahi"> ir ahí </a>
             <div class="d-flex justify-content-between align-items-center">
               <span>${fields.message}</span>
               <button class="btn btn-sm btn-outline-primary" onclick="markAsRead(${noti.pk})">Marcar como leída</button>
@@ -60,6 +61,15 @@ function markAsRead(notificationId) {
             </div>
           `;
           const deleteButton = item.querySelector(".delete-notification");
+          const irahi =  item.querySelector("#irahi");
+          //Eliminar desde ir -ahi
+          irahi.onclick= function deletefromA (){
+            const notificationId = item.getAttribute("data-id");
+          // Eliminar del DOM
+          item.remove();
+          deleteNotification(notificationId);
+          }
+          //Eliminar desde el boton eliminar
         deleteButton.addEventListener("click", function () {
           const notificationId = item.getAttribute("data-id");
 
