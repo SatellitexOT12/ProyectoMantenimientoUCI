@@ -125,6 +125,7 @@ class RespuestaSoporte(models.Model):
     autor = models.ForeignKey(User, on_delete=models.CASCADE)
     mensaje = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)
+    leido = models.BooleanField(default=False)
     
 class MaterialIncidencia(models.Model):
     incidencia = models.ForeignKey(Incidencia, on_delete=models.CASCADE)
