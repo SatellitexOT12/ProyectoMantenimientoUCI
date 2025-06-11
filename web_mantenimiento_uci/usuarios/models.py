@@ -126,6 +126,8 @@ class RespuestaSoporte(models.Model):
     mensaje = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)
     leido = models.BooleanField(default=False)
+    def __str__(self):
+        return f"solicitud de {self.autor}"
     
 class MaterialIncidencia(models.Model):
     incidencia = models.ForeignKey(Incidencia, on_delete=models.CASCADE)

@@ -514,14 +514,20 @@ def solicitar_soporte(request):
 
     # Obtener todas las solicitudes del usuario actual
     mis_solicitudes = SolicitudSoporte.objects.filter(usuario=request.user).order_by('-fecha_solicitud')
-
+    
+    unreadRes = RespuestaSoporte.objects.filter(leido=False).exclude(autor = request.user)
+    solicitudes_por_leer = []
+    for ur in unreadRes:
+        solicitudes_por_leer.append(ur.solicitud)
+    print("elementos",solicitudes_por_leer)
     # Paginación (opcional)
     paginator = Paginator(mis_solicitudes, 10)  # 10 por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'soporte/solicitar_soporte.html', {
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'solicitudes_por_leer':solicitudes_por_leer
     })
 
 @login_required
@@ -533,7 +539,7 @@ def bandeja_entrada_soporte(request):
 
     # Todas las solicitudes
     solicitudes = SolicitudSoporte.objects.all().order_by('-fecha_solicitud')
-    unreadRes = RespuestaSoporte.objects.filter(leido=False)
+    unreadRes = RespuestaSoporte.objects.filter(leido=False).exclude(autor = request.user)
     solicitudes_por_leer = []
     for ur in unreadRes:
         solicitudes_por_leer.append(ur.solicitud)
@@ -550,10 +556,13 @@ def detalle_solicitud(request, solicitud_id):
     solicitud = get_object_or_404(SolicitudSoporte, id=solicitud_id)
     # Verificar que el administrador entro al menos 1 vez a leer el chat 
     respuestas = RespuestaSoporte.objects.filter(solicitud=solicitud)
-    if request.user != solicitud.usuario:
-        for res in respuestas:
+    current_user_respuesta = RespuestaSoporte.objects.filter(solicitud=solicitud, autor = request.user)
+
+    for res in respuestas:
+        if  (current_user_respuesta.contains(res) == False) and (res.leido == False) :
             res.leido = True
             res.save()
+            print("respuesta leida", res)
 
     # Verificar permisos
     if solicitud.usuario != request.user and not request.user.groups.filter(name='administrador').exists():
