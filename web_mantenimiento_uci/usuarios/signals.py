@@ -10,14 +10,16 @@ def create_notification(sender, instance, created, **kwargs):
     if created:
         Notification.objects.create(
             user=instance.usuario_reporte,
-            message=f"Nueva acción: Incidencia Reportada"
+            message=f"Nueva acción: Incidencia Reportada",
+            urlAsociated = "incidencias/"
         )
         # Notificar a todos los administradores
         admins = User.objects.filter(groups__name='administrador')
         for admin in admins:
             Notification.objects.create(
                 user=admin,
-                message=f"{instance.usuario_reporte} ha reportado una nueva incidencia."
+                message=f"{instance.usuario_reporte} ha reportado una nueva incidencia.",
+                urlAsociated = "incidencias/"
             )
     
     # Notificar al técnico solo si acaba de ser asignado
@@ -38,7 +40,8 @@ def create_notification_on_solicitud(sender, instance, created, **kwargs):
         # Notificar al usuario que reportó
         Notification.objects.create(
             user=instance.usuario,
-            message=f"Has enviado una nueva solicitud de soporte: {strip_tags(instance.descripcion[:50])}..."
+            message=f"Has enviado una nueva solicitud de soporte: {strip_tags(instance.descripcion[:50])}...",
+            urlAsociated = "soporte/"
         )
 
         # Notificar a todos los administradores
@@ -46,7 +49,8 @@ def create_notification_on_solicitud(sender, instance, created, **kwargs):
         for admin in admins:
             Notification.objects.create(
                 user=admin,
-                message=f"{instance.usuario.username} ha enviado una nueva solicitud de soporte."
+                message=f"{instance.usuario.username} ha enviado una nueva solicitud de soporte.",
+                urlAsociated = "soporte/admin/"
             )
 
     # Notificar al usuario cuando se responde la solicitud
@@ -56,7 +60,8 @@ def create_notification_on_solicitud(sender, instance, created, **kwargs):
                 # Notificar al usuario si hay respuesta
                 Notification.objects.create(
                     user=instance.usuario,
-                    message=f"Se ha respondido tu solicitud de soporte."
+                    message=f"Se ha respondido tu solicitud de soporte.",
+                    urlAsociated = "soporte/admin/"
                 )
                 
                 # Marcar como notificado para evitar duplicados
