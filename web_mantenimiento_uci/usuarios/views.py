@@ -279,6 +279,16 @@ def seleccionar_incidencia(request,item_id):
 def materiales(request):
     tableMaterial = Material.objects.all()
     
+    
+    #Obtener elemento a buscar
+    query = request.GET.get('q')
+    
+    #Condicion para buscar elementos en la tabla
+    if query:
+        tableMaterial =( tableMaterial.filter(tipo__icontains=query) | tableMaterial.filter(tipo__icontains=query)
+        | tableMaterial.filter(nombre__icontains=query)
+        )
+    
     #Paginacion
     paginator = Paginator(tableMaterial,10)
     page_number = request.GET.get('page')
