@@ -53,13 +53,14 @@ function markAsRead(notificationId) {
           item.setAttribute('data-id', noti.pk);
 
           item.innerHTML = `
-          <a href="/${fields.urlAsociated}" id="irahi" class="btn btn-sm">  
+          <a href="/${fields.urlAsociated}" id="irahi" class="btn btn-sm btn-info">
             <div class="d-flex justify-content-between align-items-center">
               <span>${fields.message}</span>
+              </a>
               <button class="btn btn-sm btn-outline-primary" onclick="markAsRead(${noti.pk})">Marcar como leída</button>
               <button class="btn btn-sm btn-outline-danger ms-2 delete-notification" title="Eliminar">×</button>
             </div>
-            </a>
+            
           `;
           const deleteButton = item.querySelector(".delete-notification");
           const irahi =  item.querySelector("#irahi");

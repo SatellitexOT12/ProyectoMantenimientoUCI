@@ -20,7 +20,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for s in solicitudes %}
+            {% for s in page_obj %}
             <tr>
                 <td>{{ s.usuario.username }}</td>
                 <td>{{ s.get_tipo_display }}</td>
@@ -52,5 +52,6 @@
             {% endfor %}
         </tbody>
     </table>
+    {% include 'paginacion.html' %}
 </div>
 {% endblock %}

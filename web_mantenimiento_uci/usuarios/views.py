@@ -17,6 +17,7 @@ from django.db.models.functions import ExtractMonth
 from openpyxl.chart import BarChart, PieChart, Reference
 from openpyxl.styles import Font, Alignment
 from datetime import datetime
+from django.http import JsonResponse
 # Create your views here.
 
 #Decorador personalizado para verificar los grupos a q mi usuario pertenece
@@ -90,15 +91,24 @@ def usuarios(request):
     
     if request.method == 'POST':
             action=request.POST.get('action')
-                
+            
+            
             if action != 'delete':
                 username = request.POST['username']
                 name = request.POST['name']
                 lastname = request.POST['lastname']  
                 email = request.POST['email']
                 password = request.POST['password']  
+                
+                errors = {}
+                
                 if User.objects.filter(username=username).exists():
-                    return HttpResponse("El usuario ya existe")
+                    errors['usuario'] = f"El nombre de usuario '{username}' ya está ocupado."
+                elif User.objects.filter(email=email).exists():
+                    errors['email'] = f"El correo '{email}' ya está registrado."
+                    
+                if errors:
+                    return JsonResponse({'errors': errors}, status=400)
                 else:
                     user = User.objects.create_user(
                         username=username,
@@ -107,8 +117,11 @@ def usuarios(request):
                         first_name=name,
                         last_name=lastname
                     )
-                    
-                    return redirect('usuarios')
+                    user.save()
+                    return JsonResponse({
+                        'success': True,
+                        'mensaje': 'Usuario creado correctamente'
+                    })
             else:
                 ids=request.POST.getlist('ids')
                 User.objects.filter(id__in=ids).delete()
@@ -554,10 +567,17 @@ def bandeja_entrada_soporte(request):
     for ur in unreadRes:
         solicitudes_por_leer.append(ur.solicitud)
     print("elementos",solicitudes_por_leer)
+    
+    
+    # Paginación (opcional)
+    paginator = Paginator(solicitudes, 10)  # 10 por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'soporte/bandeja_entrada_soporte.html', {
         'solicitudes': solicitudes,
-        'solicitudes_por_leer':solicitudes_por_leer
+        'solicitudes_por_leer':solicitudes_por_leer,
+        'page_obj': page_obj
     })
     
 

@@ -9,10 +9,9 @@
         <div class="row container">
         <div class="col"><h1>Gestionar Usuarios</h1></div>
         <div class="col d-flex flex-row-reverse p-3 ">
-            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
-            
             <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar" type="button">Eliminar</button>
 
+            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
         </div>
 
         {% include 'modalRegistrarUsuario.html' %}
@@ -44,7 +43,13 @@
             <tr>
                 <td>{{x.username}}</td>
                 <td>{{x.email}}</td>
-                <td>{{x.is_active}}</td>
+                <td>
+                    {% if x.is_active %}
+                        Activo
+                    {% else %}
+                    Inactivo
+                    {% endif %}
+                </td>
                 <td>{{x.last_login}}</td>
                 <td>{{x.date_joined}}</td>
                 <td> 
@@ -67,6 +72,141 @@
 
     </div>
 
+
+
 <script src="{% static 'js/scripts.js'  %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('registroForm');
+    const camposValidacion = [
+        { inputId: 'username', errorId: 'errorUsuario' },
+        { inputId: 'name', errorId: 'errorNombre' },
+        { inputId: 'lastname', errorId: 'errorApellido' }
+    ];
+
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const errorMessage = document.getElementById('error-message');
+
+    // Validación de campo texto
+    function validarCampoTexto(inputId, errorId) {
+        const input = document.getElementById(inputId);
+        const errorElement = document.getElementById(errorId);
+        const valor = input.value.trim();
+
+        if (valor === '') {
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+            errorElement.textContent = 'Este campo es obligatorio';
+            return false;
+        }
+
+        const regex = inputId === 'username'
+            ? /^[a-zA-Z0-9À-ÿ\u00f1\u00d1\s]+$/
+            : /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/;
+
+        if (!regex.test(valor)) {
+            input.classList.add('is-invalid');
+            input.classList.remove('is-valid');
+            errorElement.textContent = inputId === 'username'
+                ? 'No se permiten caracteres especiales'
+                : 'No se permiten caracteres especiales ni números';
+
+            return false;
+        }
+
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+        errorElement.textContent = '';
+        return true;
+    }
+
+    // Validación de contraseñas
+    function validarContraseñas() {
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.classList.add('is-invalid');
+            confirmPassword.classList.remove('is-valid');
+            errorMessage.style.display = 'block';
+            return false;
+        }
+
+        confirmPassword.classList.remove('is-invalid');
+        confirmPassword.classList.add('is-valid');
+        errorMessage.style.display = 'none';
+        return true;
+    }
+
+    // Validación general antes de enviar
+    function validarFormulario() {
+        let esValido = true;
+
+        camposValidacion.forEach(campo => {
+            if (!validarCampoTexto(campo.inputId, campo.errorId)) {
+                esValido = false;
+            }
+        });
+
+        if (!validarContraseñas()) {
+            esValido = false;
+        }
+
+        return esValido;
+    }
+
+    // Submit con AJAX
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();  // Evitar submit tradicional
+        e.stopPropagation();
+
+        // Ejecutar todas las validaciones frontend
+        if (!validarFormulario()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        // Si pasa validación frontend → Enviar con fetch()
+        const formData = new FormData(form);
+
+        fetch("{% url 'usuarios' %}", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            const errorContainer = document.getElementById("error-container");
+            const errorUsuario = document.getElementById("error-usuario");
+            const errorEmail = document.getElementById("error-email");
+
+            errorContainer.style.display = "none";
+            errorUsuario.style.display = "none";
+            errorEmail.style.display = "none";
+
+            if (data.errors) {
+                if (data.errors.usuario) {
+                    errorUsuario.textContent = data.errors.usuario;
+                    errorUsuario.style.display = "block";
+                }
+                if (data.errors.email) {
+                    errorEmail.textContent = data.errors.email;
+                    errorEmail.style.display = "block";
+                }
+                if (data.errors.general) {
+                    errorContainer.textContent = data.errors.general;
+                    errorContainer.style.display = "block";
+                }
+            } else if (data.success) {
+                alert("Usuario creado exitosamente.");
+                $('#ModalRegistrar').modal('hide');
+                location.reload();  // O mejor aún, actualizar tabla dinámicamente
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById("error-container").textContent = "Ocurrió un error al procesar la solicitud.";
+            document.getElementById("error-container").style.display = "block";
+        });
+    });
+});
+</script>
 
     {%endblock%}

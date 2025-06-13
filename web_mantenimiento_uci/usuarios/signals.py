@@ -50,7 +50,7 @@ def create_notification_on_solicitud(sender, instance, created, **kwargs):
             Notification.objects.create(
                 user=admin,
                 message=f"{instance.usuario.username} ha enviado una nueva solicitud de soporte.",
-                urlAsociated = "soporte/admin/"
+                urlAsociated = f"soporte/detalle/{instance.id}/"
             )
 
     # Notificar al usuario cuando se responde la solicitud

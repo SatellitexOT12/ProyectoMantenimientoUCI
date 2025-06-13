@@ -20,9 +20,11 @@ Lista de Incidencias
         {% endfor %}
         {% endif %}
         <div class="col d-flex flex-row-reverse p-3 ">
-            <a class="btn btn-primary" type="button" href="/reportar_incidencia">Registrar</a>
+            
             <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar"
                 type="button">Eliminar</button>
+            
+                <a class="btn btn-primary" type="button" href="/reportar_incidencia">Registrar</a>
         </div>
 
         {% include 'modalEliminarIncidencia.html' %}
