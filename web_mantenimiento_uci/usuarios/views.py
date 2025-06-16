@@ -65,7 +65,7 @@ def custom_login(request):
 @login_required
 @grupo_requerido('administrador')
 def usuarios(request):
-    tableUsuario = User.objects.all()
+    tableUsuario = User.objects.all().order_by('-date_joined')
     template = loader.get_template('all_usuarios.html')
     
     #Obtener palabra a buscar
@@ -172,13 +172,13 @@ def incidencias(request):
     template = loader.get_template('all_incidencias.html')
     
     if request.user.is_superuser:
-        tableIncidencia = Incidencia.objects.all()
+        tableIncidencia = Incidencia.objects.all().order_by('-fecha')
     elif request.user.groups.filter(name='tecnico').exists():
         personal = Personal.objects.get(trabajador=request.user)
-        tableIncidencia = Incidencia.objects.filter(tecnico_asignado=personal)
+        tableIncidencia = Incidencia.objects.filter(tecnico_asignado=personal).order_by('-fecha')
     else:
         current_user = request.user
-        tableIncidencia = Incidencia.objects.filter(usuario_reporte=current_user) 
+        tableIncidencia = Incidencia.objects.filter(usuario_reporte=current_user) .order_by('-fecha')
     
     if request.method == 'POST':
         action = request.POST.get('action')

@@ -9,7 +9,11 @@ Lista de Incidencias
 <div class="container-fluid mt-3 px-4">
     <div class="row container">
         <div class="col">
+            {% if request.user|has_groups:"administrador" %}
             <h1>Gestionar Incidencias</h1>
+            {%else%}
+            <h1>Mis Incidencias</h1>
+            {%endif%}
         </div>
         {% if messages %}
         {% for message in messages %}
@@ -20,11 +24,11 @@ Lista de Incidencias
         {% endfor %}
         {% endif %}
         <div class="col d-flex flex-row-reverse p-3 ">
-            
+
             <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar"
                 type="button">Eliminar</button>
-            
-                <a class="btn btn-primary" type="button" href="/reportar_incidencia">Registrar</a>
+
+            <a class="btn btn-primary" type="button" href="/reportar_incidencia">Registrar</a>
         </div>
 
         {% include 'modalEliminarIncidencia.html' %}
@@ -61,37 +65,37 @@ Lista de Incidencias
 
                 <!-- Prioridad con color -->
                 <td>
-                {% if x.prioridad == "2" %}
-                <span class="badge bg-warning text-dark">{{ x.get_prioridad_display }}</span>
-                {% elif x.prioridad == "3" %}
-                <span class="badge bg-danger text-dark">{{ x.get_prioridad_display }}</span>
-                {% else %}
-                <span class="badge bg-secondary text-dark">{{ x.get_prioridad_display }}</span>
-                {% endif %}
+                    {% if x.prioridad == "2" %}
+                    <span class="badge bg-warning text-dark">{{ x.get_prioridad_display }}</span>
+                    {% elif x.prioridad == "3" %}
+                    <span class="badge bg-danger text-dark">{{ x.get_prioridad_display }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary text-dark">{{ x.get_prioridad_display }}</span>
+                    {% endif %}
                 </td>
 
                 <td>{{x.fecha}}</td>
                 <td>
                     <span title="{{ x.ubicacion }}" style="cursor: pointer;">
-                    {{ x.ubicacion|truncatechars:15}}
+                        {{ x.ubicacion|truncatechars:15}}
                     </span>
                 </td>
                 <td><button class="btn btn-sm btn-primary" onclick="mostrarDescripcion('{{x.descripcion}}')"
-                    data-bs-toggle="modal" data-bs-target="#descripcionModal">
+                        data-bs-toggle="modal" data-bs-target="#descripcionModal">
                         Ver
                     </button>
-                    
+
                 </td>
 
                 <!-- Estado con color -->
                 <td>
-                {% if x.estado == "pendiente" %}
-                <span class="badge bg-warning text-dark">{{ x.get_estado_display }}</span>
-                {% elif x.estado == "resuelto" %}
-                <span class="badge bg-success text-dark">{{ x.get_estado_display }}</span>
-                {% else %}
-                <span class="badge bg-secondary text-dark">{{ x.get_estado_display }}</span>
-                {% endif %}
+                    {% if x.estado == "pendiente" %}
+                    <span class="badge bg-warning text-dark">{{ x.get_estado_display }}</span>
+                    {% elif x.estado == "resuelto" %}
+                    <span class="badge bg-success text-dark">{{ x.get_estado_display }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary text-dark">{{ x.get_estado_display }}</span>
+                    {% endif %}
                 </td>
 
                 <td>{{x.usuario_reporte.username}}</td>
@@ -134,23 +138,35 @@ Lista de Incidencias
                 </td>
 
                 <!-- Materiales Asignados -->
+                <!-- Materiales Asignados -->
                 <td>
                     {% if x.materialincidencia_set.all %}
                     <ul class="list-group list-group-flush">
                         {% for mi in x.materialincidencia_set.all %}
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>{{ mi.material.nombre }}</span>
-                            <button style="display:inline;" class="btn btn-sm btn-primary">{{ mi.cantidad_usada }}</button>
-                            <!-- Botón para quitar el material -->
-                        <form action="{% url 'quitar_material' %}" method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="material_incidencia_id" value="{{ mi.id }}">
-                            <button type="submit" class="btn btn-sm btn-danger" title="Quitar material">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </form>
+                        <li class="list-group-item d-flex align-items-center justify-content-between py-2 px-3">
+                            <!-- Nombre del material -->
+                            <span class="d-block text-truncate" style="max-width: 150px;">
+                                {{ mi.material.nombre }}
+                            </span>
+
+                            <!-- Botón de cantidad y acción -->
+                            <div class="d-flex align-items-center gap-2">
+                                <!-- Botón de cantidad usada -->
+                                <button type="button" class="btn btn-sm btn-primary btn-material-cantidad">
+                                    {{ mi.cantidad_usada }}
+                                </button>
+
+                                <!-- Botón de quitar -->
+                                <form action="{% url 'quitar_material' %}" method="post" class="mb-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="material_incidencia_id" value="{{ mi.id }}">
+                                    <button type="submit" class="btn btn-sm btn-danger btn-material-remove"
+                                        title="Quitar material">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </li>
-                        
                         {% endfor %}
                     </ul>
                     {% else %}
@@ -167,7 +183,6 @@ Lista de Incidencias
                     </div>
                     {% endif %}
                 </td>
-
                 <!-- Checkbox -->
                 <td>
                     <div class="form-check d-flex justify-content-center align-items-centerdiv">
@@ -177,7 +192,7 @@ Lista de Incidencias
 
                 <!-- Editar -->
                 <td>
-                    {% if x.estado == 'pendiente' or  request.user|has_groups:"administrador,tecnico"%}
+                    {% if x.estado == 'pendiente' or request.user|has_groups:"administrador,tecnico"%}
                     <a href="{% url 'editar_incidencia' x.id %}" class="btn btn-sm btn-info">Editar</a>
                     {% else %}
                     <button class="btn btn-sm btn-secondary" disabled title="Solo incidencias pendientes">
@@ -219,7 +234,8 @@ Lista de Incidencias
     </div>
 
     <!-- Modal Descripcion -->
-    <div class="modal fade" id="descripcionModal" tabindex="-1" aria-labelledby="descripcionModalLabel" aria-hidden="true">
+    <div class="modal fade" id="descripcionModal" tabindex="-1" aria-labelledby="descripcionModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -228,7 +244,8 @@ Lista de Incidencias
                 </div>
                 <div class="modal-body">
                     <strong>Descripción:</strong><br>
-                    <p id="descripcionModalEnFoco" style="white-space: pre-wrap; word-break: break-word; margin-bottom: 0;"></p>
+                    <p id="descripcionModalEnFoco"
+                        style="white-space: pre-wrap; word-break: break-word; margin-bottom: 0;"></p>
                 </div>
             </div>
         </div>
@@ -330,7 +347,7 @@ Lista de Incidencias
         document.getElementById('incidencia_id').value = id;
     }
 
-    function mostrarDescripcion(descripcion){
+    function mostrarDescripcion(descripcion) {
         document.getElementById('descripcionModalEnFoco').innerText = descripcion
     }
 </script>
