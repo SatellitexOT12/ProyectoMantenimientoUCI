@@ -1,67 +1,317 @@
 {% extends "master.html" %}
+{% load static %}
 
-{%block title%}
-    MainPage
-{%endblock%}
+{% block title %}
+MainPage
+{% endblock %}
 
 <style>
     /* Estilos personalizados */
     .service-card {
-    transition: transform 0.3s ease;
+        transition: transform 0.3s ease;
     }
     .service-card:hover {
-    transform: translateY(-10px);
+        transform: translateY(-10px);
+    }
+
+    .role-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .role-description {
+        font-style: italic;
+        color: #6c757d;
     }
 </style>
 
-{%block content%}
-<div class="container p-5 my-5  bg-dark text-white rounded">
-<h1>Mantenimiento UCI</h1>
-<p> Sistema de gestion de mantenimiento de la Universidad de Ciencias Informaticas</p>
+{% block content %}
+<div class="container p-5 my-5 bg-dark text-white rounded">
+    <h1>Mantenimiento UCI</h1>
+    <p>Sistema de gestión de mantenimiento de la Universidad de Ciencias Informáticas</p>
 </div>
 
-<section class="py-5">
-    <div class="container">
-    <!-- Título -->
-    <h2 class="text-center mb-5">Nuestros Servicios</h2>
+<!-- Contenido dinámico por rol -->
+<div class="container py-5">
+    {% if is_admin %}
+    <div class="text-center mb-5">
+        <h2 class="role-title">Panel del Administrador</h2>
+        <p class="role-description">Gestiona usuarios, incidencias, materiales y reportes.</p>
+    </div>
 
-    <!-- Tarjetas de servicios -->
     <div class="row">
-        <!-- Servicio 1: Incidencias -->
+        <!-- Gestión de Usuarios -->
         <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center p-4 service-card">
-            <div class="card-body d-flex flex-column">
-            <h3 class="card-title">Incidencias</h3>
-            <p class="card-text flex-grow-1">Reporta y gestiona incidencias de manera eficiente. Nuestro sistema te permite realizar un seguimiento en tiempo real.</p>
-            <a href="/incidencias" class="btn btn-primary mt-auto">Más información</a>
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Usuarios</h4>
+                    <p class="card-text flex-grow-1">Administra usuarios y roles del sistema.</p>
+                    <a href="{% url 'usuarios' %}" class="btn btn-primary mt-auto">Ver Usuarios</a>
+                </div>
             </div>
-        </div>
         </div>
 
-        <!-- Servicio 2: Materiales -->
+        <!-- Incidencias -->
         <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center p-4 service-card">
-            <div class="card-body d-flex flex-column">
-            <h3 class="card-title">Materiales</h3>
-            <p class="card-text flex-grow-1">Gestiona el inventario de materiales de manera sencilla. Controla entradas, salidas y stock en un solo lugar.</p>
-            <a href="/materiales" class="btn btn-primary mt-auto">Más información</a>
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Incidencias</h4>
+                    <p class="card-text flex-grow-1">Revisa, asigna y gestiona todas las incidencias del sistema.</p>
+                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Incidencias</a>
+                </div>
             </div>
-        </div>
         </div>
 
-        <!-- Servicio 3: Reportes -->
+        <!-- Materiales -->
         <div class="col-md-4 mb-4">
-        <div class="card h-100 text-center p-4 service-card">
-            <div class="card-body d-flex flex-column">
-            <h3 class="card-title">Reportes</h3>
-            <p class="card-text flex-grow-1">Genera reportes detallados para análisis y toma de decisiones. Exporta datos en diferentes formatos.</p>
-            <a href="/reportes" class="btn btn-primary mt-auto">Más información</a>
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Materiales</h4>
+                    <p class="card-text flex-grow-1">Controla el inventario de materiales y realiza reportes.</p>
+                    <a href="/materiales" class="btn btn-primary mt-auto">Ver Materiales</a>
+                </div>
             </div>
         </div>
+
+        <!-- Dashboard -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Dashboard</h4>
+                    <p class="card-text flex-grow-1">Visualiza estadísticas, gráficos y reportes completos.</p>
+                    <a href="/reportes" class="btn btn-primary mt-auto">Ir al Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soporte técnico -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Solicitudes de Soporte</h4>
+                    <p class="card-text flex-grow-1">Revisa y responde solicitudes de soporte técnico.</p>
+                    <a href="/soporte" class="btn btn-primary mt-auto">Ver Solicitudes</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Personal </h4>
+                    <p class="card-text flex-grow-1">Revisa el listado del personal de mantenimiento.</p>
+                    <a href="/personal" class="btn btn-primary mt-auto">Ver Personal</a>
+                </div>
+            </div>
         </div>
     </div>
+
+    {% elif is_almacenero %}
+    <div class="text-center mb-5">
+        <h2 class="role-title">Área del Almacenero</h2>
+        <p class="role-description">Gestiona materiales y verifica incidencias.</p>
     </div>
-</section>
 
+    <div class="row">
+        <!-- Materiales -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Materiales</h4>
+                    <p class="card-text flex-grow-1">Gestiona el inventario de materiales.</p>
+                    <a href="/materiales" class="btn btn-primary mt-auto">Ver Materiales</a>
+                </div>
+            </div>
+        </div>
 
-{%endblock%}
+        <!-- Incidencias -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Incidencias</h4>
+                    <p class="card-text flex-grow-1">Consulta las incidencias y su estado actual.</p>
+                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Incidencias</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif is_tecnico %}
+    <div class="text-center mb-5">
+        <h2 class="role-title">Área del Técnico</h2>
+        <p class="role-description">Gestiona tus incidencias asignadas y marca como resueltas.</p>
+    </div>
+
+    <div class="row">
+        <!-- Mis Incidencias -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Mis Incidencias</h4>
+                    <p class="card-text flex-grow-1">Ve las incidencias que te han sido asignadas.</p>
+                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Incidencias</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bandeja de Soporte -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Soporte Técnico</h4>
+                    <p class="card-text flex-grow-1">Responde preguntas o detalles sobre incidencias técnicas.</p>
+                    <a href="/soporte" class="btn btn-primary mt-auto">Ver Soporte</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif is_cliente %}
+    <div class="text-center mb-5">
+        <h2 class="role-title">Área del Cliente</h2>
+        <p class="role-description">Reporta incidencias y revisa el estado de tus solicitudes.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <!-- Reportar Incidencia -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Reportar Incidencia</h4>
+                    <p class="card-text flex-grow-1">Describe el problema que estás teniendo.</p>
+                    <a href="/reportar_incidencia" class="btn btn-primary mt-auto">Nueva Incidencia</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mis Incidencias -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">Mis Incidencias</h4>
+                    <p class="card-text flex-grow-1">Revisa el estado de tus incidencias.</p>
+                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Mis Incidencias</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center mb-5">
+        <h2 class="role-title">Bienvenido</h2>
+        <p class="role-description">Por favor contacta al administrador si no tienes un rol definido.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card h-100 service-card">
+                <div class="card-body d-flex flex-column">
+                    <h4 class="card-title">¿Eres nuevo?</h4>
+                    <p class="card-text flex-grow-1">Pide al administrador que te asigne un rol para poder acceder a más funcionalidades.</p>
+                    <a href="#" class="btn btn-secondary mt-auto">Contactar Admin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Sección de Documentación -->
+<div class="container py-5">
+    <h3 class="text-center mb-4">Documentación del Sistema</h3>
+    <p class="text-center text-muted mb-4">Aquí puedes encontrar guías, manuales y soporte técnico.</p>
+
+    <div class="row justify-content-center">
+        <!-- Manual de Usuario -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm service-card">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Manual de Usuario</h5>
+                    <p class="card-text flex-grow-1">Guía completa sobre cómo usar el sistema de incidencias y soporte técnico.</p>
+                    <a href="{% static 'docs/manual_usuario.pdf' %}" 
+                       class="btn btn-outline-primary mt-auto" 
+                       target="_blank">
+                        <i class="fas fa-book me-2"></i>Ver Manual
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guía Rápida -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm service-card">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Guía Rápida</h5>
+                    <p class="card-text flex-grow-1">Aprende lo básico del sistema en menos de 5 minutos.</p>
+                    <a href="{% static 'docs/guia_rapida.pdf' %}" 
+                       class="btn btn-outline-success mt-auto"
+                       target="_blank">
+                        <i class="fas fa-file-pdf me-2"></i>Descargar Guía
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preguntas Frecuentes -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm service-card">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Preguntas Frecuentes</h5>
+                    <p class="card-text flex-grow-1">Encuentra respuestas rápidas a las preguntas más comunes.</p>
+                    <a href="{% static 'docs/faqs.pdf' %}" 
+                       class="btn btn-outline-info mt-auto"
+                       target="_blank">
+                        <i class="fas fa-question-circle me-2"></i>Ver FAQ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacto con Soporte -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm service-card">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Soporte Técnico</h5>
+                    <p class="card-text flex-grow-1">¿Tienes dudas? Contáctanos por correo o chat.</p>
+                    <a href="/soporte" 
+                       class="btn btn-outline-secondary mt-auto"
+                       target="_blank">
+                        <i class="fas fa-envelope me-2"></i>Contactar Soporte
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video tutorial -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm service-card">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Video Tutorial</h5>
+                    <p class="card-text flex-grow-1">Mira un video rápido sobre cómo reportar incidencias y gestionar solicitudes.</p>
+                    <a href="https://youtube.com/tu-video"  
+                       class="btn btn-outline-danger mt-auto"
+                       target="_blank">
+                        <i class="fab fa-youtube me-2"></i>Ver Video
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Descarga todo -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm service-card">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Descargar Todo</h5>
+                    <p class="card-text flex-grow-1">Accede a todos los documentos en un solo paquete.</p>
+                    <a href="{% static 'docs/documentacion_completa.zip' %}" 
+                       class="btn btn-primary mt-auto">
+                        <i class="fas fa-download me-2"></i>Descargar ZIP
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -417,11 +417,23 @@ def logout_view(request):
 def main(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     unread_count = notifications.filter(is_read=False).count()
+    
+    # Obtener los roles del usuario actual
+    user = request.user
+    is_admin = user.groups.filter(name='administrador').exists()
+    is_tecnico = user.groups.filter(name='tecnico').exists()
+    is_almacenero = user.groups.filter(name='almacenero').exists()
+    is_cliente = not (is_admin or is_tecnico or is_almacenero)
+    
     oc_b = True
     return render(request, 'main.html', {
         'notifications': notifications,
         'unread_count': unread_count,
-        'oc_b':oc_b
+        'oc_b':oc_b,
+        'is_admin': is_admin,
+        'is_tecnico': is_tecnico,
+        'is_almacenero': is_almacenero,
+        'is_cliente': is_cliente
     })
 
 
