@@ -6,8 +6,15 @@
 <div class="container-fluid mt-3 px-4">
     <div class="row">
         <div class="col"><h2>Bandeja de Entrada</h2></div>
-    </div>
+        <div class="col d-flex flex-row-reverse p-3 ">
+    <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar" type="button">Eliminar</button>
+</div>
 
+    {% include 'soporte/modalEliminarSolicitud.html' %}
+    </div>
+<form id="eliminar_solicitud" method="post" action="{% url 'bandeja_entrada_soporte' %}">
+            {% csrf_token %}
+            <input type="hidden" id="action" name="action" value="">
     <table class="table table-hover mt-4">
         <thead class="table-dark">
             <tr>
@@ -16,6 +23,9 @@
                 <th>Descripción</th>
                 <th>Estado</th>
                 <th>Fecha</th>
+                <th>Seleccionar Todos
+                    <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
+                </th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -33,6 +43,12 @@
                     {% endif %}
                 </td>
                 <td>{{ s.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+
+                <td> 
+                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
+                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{s.id}}" >
+                    </div>            
+                </td>
                 
                 {% if s in solicitudes_por_leer %}
                 <td>
@@ -53,5 +69,17 @@
         </tbody>
     </table>
     {% include 'paginacion.html' %}
+
+</form>
 </div>
+
+<script>
+    //Seleccionar todos los checkbox
+function toggleCheckboxes(masterCheckbox) {
+const checkboxes = document.querySelectorAll('.checkbox');
+checkboxes.forEach((checkbox) => {
+    checkbox.checked = masterCheckbox.checked;
+});
+}
+</script>
 {% endblock %}

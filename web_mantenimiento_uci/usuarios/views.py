@@ -195,7 +195,7 @@ def incidencias(request):
     if query:
         tableIncidencia =( tableIncidencia.filter(tipo__icontains=query) | tableIncidencia.filter(prioridad__icontains=query)
         | tableIncidencia.filter(estado__icontains=query) | tableIncidencia.filter(fecha__icontains=query)
-        | tableIncidencia.filter(ubicacion__icontains=query) | tableIncidencia.filter(descripcion__icontains=query)
+        | tableIncidencia.filter(ubicacion__icontains=query) | tableIncidencia.filter(descripcion__icontains=query) | tableIncidencia.filter(usuario_reporte__username__icontains=query)
         )
         
     #Paginacion
@@ -531,8 +531,18 @@ def quitar_tecnico(request, incidencia_id):
 @login_required
 def solicitar_soporte(request):
     if request.method == 'POST':
+        
+        action = request.POST.get('action')
+        
+        if action == "delete":
+                ids=request.POST.getlist('ids')
+                SolicitudSoporte.objects.filter(id__in=ids).delete()
+                return redirect('solicitar_soporte')
+        
         tipo = request.POST.get('tipo')
         descripcion = request.POST.get('descripcion')
+        
+        
 
         if tipo and descripcion:
             SolicitudSoporte.objects.create(
@@ -552,7 +562,12 @@ def solicitar_soporte(request):
         solicitudes_por_leer.append(ur.solicitud)
     print("elementos",solicitudes_por_leer)
     
+    #Obtener palabra a buscar
+    query = request.GET.get('q')
     
+    #Condicion para buscar elementos en la tabla
+    if query:
+        mis_solicitudes = (mis_solicitudes.filter( tipo__icontains=query) | mis_solicitudes.filter( estado__icontains=query) )
     
     
     # Paginación (opcional)
@@ -568,6 +583,16 @@ def solicitar_soporte(request):
 @login_required
 @grupo_requerido('administrador')
 def bandeja_entrada_soporte(request):
+    
+    if request.method =='POST':
+        action = request.POST.get('action')
+        
+        if action == "delete":
+                ids=request.POST.getlist('ids')
+                SolicitudSoporte.objects.filter(id__in=ids).delete()
+                return redirect('bandeja_entrada_soporte')
+    
+    
     if not request.user.groups.filter(name='administrador').exists():
         messages.error(request, "Acceso denegado.")
         return redirect('inicio')
@@ -579,6 +604,13 @@ def bandeja_entrada_soporte(request):
     for ur in unreadRes:
         solicitudes_por_leer.append(ur.solicitud)
     print("elementos",solicitudes_por_leer)
+    
+    #Obtener palabra a buscar
+    query = request.GET.get('q')
+    
+    #Condicion para buscar elementos en la tabla
+    if query:
+        solicitudes = (solicitudes.filter( tipo__icontains=query) | solicitudes.filter( estado__icontains=query) | solicitudes.filter( usuario__username__icontains=query))
     
     
     # Paginación (opcional)
