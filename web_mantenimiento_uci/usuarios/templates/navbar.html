@@ -60,10 +60,13 @@
                 </li>
             </ul>
 
-            <form class="d-flex" method="get">
+
+            {% if oc_b is NULL%}
+            <form class="d-flex" method="get" style="position: absolute; top: 128px; left: 500px;">
                 <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ request.GET.q }}">
                 <button class="btn btn-primary" type="submit">Buscar</button>
             </form>
+            {% endif %}
 
             <div class="dropdown px-5">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"

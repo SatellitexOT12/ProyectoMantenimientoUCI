@@ -53,8 +53,9 @@ function markAsRead(notificationId) {
           item.setAttribute('data-id', noti.pk);
 
           item.innerHTML = `
-          <a href="/${fields.urlAsociated}" id="irahi" class="btn btn-sm btn-info">
+          
             <div class="d-flex justify-content-between align-items-center">
+              <a href="/${fields.urlAsociated}" id="irahi" class="btn btn-sm btn-info">
               <span>${fields.message}</span>
               </a>
               <button class="btn btn-sm btn-outline-primary" onclick="markAsRead(${noti.pk})">Marcar como leída</button>

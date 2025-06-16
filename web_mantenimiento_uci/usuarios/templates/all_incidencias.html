@@ -71,8 +71,17 @@ Lista de Incidencias
                 </td>
 
                 <td>{{x.fecha}}</td>
-                <td>{{x.ubicacion}}</td>
-                <td>{{x.descripcion}}</td>
+                <td>
+                    <span title="{{ x.ubicacion }}" style="cursor: pointer;">
+                    {{ x.ubicacion|truncatechars:15}}
+                    </span>
+                </td>
+                <td><button class="btn btn-sm btn-primary" onclick="mostrarDescripcion('{{x.descripcion}}')"
+                    data-bs-toggle="modal" data-bs-target="#descripcionModal">
+                        Ver
+                    </button>
+                    
+                </td>
 
                 <!-- Estado con color -->
                 <td>
@@ -209,6 +218,22 @@ Lista de Incidencias
         </div>
     </div>
 
+    <!-- Modal Descripcion -->
+    <div class="modal fade" id="descripcionModal" tabindex="-1" aria-labelledby="descripcionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="descripcionModalLabel">Descripción de la Incidencia</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <strong>Descripción:</strong><br>
+                    <p id="descripcionModalEnFoco" style="white-space: pre-wrap; word-break: break-word; margin-bottom: 0;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Asignar Técnico -->
     <div class="modal fade" id="modalAsignarTecnico" tabindex="-1" aria-labelledby="modalAsignarTecnicoLabel"
         aria-hidden="true">
@@ -303,6 +328,10 @@ Lista de Incidencias
 
     function setIncidenciaId_tecnico(id) {
         document.getElementById('incidencia_id').value = id;
+    }
+
+    function mostrarDescripcion(descripcion){
+        document.getElementById('descripcionModalEnFoco').innerText = descripcion
     }
 </script>
 

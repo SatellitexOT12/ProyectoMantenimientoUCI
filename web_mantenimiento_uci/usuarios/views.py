@@ -164,7 +164,8 @@ def seleccionar_usuario(request,item_id):
             return redirect('usuarios')
             
         else:
-            return render(request, 'editar_usuario.html', {'user': user})
+            oc_b = True
+            return render(request, 'editar_usuario.html', {'user': user,'oc_b': oc_b})
         
 @login_required  
 def incidencias(request):
@@ -247,8 +248,11 @@ def reportar_incidencia(request):
         incidencia.save()
         reporte.save()
         return redirect('incidencias')
-    
-    return render(request , 'reportar_incidencia.html')
+
+
+    oc_b = True
+        
+    return render(request , 'reportar_incidencia.html',{'oc_b': oc_b})
 
 
 @login_required
@@ -285,7 +289,8 @@ def seleccionar_incidencia(request,item_id):
             return redirect('incidencias')
             
         else:
-            return render(request, 'editar_incidencia.html', {'incidencia': incidencia})
+            oc_b = True
+            return render(request, 'editar_incidencia.html', {'incidencia': incidencia, 'oc_b': oc_b})
     
 @login_required
 @grupo_requerido('almacenero','administrador')
@@ -350,23 +355,20 @@ def seleccionar_material(request,item_id):
         material.save()
         return redirect('materiales')
     else:
-        return render(request, 'editar_material.html', {'material': material})
+        oc_b = True
+        return render(request, 'editar_material.html', {'material': material,'oc_b':oc_b})
 
 @grupo_requerido('almacenero','administrador')
 def reportes(request):
     
+    tableReporte = Reporte.objects.all()
     
-    fecha_inicial = request.GET.get('fechaInicio')
-    fecha_final = request.GET.get('fechaFin')
+    mes_anio_seleccionado = request.GET.get('mesAnio')
     
-
-    
-    
+    if mes_anio_seleccionado:
+        year, month = map(int, mes_anio_seleccionado.split('-'))
+        tableReporte = tableReporte.filter(fecha__year=year, fecha__month=month)
         
-    if fecha_inicial and fecha_final:
-        tableReporte = Reporte.objects.filter( fecha__range=[fecha_inicial, fecha_final])
-    else:
-        tableReporte = Reporte.objects.all()
             
     totalReportes = tableReporte.count()
     reporte_resuelto = tableReporte.filter(estado='resuelto').count()
@@ -390,6 +392,8 @@ def reportes(request):
         data[mes_index] = item['cantidad']
     
     
+    oc_b = True
+    
     context = {
         'tableReporte' : tableReporte,
         'totalReportes' : totalReportes,
@@ -397,7 +401,9 @@ def reportes(request):
         'reporte_pendiente' : reporte_pendiente,
         'reporte_enProceso' : reporte_enProceso,
         'incidencias_data': data,
-        'year': year
+        'year': year,
+        'oc_b': oc_b,
+        'today': timezone.now().date()
     }
     
     return render(request,'all_reportes.html',context)
@@ -411,9 +417,11 @@ def logout_view(request):
 def main(request):
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
     unread_count = notifications.filter(is_read=False).count()
+    oc_b = True
     return render(request, 'main.html', {
         'notifications': notifications,
-        'unread_count': unread_count
+        'unread_count': unread_count,
+        'oc_b':oc_b
     })
 
 
@@ -543,6 +551,10 @@ def solicitar_soporte(request):
     for ur in unreadRes:
         solicitudes_por_leer.append(ur.solicitud)
     print("elementos",solicitudes_por_leer)
+    
+    
+    
+    
     # Paginación (opcional)
     paginator = Paginator(mis_solicitudes, 10)  # 10 por página
     page_number = request.GET.get('page')
@@ -608,9 +620,10 @@ def detalle_solicitud(request, solicitud_id):
                 mensaje=mensaje
             )
             return redirect('detalle_solicitud', solicitud_id=solicitud.id)
-
+    oc_b = True
     return render(request, 'soporte/detalle_solicitud.html', {
-        'solicitud': solicitud
+        'solicitud': solicitud,
+        'oc_b':oc_b
     })
     
 @login_required

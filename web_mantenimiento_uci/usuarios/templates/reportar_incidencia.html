@@ -46,13 +46,17 @@ Reportar Incidencia
                             <!-- Campo: Ubicación -->
                             <div class="mb-3">
                                 <label for="ubicacion" class="form-label">Ubicación</label>
-                                <input type="text" class="form-control" id="ubicacion" name="ubicacion" placeholder="Ej: Edificio A, Aula 101" required>
+                                <input type="text" class="form-control" id="ubicacion" name="ubicacion" placeholder="Ej: Edificio A, Aula 101" maxlength="50" required>
+                                <small class="text-muted float-end" id="contador-ubicacion">0/50</small>
+                                
                             </div>
 
                             <!-- Campo: Descripción -->
                             <div class="mb-3">
                                 <label for="descripcion" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4" placeholder="Describa la incidencia..." required></textarea>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4" placeholder="Describa la incidencia..." maxlength="1000" required></textarea>
+                                <small class="text-muted float-end" id="contador-descripcion">0/1000</small>
+                                
                             </div>
 
                             <!-- Campo: Adjuntar Imagen (opcional) -->
@@ -71,6 +75,81 @@ Reportar Incidencia
             </div>
         </div>
     </div>
+
+
+    <script>
+// Contador de caracteres y validación de longitud máxima
+document.addEventListener('DOMContentLoaded', function () {
+    const ubicacionInput = document.getElementById('ubicacion');
+    const descripcionInput = document.getElementById('descripcion');
+    const contadorUbicacion = document.getElementById('contador-ubicacion');
+    const contadorDescripcion = document.getElementById('contador-descripcion');
+
+    // Contadores dinámicos
+    if (ubicacionInput && contadorUbicacion) {
+        ubicacionInput.addEventListener('input', function () {
+            const valor = ubicacionInput.value;
+            const longitud = valor.length;
+            contadorUbicacion.textContent = `${longitud}/50`;
+            if (longitud > 50) {
+                ubicacionInput.setCustomValidity("Máximo 50 caracteres.");
+                ubicacionInput.reportValidity();
+            } else {
+                ubicacionInput.setCustomValidity("");
+            }
+        });
+    }
+
+    if (descripcionInput && contadorDescripcion) {
+        descripcionInput.addEventListener('input', function () {
+            const valor = descripcionInput.value;
+            const longitud = valor.length;
+            contadorDescripcion.textContent = `${longitud}/1000`;
+
+            if (longitud > 1000) {
+                descripcionInput.setCustomValidity("Máximo 1000 caracteres.")
+                descripcionInput.reportValidity()
+            } else {
+                descripcionInput.setCustomValidity("")
+            }
+        });
+    }
+    
+
+    // Validación en submit
+    document.getElementById('registroForm').addEventListener('submit', function (e) {
+        let valido = true;
+
+        const ubicacion = document.getElementById('ubicacion');
+        const descripcion = document.getElementById('descripcion');
+
+        if (ubicacion.value.length > 50) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("La ubicación no puede tener más de 50 caracteres.");
+            valido = false;
+        }
+
+        if (descripcion.value.length > 1000) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("La descripción no puede tener más de 1000 caracteres.");
+            valido = false;
+        }
+
+        if (!valido) {
+            return false;
+        }
+    });
+
+    // Opcional: Limpiar mensajes de error cuando se cierre el modal
+    document.querySelector('#modalIncidencia').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('ubicacion').setCustomValidity('');
+        document.getElementById('descripcion').setCustomValidity('');
+    });
+
+});
+</script>
 
 
 {% endblock %}

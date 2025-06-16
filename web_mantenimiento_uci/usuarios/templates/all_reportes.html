@@ -12,17 +12,14 @@ Dashboard de Incidencias
     <form id="registroForm" method="get" class="needs-validation" novalidate>
         {% csrf_token %}
         <!-- Filtros -->
-        <div class="row mb-5 align-items-start"> <!-- Cambio aquí -->
-            <div class="col-md-4">
-                <label for="fechaInicio" class="form-label">Fecha de inicio</label>
-                <input type="date" class="form-control" name="fechaInicio" required>
-                <div id="errorFechaInicio" class="invalid-feedback"></div>
+        <div class="row mb-5 align-items-start">
+        <div class="col-md-4">
+            <label for="mesAnio" class="form-label">Selecciona Mes y Año</label>
+            <input type="month" class="form-control" name="mesAnio" id="mesAnio" max="{{ today|date:'Y-m' }}" required>
+            <div id="errorMesAnio" class="invalid-feedback">
+                Por favor, selecciona un mes válido.
             </div>
-            <div class="col-md-4">
-                <label for="fechaFin" class="form-label">Fecha de fin</label>
-                <input type="date" class="form-control" name="fechaFin" required>
-                <div id="errorFechaFin" class="invalid-feedback"></div>
-            </div>
+        </div>
             <div class="col-md-4 mt-auto"> <!-- Cambio aquí -->
                 <button type="submit" class="btn btn-primary w-100">Filtrar</button>
             </div>
@@ -198,6 +195,5 @@ Dashboard de Incidencias
 
 </script>
 
-<script src="{% static 'js/validarFechaReporte.js'  %}"></script>
 
 {% endblock %}
