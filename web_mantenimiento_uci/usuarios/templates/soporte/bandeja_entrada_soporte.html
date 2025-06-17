@@ -7,7 +7,9 @@
     <div class="row">
         <div class="col"><h2>Bandeja de Entrada</h2></div>
         <div class="col d-flex flex-row-reverse p-3 ">
-    <button class="btn btn-danger mx-5" data-bs-toggle="modal" data-bs-target="#ModalEliminar" type="button">Eliminar</button>
+    <button class="btn btn-danger mx-5" type="button" onclick="validarSeleccion()">
+            Eliminar
+            </button>
 </div>
 
     {% include 'soporte/modalEliminarSolicitud.html' %}
@@ -71,6 +73,16 @@
     {% include 'paginacion.html' %}
 
 </form>
+
+<!-- Mensaje tipo Toast -->
+<div class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="polite" aria-atomic="true" id="toastSeleccionar">
+    <div class="d-flex">
+        <div class="toast-body  bg-warning">
+            Debes seleccionar al menos 1 solicitud para eliminar.
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+</div>
 </div>
 
 <script>
@@ -80,6 +92,19 @@ const checkboxes = document.querySelectorAll('.checkbox');
 checkboxes.forEach((checkbox) => {
     checkbox.checked = masterCheckbox.checked;
 });
+}
+
+function validarSeleccion() {
+    const checkboxes = document.querySelectorAll('input[name="ids"]:checked');
+
+    if (checkboxes.length === 0) {
+        // Muestra el toast si no hay selección
+        mostrarToast();
+        return;
+    }
+
+    // Si hay elementos seleccionados → abre el modal
+    $('#ModalEliminar').modal('show');
 }
 </script>
 {% endblock %}

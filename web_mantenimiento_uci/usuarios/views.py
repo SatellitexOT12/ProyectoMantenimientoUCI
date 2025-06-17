@@ -654,7 +654,7 @@ def detalle_solicitud(request, solicitud_id):
     if solicitud.usuario != request.user and not request.user.groups.filter(name='administrador').exists():
         messages.error(request, "No tienes acceso a esta solicitud.")
         return redirect('solicitudes_soporte')
-
+    
     if request.method == 'POST' and 'mensaje' in request.POST:
         mensaje = request.POST.get('mensaje', '').strip()
         if mensaje:

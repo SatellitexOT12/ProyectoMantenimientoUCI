@@ -14,6 +14,20 @@
     color: #6c757d;
     font-style: italic;
   }
+  .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 300px;
+    }
+    .toast.position-relative {
+    display: none;
+    position: absolute;
+    z-index: 9999;
+    min-width: 200px;
+    transform: translateY(-40px);
+}
 
   
 </style>
@@ -37,5 +51,12 @@
 </script>
 <script src="{% static 'js/notificaciones.js'  %}"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function mostrarToast() {
+        const toast = document.getElementById('toastSeleccionar');
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+    }
+</script>
 
 </html>
