@@ -20,7 +20,7 @@ Este proyecto es una **página web de mantenimiento** diseñada para gestionar i
 - **Backend**:
   - Django
 - **Base de Datos**:
-  - SQLite (o cualquier otro sistema compatible con Django)
+  - Postgres SQL
 
 ## Requisitos Previos
 
