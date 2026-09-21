@@ -1,0 +1,156 @@
+/* ==========================================================================
+   SGUM-UCI · pantalla de acceso · «Plano de la UCI» (lámina 01)
+   Escritorio: marco de plano a 20 px, la foto de la valla a la izquierda y el cajetín de 380 px a la derecha.
+   Móvil y tableta: la foto llena la pantalla y el cajetín queda anclado abajo. Sin capas oscuras sobre la foto.
+   Requiere tokens.css y sgum.css.
+   ========================================================================== */
+
+.lg-body {
+  --lg-focal-desktop: 72% 62%;
+  --lg-focal-mobile: 60% 100%;
+  --lg-lift: 9vh;
+  --lg-lift: 9dvh;
+  margin: 0; min-height: 100vh; min-height: 100dvh;
+  color: var(--sg-ink); background: var(--sg-sheet);
+}
+
+/* Marco de plano con zonas de referencia A–H y 1–6 */
+.lg-frame {
+  position: relative; margin: 20px; height: calc(100vh - 40px); height: calc(100dvh - 40px); min-height: 41rem;
+  display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; grid-template-rows: 30px minmax(0, 1fr) 30px;
+  border: 2px solid var(--sg-ink);
+}
+.lg-zones { display: flex; font: 600 13px/1 var(--sg-font-mono); color: var(--sg-ink); }
+.lg-zones span { flex: 1; display: flex; align-items: center; justify-content: center; }
+.lg-zones--top { grid-column: 2; grid-row: 1; }
+.lg-zones--bottom { grid-column: 2; grid-row: 3; }
+.lg-zones--left { grid-column: 1; grid-row: 2; flex-direction: column; }
+.lg-zones--right { grid-column: 3; grid-row: 2; flex-direction: column; }
+.lg-zones--top span + span, .lg-zones--bottom span + span { border-left: 1px solid var(--sg-grid-strong); }
+.lg-zones--left span + span, .lg-zones--right span + span { border-top: 1px solid var(--sg-grid-strong); }
+
+.lg-sheet {
+  grid-column: 2; grid-row: 2; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) 380px;
+  border: 2px solid var(--sg-ink); background: var(--sg-sheet);
+}
+
+/* La vista: la foto es la protagonista */
+.lg-view { display: flex; flex-direction: column; gap: 14px; min-height: 0; padding: 28px; }
+.lg-view__meta {
+  display: flex; justify-content: space-between; gap: 16px;
+  font: 600 13px/1.2 var(--sg-font-mono); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.lg-photo { position: relative; flex: 1; min-height: 0; margin: 0; border: 2px solid var(--sg-ink); background: var(--sg-paper); }
+.lg-photo img {
+  position: absolute; left: 8px; top: 8px; width: calc(100% - 16px); height: calc(100% - 16px);
+  max-width: none; display: block; object-fit: cover; object-position: var(--lg-focal-desktop);
+  border: 1px solid var(--sg-grid-strong);
+}
+.lg-photo::before {
+  content: ""; position: absolute; inset: -11px; pointer-events: none; z-index: 1;
+  background-image: var(--sg-registro), var(--sg-registro), var(--sg-registro), var(--sg-registro);
+  background-repeat: no-repeat; background-position: left top, right top, left bottom, right bottom; background-size: 20px 20px;
+}
+
+/* El cajetín: marca, nombre, celdas, acción, ayuda y pie */
+.lg-block {
+  display: flex; flex-direction: column; min-height: 0; overflow-y: auto;
+  background: var(--sg-panel); border-left: 2px solid var(--sg-ink);
+}
+.lg-logo { display: grid; place-items: center; padding: 8px 0; background: var(--sg-paper); border-bottom: 1.5px solid var(--sg-ink); }
+.lg-logo img { display: block; width: auto; max-width: 100%; height: clamp(7rem, 23vh, 11.875rem); height: clamp(7rem, 23dvh, 11.875rem); }
+.lg-name {
+  margin: 0; padding: 14px 24px 16px; border-bottom: 1.5px solid var(--sg-ink);
+  font-size: 1.125rem; line-height: 1.3; font-weight: var(--sg-fw-semi); color: var(--sg-ink); text-wrap: balance;
+}
+.lg-form { margin: 0; }
+.lg-cells .sg-field {
+  min-height: 5.25rem; padding: 12px 24px; background: var(--sg-paper);
+  border: 0; border-bottom: 1.5px solid var(--sg-ink);
+}
+.lg-cells .sg-field:hover:not(.is-error) { background: var(--sg-panel); }
+.lg-cells .sg-field.is-error { background: var(--sg-danger-bg); }
+.lg-cells .sg-field__control { font-size: 1.25rem; min-height: 2.25rem; }
+.lg-cells .sg-field__btn { margin: -0.25rem -0.75rem -0.25rem 0; }
+.lg-caps { margin-top: 2px; color: var(--sg-warn-fg); }
+
+.lg-alert {
+  display: flex; align-items: flex-start; gap: 12px; padding: 12px 24px;
+  color: var(--sg-danger-fg); background: var(--sg-danger-bg); border-bottom: 1.5px solid var(--sg-ink);
+}
+.lg-alert .sg-icon { margin-top: 1px; }
+.lg-alert strong { display: block; font-size: var(--sg-fs-md); font-weight: var(--sg-fw-bold); }
+.lg-alert p { margin: 2px 0 0; font-size: var(--sg-fs-sm); line-height: 1.4; }
+.lg-alert--info { color: var(--sg-info-fg); background: var(--sg-info-bg); }
+
+.lg-submit { padding: 22px 24px 0; }
+.lg-button.sg-btn {
+  width: 100%; height: 3.625rem; min-height: 3.625rem; padding: 0; border-width: 1.5px;
+  font-size: 1.125rem; font-weight: var(--sg-fw-bold); letter-spacing: 0.18em; text-transform: uppercase;
+}
+.lg-button.sg-btn:focus-visible { outline-offset: 3px; }
+.lg-help { margin: 0; padding: 22px 24px 24px; font-size: var(--sg-fs-md); line-height: 1.5; color: var(--sg-text-2); }
+.lg-help strong { color: var(--sg-ink); font-weight: var(--sg-fw-semi); }
+.lg-foot {
+  margin-top: auto; display: flex; justify-content: space-between; padding: 12px 24px;
+  border-top: 1.5px solid var(--sg-ink); font: 600 12px/1.2 var(--sg-font-mono); letter-spacing: 0.1em;
+}
+
+/* Anchos justos: el rótulo de la universidad se retira para que la vista no se apriete */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .lg-view__meta span:last-child { display: none; }
+}
+
+/* Alturas cortas de escritorio: el cajetín se compacta antes de desbordar */
+@media (min-width: 1024px) and (max-height: 760px) {
+  .lg-name { padding-block: 10px 12px; font-size: 1rem; }
+  .lg-cells .sg-field { min-height: 4.75rem; padding-block: 8px; }
+  .lg-submit { padding-top: 16px; }
+  .lg-help { padding-top: 16px; padding-bottom: 16px; }
+}
+
+/* Tableta y móvil: foto a pantalla completa y cajetín anclado abajo */
+@media (max-width: 1023.98px) {
+  .lg-frame { display: block; margin: 0; height: auto; min-height: 100vh; min-height: 100dvh; border: 0; }
+  .lg-zones--left, .lg-zones--right, .lg-zones--bottom { display: none; }
+  .lg-zones--top {
+    position: absolute; left: 14px; right: 14px; top: 12px; z-index: 3; justify-content: space-between; pointer-events: none;
+    color: #fff; font-size: 12px; text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+  }
+  .lg-zones--top span { flex: 0 0 auto; border: 0 !important; }
+  .lg-zones--top span:nth-child(n + 6) { display: none; }
+
+  .lg-sheet {
+    position: relative; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh;
+    padding-top: 34vh; padding-top: 34dvh; border: 0; background: var(--sg-sheet);
+  }
+  .lg-view { position: absolute; inset: 0; padding: 0; gap: 0; }
+  .lg-view__meta { display: none; }
+  .lg-photo { position: absolute; inset: 0; border: 0; background: var(--sg-sheet); overflow: hidden; }
+  .lg-photo::before { display: none; }
+  /* La foto sube un poco (se recorta cielo vacío) para que la valla quede sobre el cajetín */
+  .lg-photo img { left: 0; top: calc(-1 * var(--lg-lift)); width: 100%; height: calc(100% + var(--lg-lift)); border: 0; object-position: var(--lg-focal-mobile); }
+
+  .lg-block {
+    position: relative; z-index: 2; overflow: visible;
+    width: min(100% - 24px, 28rem); margin: auto 12px 12px; align-self: center;
+    border: 2px solid var(--sg-ink);
+  }
+  .lg-head { display: flex; align-items: center; gap: 12px; padding: 8px 14px 8px 8px; background: var(--sg-paper); border-bottom: 1.5px solid var(--sg-ink); }
+  .lg-logo { flex: none; padding: 0; border: 0; }
+  .lg-logo img { height: 5.25rem; }
+  .lg-name { padding: 0; border: 0; font-size: 0.9375rem; line-height: 1.25; }
+  .lg-cells .sg-field { min-height: 4.5rem; padding: 8px 16px; }
+  .lg-cells .sg-field__control { font-size: 1.1875rem; }
+  .lg-cells .sg-field__btn { margin-right: -0.5rem; }
+  .lg-alert { padding: 10px 16px; }
+  .lg-submit { padding: 0; }
+  .lg-button.sg-btn { height: 3.5rem; min-height: 3.5rem; font-size: 1.0625rem; }
+  .lg-help { padding: 10px 16px 12px; font-size: 0.8125rem; line-height: 1.4; }
+  .lg-foot { display: none; }
+}
+@media (max-width: 1023.98px) and (min-width: 600px) {
+  .lg-block { margin-block: auto 20px; }
+  .lg-block { width: 26rem; }
+}

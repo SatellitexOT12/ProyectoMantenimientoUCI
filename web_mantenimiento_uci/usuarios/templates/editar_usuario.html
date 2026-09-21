@@ -1,111 +1,86 @@
-{% extends 'master.html' %}
+{% extends "master.html" %}
 {% load static %}
+{% comment %}
+Editar usuario (administrador). Usa «usuario_editado» y «rol_actual»: la variable vieja «user» tapaba al usuario en sesión.
+Contexto del backend: usuario_editado, rol_actual, es_propio, roles, password_ayuda, errores, valores.
+Campos POST: username, first_name, last_name, email, rol, password, confirmPassword, is_active (1/0).
+La lista de origen llega en la propia dirección (?q=…&rol=…&page=…): se reutiliza para volver sin perder filtros.
+Comportamiento: static/sgum/pages/personas.js.
+{% endcomment %}
+{% block title %}Editar usuario{% endblock %}
 
-{% block title%}
-    Editar usuarios
-{%endblock%}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/personas.css' %}">{% endblock %}
 
 {% block content %}
-<h1 class="display-1">Editar Usuario</h1>
-<h3 class="display-6">{{user.username}}</h3>
-
-<form method="post" class="was-validated">
-{% csrf_token %}
-<div class="container p-3 mx-0 usuario-contraseña">
-
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Usuario:</strong></p>
+{% url 'usuarios' as url_lista %}
+<div class="sg-sheet sg-sheet--medium">
+    <header class="sg-page-head">
+        <div class="sg-page-head__back"><a class="sg-backlink" href="{{ url_lista }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">{% include 'partials/icon.html' with name='arrow-left' class='sg-icon--sm' %}Volver a usuarios</a></div>
+        <div class="sg-page-head__main">
+            <h1 class="sg-page-head__title">Editar usuario</h1>
+            <p class="sg-page-head__desc">Cambie los datos, el rol o la contraseña de <strong>{{ usuario_editado.username }}</strong>{% if es_propio %} (su cuenta){% endif %}.</p>
+            <dl class="persona-ficha">
+                <div><dt>Cuenta</dt><dd>{% include 'persona_cuenta.html' with activo=usuario_editado.is_active %}</dd></div>
+                <div><dt>Último acceso</dt><dd class="sg-mono">{% if usuario_editado.last_login %}{{ usuario_editado.last_login|date:"d/m/Y H:i" }}{% else %}nunca{% endif %}</dd></div>
+                <div><dt>Alta</dt><dd class="sg-mono">{{ usuario_editado.date_joined|date:"d/m/Y" }}</dd></div>
+            </dl>
         </div>
-        <div class="col-5">
-            <input type="text" id="username" name="username" value="{{user.username}}" class="form-control w-75 " required>
-            <div class="valid-feedback">Valido.</div>
-            <div class="invalid-feedback">Por favor llena este campo.</div>
-        </div>
-        
-    </div>
+    </header>
 
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Contraseña:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="password" id="password name="password" value="{{user.password}}" class="form-control w-75 " >
-        </div>
-        
-    </div>
+    <form id="form-edicion" class="persona-form" method="post" data-persona-fallo="no se guardó nada" novalidate>
+        {% csrf_token %}
 
+        <section class="sg-section" aria-labelledby="edit-datos">
+            <h2 id="edit-datos">Datos personales</h2>
+            {% if es_propio %}
+            <div class="sg-alert sg-alert--info persona-aviso" role="note">{% include 'partials/icon.html' with name='info' %}<div class="sg-alert__body">Está editando su propia cuenta. No puede quitarse el rol de administrador ni desactivarla; pídale a otro administrador que lo haga.</div></div>
+            {% endif %}
+            <div class="sg-form-error" role="alert" data-persona-resumen{% if errores|length < 2 %} hidden{% endif %}>{% include 'partials/icon.html' with name='alert' %}<span data-persona-resumen-txt>{% if errores|length > 1 %}Corrija los {{ errores|length }} campos marcados: no se guardó nada.{% endif %}</span></div>
+            <div class="sg-fields">
+                {% include 'persona_campo.html' with id='edit-first-name' name='first_name' label='Nombre' span='6' optional=True autocomplete='off' maxlength=150 error=errores.first_name nuevo=valores.first_name anterior=usuario_editado.first_name %}
+                {% include 'persona_campo.html' with id='edit-last-name' name='last_name' label='Apellidos' span='6' optional=True autocomplete='off' maxlength=150 error=errores.last_name nuevo=valores.last_name anterior=usuario_editado.last_name %}
+                {% include 'persona_campo.html' with id='edit-username' name='username' label='Usuario' span='6' required=True autocomplete='off' maxlength=150 hint='Si lo cambia, la persona deberá usar el nuevo usuario para entrar.' error=errores.username nuevo=valores.username anterior=usuario_editado.username %}
+                {% include 'persona_campo.html' with id='edit-email' name='email' type='email' label='Correo' span='6' required=True autocomplete='off' inputmode='email' hint='Por ejemplo nombre@uci.cu.' error=errores.email nuevo=valores.email anterior=usuario_editado.email %}
+            </div>
+        </section>
+
+        <section class="sg-section" aria-labelledby="edit-rol">
+            <h2 id="edit-rol">Rol y estado de la cuenta</h2>
+            {% if es_propio %}{% firstof "No puede quitarse a sí mismo el rol de administrador. Pídale a otro administrador que lo cambie." as nota_rol %}{% elif rol_actual == 'tecnico' %}{% firstof "Si este técnico tiene incidencias abiertas asignadas, reasígnelas antes de cambiarle el rol." as nota_rol %}{% endif %}
+            <div class="sg-fields">
+                {% include 'persona_rol.html' with id='edit-rol-sel' nuevo=valores.rol anterior=rol_actual error=errores.rol disabled=es_propio nota=nota_rol %}
+                <div class="sg-field sg-field--6{% if errores.is_active %} is-error{% endif %}{% if es_propio %} is-disabled{% endif %}">
+                    <label class="sg-field__label" for="edit-activo"><span>Cuenta</span></label>
+                    <select id="edit-activo" name="is_active"{% if es_propio %} disabled{% endif %}{% if errores.is_active %} aria-invalid="true" aria-describedby="edit-activo-msg"{% endif %}>
+                        <option value="1"{% if valores %}{% if valores.is_active == '1' %} selected{% endif %}{% elif usuario_editado.is_active %} selected{% endif %}>Activa</option>
+                        <option value="0"{% if valores %}{% if valores.is_active == '0' %} selected{% endif %}{% elif not usuario_editado.is_active %} selected{% endif %}>Desactivada</option>
+                    </select>
+                    {% if errores.is_active %}<p class="sg-field__msg" id="edit-activo-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.is_active }}</span></p>{% endif %}
+                </div>
+                <div class="sg-field sg-field--6 sg-field--static">
+                    <span class="sg-field__label"><span>Qué implica desactivarla</span></span>
+                    <p class="persona-explica">La persona ya no puede iniciar sesión y su sesión abierta se cierra. Sus incidencias y solicitudes se conservan, y usted puede reactivarla cuando quiera.</p>
+                    {% if es_propio %}<p class="persona-explica">No puede desactivar su propia cuenta.</p>{% elif rol_actual == 'tecnico' %}<p class="persona-explica">Un técnico con incidencias abiertas asignadas no se puede desactivar: reasígnelas primero.</p>{% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="sg-section" aria-labelledby="edit-clave">
+            <h2 id="edit-clave">Contraseña</h2>
+            <p class="persona-nota">Déjela en blanco para conservar la actual. Si la cambia, la persona deberá usar la nueva para entrar.</p>
+            <div class="sg-fields">
+                {% include 'partials/field.html' with id='edit-password' name='password' label='Nueva contraseña' span='6' optional=True password=True autocomplete='new-password' error=errores.password %}
+                {% include 'partials/field.html' with id='edit-confirm' name='confirmPassword' label='Repetir nueva contraseña' span='6' optional=True password=True autocomplete='new-password' %}
+                {% include 'persona_password.html' %}
+            </div>
+        </section>
+
+        <div class="sg-form-actions">
+            <a class="sg-btn sg-btn--secondary" href="{{ url_lista }}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">Cancelar</a>
+            <button type="submit" class="sg-btn sg-btn--primary" data-persona-enviar data-loading-label="Guardando…">Guardar cambios</button>
+        </div>
+    </form>
 </div>
+{% endblock %}
 
-<div class="container p-3 mx-0 informacion-personal">
-    <div class="bg-dark p-1">
-        <p class="text-light"><strong>Información Personal</strong></p>
-    </div>
-
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Nombre:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="text" id="first_name" name="first_name" value="{{user.first_name}}" class="form-control w-75 " >
-        </div>
-        
-    </div>
-
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Apellidos:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="text" id="last_name" name="last_name" value="{{user.last_name}}" class="form-control w-75 " >
-        </div>
-        
-    </div>
-
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Correo:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="email" id="email" name="email" value="{{user.email}}" class="form-control w-75" required >
-            <div class="valid-feedback">Valido.</div>
-            <div class="invalid-feedback">Por favor llena este campo.</div>
-        </div>
-        
-    </div>
-
-</div>
-<div class="container p-3 mx-0 administrar-roles">
-    <div class="bg-dark p-1">
-        <p class="text-light"><strong>Administrar Roles</strong></p>
-    </div>
-
-    <div class="row border-bottom py-3">
-    
-        <div class="col-5">
-            <label for="tipo_roles" class="form-label">Roles</label>
-            <select class="form-select" id="rol" name="rol" required>
-                <option value="cliente" >Cliente</option>
-                <option value="administrador"  >Administrador</option>
-                <option value="tecnico">Técnico</option>
-                <option value="almacenero">Almacenero</option>
-            </select>
-        </div>
-        
-    </div>
-</div>
-
-<div class="d-flex p-5">
-    <div class="px-5">
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    </div>
-
-    <div>
-    <a type="button" class="btn btn-danger" href="{% url 'usuarios' %}">Cancelar</a>
-    </div>
-</form>
-</div>
-
-
-
-{%endblock%}
+{% block scripts %}<script src="{% static 'sgum/pages/personas.js' %}"></script>{% endblock %}

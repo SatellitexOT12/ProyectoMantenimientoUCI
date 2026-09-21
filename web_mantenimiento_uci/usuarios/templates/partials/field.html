@@ -1,0 +1,25 @@
+{% comment %}
+Celda de cajetín para formularios: etiqueta pequeña arriba, valor abajo. Ponga varias dentro de <div class="sg-fields">.
+Dos modos:
+ A) Campo de formulario de Django:  include 'partials/field.html' with field=form.ubicacion span='6'
+    (dibuja etiqueta, ayuda y errores; el control lo renderiza Django y el CSS lo viste. Para select, textarea y archivo use este modo.)
+ B) Manual, para entradas de texto:  include 'partials/field.html' with id='username' name='username' label='Usuario' required=True autocomplete='username'
+Parámetros comunes: label, span ('8','6','4','3'; sin span ocupa toda la fila), hint (ayuda), error (mensaje), optional=True (muestra «opcional»), disabled, readonly.
+Modo B: id, name, type (text por defecto), value, placeholder, required, autocomplete, inputmode, maxlength, autofocus,
+        as='textarea' + rows, password=True (añade el ojo de mostrar/ocultar).
+Los mensajes de error deben decir qué falló y cómo corregirlo («Escriba un correo con @, por ejemplo nombre@uci.cu»).
+{% endcomment %}{% if field %}<div class="sg-field{% if span %} sg-field--{{ span }}{% endif %}{% if field.errors %} is-error{% endif %}{% if disabled or field.field.disabled %} is-disabled{% endif %}">
+  <label class="sg-field__label" for="{{ field.id_for_label }}"><span>{{ label|default:field.label }}</span>{% if optional or not field.field.required %}<span class="sg-field__opt">opcional</span>{% endif %}</label>
+  {{ field }}
+  {% if hint or field.help_text %}<p class="sg-field__hint">{{ hint|default:field.help_text }}</p>{% endif %}
+  {% for e in field.errors %}<p class="sg-field__msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ e }}</span></p>{% endfor %}
+</div>{% else %}<div class="sg-field{% if span %} sg-field--{{ span }}{% endif %}{% if error %} is-error{% endif %}{% if disabled %} is-disabled{% endif %}">
+  <label class="sg-field__label" for="{{ id }}"><span>{{ label }}</span>{% if optional %}<span class="sg-field__opt">opcional</span>{% endif %}</label>
+  {% if as == 'textarea' %}<textarea class="sg-field__control" id="{{ id }}" name="{{ name|default:id }}" rows="{{ rows|default:4 }}"{% if placeholder %} placeholder="{{ placeholder }}"{% endif %}{% if maxlength %} maxlength="{{ maxlength }}"{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %}{% if readonly %} readonly{% endif %}{% if error %} aria-invalid="true" aria-describedby="{{ id }}-msg"{% endif %}>{{ value|default:'' }}</textarea>
+  {% else %}<div class="sg-field__row">
+    <input class="sg-field__control" id="{{ id }}" name="{{ name|default:id }}" type="{{ type|default:'text' }}"{% if value %} value="{{ value }}"{% endif %}{% if placeholder %} placeholder="{{ placeholder }}"{% endif %}{% if autocomplete %} autocomplete="{{ autocomplete }}"{% endif %}{% if inputmode %} inputmode="{{ inputmode }}"{% endif %}{% if maxlength %} maxlength="{{ maxlength }}"{% endif %}{% if required %} required{% endif %}{% if disabled %} disabled{% endif %}{% if readonly %} readonly{% endif %}{% if autofocus %} autofocus{% endif %}{% if error %} aria-invalid="true" aria-describedby="{{ id }}-msg"{% endif %}>
+    {% if password %}<button type="button" class="sg-field__btn" data-sg-toggle-password aria-controls="{{ id }}" aria-pressed="false" aria-label="Mostrar contraseña"><span data-icon-show>{% include 'partials/icon.html' with name='eye' class='sg-icon--lg' %}</span><span data-icon-hide hidden>{% include 'partials/icon.html' with name='eye-off' class='sg-icon--lg' %}</span></button>{% endif %}
+  </div>{% endif %}
+  {% if hint %}<p class="sg-field__hint">{{ hint }}</p>{% endif %}
+  {% if error %}<p class="sg-field__msg" id="{{ id }}-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ error }}</span></p>{% endif %}
+</div>{% endif %}

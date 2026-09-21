@@ -1,0 +1,27 @@
+{% extends "master.html" %}
+{% block title %}Página no encontrada{% endblock %}
+
+{% block content %}
+<div class="sg-sheet sg-sheet--narrow">
+    <header class="sg-page-head">
+        <div class="sg-page-head__main">
+            <h1 class="sg-page-head__title">Página no encontrada</h1>
+            <p class="sg-page-head__count sg-mono">Error 404</p>
+        </div>
+    </header>
+    <div class="sg-empty">
+        <div class="sg-empty__mark" aria-hidden="true">{% include 'partials/icon.html' with name='map-pin' %}</div>
+        <h2 class="sg-empty__title">No encontramos la dirección que abrió</h2>
+        <p class="sg-empty__text">Es posible que el enlace esté incompleto o que la página ya no exista. Revise que la dirección esté bien escrita o vuelva al inicio.</p>
+        {% if request_path %}<p class="sg-empty__text sg-mono sg-muted">{{ request_path }}</p>{% endif %}
+        <div class="sg-empty__actions">
+            {% if user.is_authenticated %}
+            <a class="sg-btn sg-btn--primary" href="{% url 'main' %}">Ir al inicio</a>
+            <a class="sg-btn sg-btn--secondary" href="{% url 'incidencias' %}">Ver incidencias</a>
+            {% else %}
+            <a class="sg-btn sg-btn--primary" href="{% url 'login' %}">Iniciar sesión</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

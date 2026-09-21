@@ -1,0 +1,5 @@
+{% comment %}
+Insignia de estado. Se lee por el TEXTO y por el PATRÓN de la marca (rayado = pendiente, mitad = en proceso, lleno = resuelto), no solo por el color.
+Parámetro: estado (valor guardado: 'pendiente', 'en_proceso', 'resuelto'; sirve también para solicitudes de soporte). Opcional: label (texto a mostrar).
+Ejemplo: include 'partials/badge_estado.html' with estado=incidencia.estado
+{% endcomment %}{% with e=estado|lower %}{% if e == 'pendiente' %}<span class="sg-badge sg-badge--pendiente"><span class="sg-badge__mark" aria-hidden="true"></span>{{ label|default:'Pendiente' }}</span>{% elif e == 'en_proceso' or e == 'en proceso' or e == 'en curso' %}<span class="sg-badge sg-badge--proceso"><span class="sg-badge__mark" aria-hidden="true"></span>{{ label|default:'En proceso' }}</span>{% elif e == 'resuelto' %}<span class="sg-badge sg-badge--resuelto"><span class="sg-badge__mark" aria-hidden="true"></span>{{ label|default:'Resuelto' }}</span>{% else %}<span class="sg-badge sg-badge--neutro"><span class="sg-badge__mark" aria-hidden="true"></span>{{ label|default:estado|default:'Sin estado' }}</span>{% endif %}{% endwith %}

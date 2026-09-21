@@ -1,57 +1,84 @@
 {% extends "master.html" %}
 {% load static %}
-{% block title %}
-Gestionar Personal
-{% endblock %}
+{% load auth_extras %}
+{% comment %}
+Personal técnico (administrador). Vista de despacho: cada técnico con su carga (incidencias abiertas) y un enlace a sus incidencias
+(filtro ?tecnico=<id de Personal> de la lista de incidencias). Contexto del backend: page_obj de Personal con
+.trabajador, .incidencia (reflejo de su incidencia abierta más reciente) y .abiertas; q.
+Los técnicos se crean registrando un usuario con el rol Técnico (usuarios/#registrar-tecnico).
+{% endcomment %}
+{% block title %}Personal{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/personas.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-3 px-4">
-    <div class="row container">
-        <div class="col"><h1>Listado del Personal</h1></div>
+{% url 'usuarios' as url_usuarios %}
+{% url 'incidencias' as url_incidencias %}
+<div class="sg-sheet">
+    {% include 'partials/page_head.html' with title='Personal' desc='Técnicos de mantenimiento y las incidencias que atiende cada uno. Consulte su carga antes de asignar una incidencia.' count=page_obj.paginator.count count_label='técnicos' action_url=url_usuarios|add:'#registrar-tecnico' action_label='Registrar técnico' action_icon='plus' %}
+    {% include 'partials/toolbar.html' with placeholder='Buscar por usuario, nombre o correo' label='Buscar técnicos' %}
+
+    {% if page_obj.object_list %}
+    <div class="sg-table-wrap">
+        <table class="sg-table sg-table--stack">
+            <caption class="sg-visually-hidden">Personal técnico y su carga de incidencias</caption>
+            <thead>
+                <tr>
+                    <th class="sg-col-n" scope="col">Nº</th>
+                    <th scope="col">Técnico</th>
+                    <th scope="col">Rol</th>
+                    <th scope="col">Carga</th>
+                    <th scope="col">Incidencia abierta más reciente</th>
+                    <th class="sg-col-actions" scope="col"><span class="sg-visually-hidden">Acciones</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in page_obj %}
+                <tr>
+                    <td class="sg-col-n" data-label="Nº">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                    <td data-label="Técnico">
+                        <div class="persona-id">
+                            <span class="persona-id__user">{{ p.trabajador.username }}{% if not p.trabajador.is_active %}<span class="persona-tag">Cuenta desactivada</span>{% endif %}</span>
+                            <span class="persona-id__name">{% if p.trabajador.get_full_name %}{{ p.trabajador.get_full_name }}{% else %}<span class="sg-muted">Sin nombre registrado</span>{% endif %}</span>
+                        </div>
+                    </td>
+                    <td data-label="Rol">{{ p.trabajador|roles_texto }}</td>
+                    <td data-label="Carga">
+                        {% if p.abiertas %}
+                        <span class="sg-badge sg-badge--proceso"><span class="sg-badge__mark" aria-hidden="true"></span><span class="sg-num">{{ p.abiertas }}</span>&nbsp;abierta{{ p.abiertas|pluralize }}</span>
+                        {% else %}
+                        <span class="sg-badge sg-badge--resuelto"><span class="sg-badge__mark" aria-hidden="true"></span>Libre</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Más reciente">
+                        {% if p.abiertas %}
+                            {% if p.incidencia %}
+                            <div class="persona-incidencia">
+                                <a href="{% url 'editar_incidencia' p.incidencia.id %}">{{ p.incidencia.get_tipo_display }}</a>
+                                <span class="persona-incidencia__sub"><span class="sg-mono">n.º {{ p.incidencia.id }}</span> · {{ p.incidencia.ubicacion }}</span>
+                            </div>
+                            {% else %}
+                            <span class="sg-muted">Vea el detalle en su lista de incidencias</span>
+                            {% endif %}
+                        {% else %}
+                        <span class="sg-muted">Sin incidencias abiertas</span>
+                        {% endif %}
+                    </td>
+                    <td class="sg-col-actions">
+                        <div class="sg-actions">
+                            <a class="sg-btn sg-btn--secondary sg-btn--sm" href="{{ url_incidencias }}?tecnico={{ p.id }}{% if p.abiertas %}&amp;estado=abiertas{% endif %}">Ver incidencias<span class="sg-visually-hidden"> de {{ p.trabajador.username }}</span></a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-
-    <table class="table table-hover mt-4" id="personalTable">
-        <thead>
-            <tr class="table-dark">
-                <th>Nombre del Trabajador</th>
-                <th>Rol</th>
-                <th>Incidencia Asignada</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in page_obj %}
-            <tr>
-                <td>{{ p.trabajador.username }}</td>
-                <td>
-                    {% if p.trabajador.groups.all %}
-                        {% for group in p.trabajador.groups.all %}
-                            {{ group.name }}
-                        {% endfor %}
-                    {% else %}
-                        <span class="text-muted">Sin rol asignado</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if p.incidencia %}
-                        {{ p.incidencia.tipo }}
-                    {% else %}
-                        <span class="text-muted">No está asignado a ninguna incidencia</span>
-                    {% endif %}
-                </td>
-
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No hay registros de personal.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Paginación -->
     {% include 'paginacion.html' %}
+    {% elif q %}
+    {% include 'partials/empty.html' with icon='search' title='Ningún técnico coincide' text='Revise la ortografía o pruebe con menos palabras.' action2_url=request.path action2_label='Quitar búsqueda' %}
+    {% else %}
+    {% include 'partials/empty.html' with icon='wrench' title='Aún no hay técnicos registrados' text='Los técnicos aparecen aquí cuando se registra una cuenta con el rol Técnico. Después podrá asignarles incidencias.' action_url=url_usuarios|add:'#registrar-tecnico' action_label='Registrar técnico' action_icon='plus' %}
+    {% endif %}
 </div>
-
-<script src="{% static 'js/scripts.js' %}"></script>
-
 {% endblock %}

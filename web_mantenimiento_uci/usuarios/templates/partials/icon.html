@@ -1,0 +1,5 @@
+{% comment %}
+Ícono del sistema. Requiere el sprite (partials/icons_sprite.html), ya incluido por master.html y login.html.
+Parámetros: name (obligatorio), class (opcional), title (opcional; si se indica, el ícono se anuncia con ese nombre; si no, es decorativo).
+Ejemplo: {% include 'partials/icon.html' with name='bell' %}
+{% endcomment %}<svg class="sg-icon{% if class %} {{ class }}{% endif %}" {% if title %}role="img" aria-label="{{ title }}"{% else %}aria-hidden="true"{% endif %} focusable="false" width="24" height="24"><use href="#i-{{ name }}"/></svg>

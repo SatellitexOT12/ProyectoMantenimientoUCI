@@ -1,51 +1,13 @@
-<nav aria-label="Page navigation">
-    {% if page_obj.has_other_pages %}
-    <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page=1&q={{ request.GET.q }}" aria-label="First">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-        {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">&laquo;&laquo;</span>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link">&laquo;</span>
-            </li>
-        {% endif %}
-
-        <li class="page-item active">
-            <span class="page-link">
-                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-            </span>
-        </li>
-
-        {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&q={{ request.GET.q }}" aria-label="Last">
-                    <span aria-hidden="true">&raquo;&raquo;</span>
-                </a>
-            </li>
-        {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">&raquo;</span>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link">&raquo;&raquo;</span>
-            </li>
-        {% endif %}
-    </ul>
-    {% endif %}
-</nav>
+{% comment %}
+Paginación del sistema. Se incluye igual que siempre: include 'paginacion.html' (usa la variable de contexto page_obj).
+Conserva todos los parámetros de la URL (búsqueda q, filtros, orden), no solo q. No dibuja nada si hay una sola página.
+Escritorio: «Registros 1 a 10 de 24», anterior, ventana de páginas y siguiente. Móvil: anterior, «Página 2 de 5», siguiente.
+{% endcomment %}{% if page_obj.has_other_pages %}<nav class="sg-pager" aria-label="Paginación">
+  <p class="sg-pager__info">Registros <span class="sg-num">{{ page_obj.start_index }}</span> a <span class="sg-num">{{ page_obj.end_index }}</span> de <span class="sg-num">{{ page_obj.paginator.count }}</span></p>
+  <ul class="sg-pager__list">
+    <li class="sg-pager__keep">{% if page_obj.has_previous %}<a class="sg-pager__link sg-pager__link--text" href="?page={{ page_obj.previous_page_number }}{% include 'partials/_qs.html' %}" rel="prev">{% include 'partials/icon.html' with name='chevron-left' class='sg-icon--sm' %}Anterior</a>{% else %}<span class="sg-pager__link sg-pager__link--text is-disabled" aria-disabled="true">{% include 'partials/icon.html' with name='chevron-left' class='sg-icon--sm' %}Anterior</span>{% endif %}</li>
+    {% for n in page_obj.paginator.page_range %}{% if n == page_obj.number %}<li><span class="sg-pager__page is-current" aria-current="page" aria-label="Página {{ n }}, actual">{{ n }}</span></li>{% elif n == 1 or n == page_obj.paginator.num_pages or n >= page_obj.number|add:'-2' and n <= page_obj.number|add:'2' %}<li><a class="sg-pager__page" href="?page={{ n }}{% include 'partials/_qs.html' %}" aria-label="Ir a la página {{ n }}">{{ n }}</a></li>{% elif n == page_obj.number|add:'-3' or n == page_obj.number|add:'3' %}<li><span class="sg-pager__gap" aria-hidden="true">…</span></li>{% endif %}{% endfor %}
+    <li class="sg-pager__keep sg-pager__here" aria-live="polite">Página&nbsp;<span class="sg-num">{{ page_obj.number }}</span>&nbsp;de&nbsp;<span class="sg-num">{{ page_obj.paginator.num_pages }}</span></li>
+    <li class="sg-pager__keep">{% if page_obj.has_next %}<a class="sg-pager__link sg-pager__link--text" href="?page={{ page_obj.next_page_number }}{% include 'partials/_qs.html' %}" rel="next">Siguiente{% include 'partials/icon.html' with name='chevron-right' class='sg-icon--sm' %}</a>{% else %}<span class="sg-pager__link sg-pager__link--text is-disabled" aria-disabled="true">Siguiente{% include 'partials/icon.html' with name='chevron-right' class='sg-icon--sm' %}</span>{% endif %}</li>
+  </ul>
+</nav>{% endif %}

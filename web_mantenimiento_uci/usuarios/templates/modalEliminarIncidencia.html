@@ -1,23 +1,4 @@
-<!-- Modal Eliminar -->
-<div class="modal fade" id="ModalEliminar" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <!-- Encabezado -->
-            <div class="modal-header">
-                <h5 class="modal-title">Eliminar Incidencias</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <!-- Cuerpo -->
-            <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar las incidencias seleccionadas?</p>
-            </div>
-
-            <!-- Pie -->
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">Eliminar</button>
-            </div>
-        </div>
-    </div>
-</div>
+{% comment %}
+Confirmación para eliminar incidencias marcadas en la lista. El formulario «form-eliminar-incidencias» vive en all_incidencias.html;
+sus casillas (name="ids") apuntan a él con el atributo form=. El título (con el número de incidencias) lo completa incidencias.js.
+{% endcomment %}{% include 'partials/modal_confirm.html' with id='eliminarIncidencias' title='¿Eliminar las incidencias seleccionadas?' text='Se borrarán de forma definitiva, junto con su reporte.' detail='Esta acción no se puede deshacer. Las que tengan materiales asignados no se eliminan: retire antes esos materiales.' confirm_label='Eliminar incidencias' form='form-eliminar-incidencias' %}

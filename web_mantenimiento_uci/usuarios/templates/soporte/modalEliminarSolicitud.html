@@ -1,28 +1,6 @@
-<!-- The Modal -->
-<div class="modal" id="ModalEliminar">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-            <h4 class="modal-title">Eliminar Solicitud</h4>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-
-            <div class="modal-body">
-
-                <h4>¿Estas seguro que desea eliminar las solicitudes?</h4>
-
-                
-            
-            <!-- Modal footer -->
-                <div class="modal-footer d-flex justify-content-between">
-                
-            
-                    <button form="eliminar_solicitud" type="submit" class="btn btn-danger" onclick="document.getElementById('action').value = 'delete' ">Eliminar</button>
-
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </div> 
-        </div>
-    </div>
-</div>
+{% comment %}
+Confirmación para eliminar solicitudes de soporte (única interrupción legítima de estas pantallas: la acción no se puede deshacer).
+Parámetros: modal_id (por defecto «eliminarSolicitudes») y form_id (formulario POST con action=delete y las casillas «ids»).
+El título y el texto los ajusta soporte.js según cuántas solicitudes haya marcadas; lo que se escribe aquí es el valor inicial.
+Se abre desde el botón con data-so-delete (que primero comprueba que haya algo marcado).
+{% endcomment %}{% include 'partials/modal_confirm.html' with id=modal_id|default:'eliminarSolicitudes' form=form_id title='¿Eliminar las solicitudes seleccionadas?' text='Se borrarán las solicitudes y toda su conversación.' confirm_label='Eliminar solicitudes' %}

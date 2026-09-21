@@ -1,0 +1,45 @@
+{% load static %}{% comment %}
+Página de error del servidor. Django la renderiza SIN contexto ni request: no use {% url %}, variables ni filtros de usuario.
+Es autónoma: solo estáticos locales y enlaces fijos.
+{% endcomment %}<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Error del sistema · SGUM-UCI</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo-marca.png' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'sgum/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'sgum/sgum.css' %}">
+</head>
+<body class="sg-app">
+    {% include 'partials/icons_sprite.html' %}
+    <header class="sg-nav">
+        <div class="sg-nav__bar">
+            <a class="sg-brand" href="/main/" aria-label="SGUM-UCI, ir al inicio">
+                <img class="sg-brand__mark" src="{% static 'img/logo-marca.png' %}" alt="" width="40" height="40">
+                <span class="sg-brand__name"><strong>SGUM-UCI</strong><small>Universidad de las Ciencias Informáticas</small></span>
+            </a>
+        </div>
+    </header>
+    <main class="sg-main">
+        <div class="sg-sheet sg-sheet--narrow">
+            <header class="sg-page-head">
+                <div class="sg-page-head__main">
+                    <h1 class="sg-page-head__title">Error del sistema</h1>
+                    <p class="sg-page-head__count sg-mono">Error 500</p>
+                </div>
+            </header>
+            <div class="sg-empty">
+                <div class="sg-empty__mark" aria-hidden="true">{% include 'partials/icon.html' with name='alert' %}</div>
+                <h2 class="sg-empty__title">No se pudo completar lo que pedía</h2>
+                <p class="sg-empty__text">Ocurrió un problema en el sistema. Vuelva a intentarlo en unos minutos. Si el problema continúa, avise a la Dirección de Mantenimiento e indique qué estaba haciendo.</p>
+                <div class="sg-empty__actions">
+                    <a class="sg-btn sg-btn--primary" href="/main/">Ir al inicio</a>
+                    <button type="button" class="sg-btn sg-btn--secondary" onclick="history.back()">Volver a la página anterior</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

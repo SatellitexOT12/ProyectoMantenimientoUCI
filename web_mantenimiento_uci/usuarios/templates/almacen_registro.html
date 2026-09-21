@@ -1,0 +1,21 @@
+{% comment %}
+Panel de alta de material (va dentro de la lámina de all_materiales.html). No es un modal: son tres campos y no exige interrupción.
+Contexto: errores, valores, tipos, cantidad_max, abrir_registro (True cuando el alta falló). Se pliega con JavaScript (validarMateriales.js);
+sin JavaScript se abre con el ancla #registrar.
+{% endcomment %}<section class="al-registro" id="registrar" aria-labelledby="registrar-titulo"{% if abrir_registro %}{% elif page_obj.paginator.count %} data-cerrado{% elif q %} data-cerrado{% endif %}>
+  <div class="al-registro__body">
+    <h2 class="al-registro__title" id="registrar-titulo">Registrar material</h2>
+    <p class="al-registro__lead">Anote el material que entra al almacén. Podrá ajustar su cantidad más adelante; no podrá eliminarlo una vez que se asigne a una incidencia.</p>
+    <form method="post" action="{% url 'materiales' %}" id="formRegistrarMaterial" data-material-form data-sg-loading novalidate>
+      {% csrf_token %}
+      <div class="sg-form-error" role="alert" data-al-resumen{% if not errores %} hidden{% endif %}>
+        {% include 'partials/icon.html' with name='alert' %}<span data-al-resumen-texto>{% if errores %}{% if errores|length == 1 %}Corrija el campo marcado: no se registró el material.{% else %}Corrija los {{ errores|length }} campos marcados: no se registró el material.{% endif %}{% endif %}</span>
+      </div>
+      {% include 'almacen_campos.html' with pref='m' nombre=valores.nombre tipo=valores.tipo cantidad=valores.cantidad %}
+      <div class="sg-form-actions">
+        <button type="button" class="sg-btn sg-btn--secondary" data-al-cerrar="registrar">Cancelar</button>
+        <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Registrando…">Registrar material</button>
+      </div>
+    </form>
+  </div>
+</section>

@@ -1,0 +1,4 @@
+{% comment %}
+Estado de la cuenta con texto y patrón (lleno = activa, rayado = desactivada), nunca solo color.
+Parámetro: activo (bool). Ejemplo: include 'persona_cuenta.html' with activo=x.is_active
+{% endcomment %}{% if activo %}<span class="sg-badge sg-badge--resuelto"><span class="sg-badge__mark" aria-hidden="true"></span>Activa</span>{% else %}<span class="sg-badge sg-badge--neutro"><span class="sg-badge__mark" aria-hidden="true"></span>Desactivada</span>{% endif %}

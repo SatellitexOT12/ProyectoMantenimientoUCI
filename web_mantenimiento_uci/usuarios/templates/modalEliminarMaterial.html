@@ -1,28 +1,34 @@
-<!-- The Modal -->
-<div class="modal" id="ModalEliminar">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <!-- Modal Header -->
-        <div class="modal-header">
-            <h4 class="modal-title">Eliminar Material</h4>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+{% comment %}
+Confirmación de eliminar UN material (los únicos modales del sistema son las confirmaciones destructivas).
+Solo se ofrece para materiales sin consumos: con consumos el servidor lo bloquea y la vía es dejar la cantidad en 0.
+Se abre con un botón:
+  <button type="button" data-bs-toggle="modal" data-bs-target="#modalEliminarMaterial" data-id="12" data-nombre="Llave de paso" aria-label="Eliminar material Llave de paso">
+validarMateriales.js copia data-id al campo «ids» y data-nombre al texto. Contrato con el servidor: POST a materiales con action=delete e ids.
+{% endcomment %}<div class="modal fade sg-modal--confirm" id="modalEliminarMaterial" tabindex="-1" aria-labelledby="modalEliminarMaterial-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalEliminarMaterial-title">¿Eliminar este material?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="sg-modal__lead">
+          {% include 'partials/icon.html' with name='alert' class='sg-icon--lg' %}
+          <div>
+            <p>Se quitará «<span data-al-nombre>este material</span>» del inventario. Como nunca se asignó a una incidencia, no se pierde ningún registro de consumo.</p>
+            <p>Esta acción no se puede deshacer.</p>
+          </div>
         </div>
-
-            <div class="modal-body">
-
-                <h4>¿Estas seguro que desea eliminar los materiales?</h4>
-
-                
-            
-            <!-- Modal footer -->
-                <div class="modal-footer d-flex justify-content-between">
-                
-            
-                    <button form="eliminar_material" type="submit" class="btn btn-danger" onclick="document.getElementById('action').value = 'delete' ">Eliminar</button>
-
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-            </div> 
-        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="sg-btn sg-btn--secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="{% url 'materiales' %}" data-sg-loading>
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="ids" value="" data-al-ids>
+          <button type="submit" class="sg-btn sg-btn--danger" data-loading-label="Eliminando…">Eliminar material</button>
+        </form>
+      </div>
     </div>
+  </div>
 </div>

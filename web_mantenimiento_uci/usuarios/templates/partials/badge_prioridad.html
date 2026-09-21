@@ -1,0 +1,5 @@
+{% comment %}
+Insignia de prioridad: tres barras (una, dos o tres llenas) más el texto. No depende del color.
+Parámetro: prioridad (valor guardado: '3' alta, '2' media, '1' baja; también acepta 'alta', 'media', 'baja'). Opcional: label.
+Ejemplo: include 'partials/badge_prioridad.html' with prioridad=incidencia.prioridad
+{% endcomment %}{% with p=prioridad|lower %}{% if p == '3' or p == 'alta' %}<span class="sg-badge sg-badge--alta"><span class="sg-prio" aria-hidden="true"><i></i><i></i><i></i></span>{{ label|default:'Alta' }}</span>{% elif p == '2' or p == 'media' %}<span class="sg-badge sg-badge--media"><span class="sg-prio" aria-hidden="true"><i></i><i></i><i></i></span>{{ label|default:'Media' }}</span>{% elif p == '1' or p == 'baja' %}<span class="sg-badge sg-badge--baja"><span class="sg-prio" aria-hidden="true"><i></i><i></i><i></i></span>{{ label|default:'Baja' }}</span>{% else %}<span class="sg-badge sg-badge--baja"><span class="sg-prio" aria-hidden="true"><i></i><i></i><i></i></span>{{ label|default:prioridad|default:'Sin definir' }}</span>{% endif %}{% endwith %}

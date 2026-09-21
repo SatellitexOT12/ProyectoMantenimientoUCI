@@ -1,155 +1,110 @@
 {% extends "master.html" %}
 {% load static %}
+{% block title %}Registrar incidencia{% endblock %}
 
-{% block title%}
-Reportar Incidencia
-{%endblock%}
-
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/incidencias.css' %}">{% endblock %}
 
 {% block content %}
+{% url 'incidencias' as url_lista %}
+<div class="sg-sheet sg-sheet--medium">
+  {% include 'partials/page_head.html' with title='Registrar incidencia' desc='Indique qué ocurre y dónde, para que la Dirección de Mantenimiento pueda asignar a quien la atienda.' back_url=url_lista back_label='Volver a incidencias' %}
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-dark text-white">
-                        <h3 class="card-title text-center">Reportar Incidencia</h3>
-                    </div>
-                    <div class="card-body">
-                        <form action="{% url 'reportar_incidencia' %}" method="post" enctype="multipart/form-data">
-
-                            {% csrf_token %}
-                            <!-- Campo: Tipo de Incidencia -->
-                            <div class="mb-3">
-                                <label for="tipo_incidencia" class="form-label">Tipo de Incidencia</label>
-                                <select class="form-select" id="tipo_incidencia" name="tipo_incidencia" required>
-                                    <option value="" disabled selected>Seleccione un tipo</option>
-                                    <option value="plomeria">Plomería</option>
-                                    <option value="electricidad">Electricidad</option>
-                                    <option value="infraestructura">Infraestructura</option>
-                                    <option value="limpieza">Saneamiento</option>
-                                    <option value="seguridad">Seguridad</option>
-                                </select>
-                            </div>
-
-                            <!-- Campo: Prioridad -->
-                            <div class="mb-3">
-                                <label for="prioridad" class="form-label">Prioridad</label>
-                                <select class="form-select" id="prioridad" name="prioridad" required>
-                                    <option value="" disabled selected>Seleccione una prioridad</option>
-                                    <option value="3">Alta</option>
-                                    <option value="2">Media</option>
-                                    <option value="1">Baja</option>
-                                </select>
-                            </div>
-
-                            <!-- Campo: Ubicación -->
-                            <div class="mb-3">
-                                <label for="ubicacion" class="form-label">Ubicación</label>
-                                <input type="text" class="form-control" id="ubicacion" name="ubicacion" placeholder="Ej: Edificio A, Aula 101" maxlength="50" required>
-                                <small class="text-muted float-end" id="contador-ubicacion">0/50</small>
-                                
-                            </div>
-
-                            <!-- Campo: Descripción -->
-                            <div class="mb-3">
-                                <label for="descripcion" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4" placeholder="Describa la incidencia..." maxlength="1000" required></textarea>
-                                <small class="text-muted float-end" id="contador-descripcion">0/1000</small>
-                                
-                            </div>
-
-                            <!-- Campo: Adjuntar Imagen (opcional) -->
-                            <div class="mb-3">
-                                <label for="imagen" class="form-label">Adjuntar Imagen (opcional)</label>
-                                <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*">
-                            </div>
-
-                            <!-- Botón de Enviar -->
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-dark">Reportar Incidencia</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+  <form class="rep-form" id="rep-form" method="post" action="{% url 'reportar_incidencia' %}" enctype="multipart/form-data" data-sg-validate data-sg-loading
+        data-max-bytes="{{ imagen_max_bytes }}" data-max-mb="{{ imagen_max_mb }}" data-ubicacion-max="{{ ubicacion_max }}" data-descripcion-max="{{ descripcion_max }}">
+    {% csrf_token %}
+    <div class="rep-body">
+      {% if errores %}
+      <div class="sg-form-error" role="alert" tabindex="-1" id="rep-errores">
+        {% include 'partials/icon.html' with name='alert' %}
+        <div>
+          {% if errores|length == 1 %}Corrija el campo marcado para poder registrar la incidencia.{% else %}Corrija los {{ errores|length }} campos marcados para poder registrar la incidencia.{% endif %}
+          Si había adjuntado una foto, vuelva a elegirla.
         </div>
+      </div>
+      {% endif %}
+
+      <div class="sg-fields">
+        {# Tipo #}
+        <div class="sg-field sg-field--6{% if errores.tipo_incidencia %} is-error{% endif %}">
+          <label class="sg-field__label" for="tipo_incidencia"><span>Tipo de incidencia</span></label>
+          <select id="tipo_incidencia" name="tipo_incidencia" required data-msg-required="Elija el tipo de incidencia."{% if errores.tipo_incidencia %} aria-invalid="true" aria-describedby="tipo_incidencia-msg"{% endif %}>
+            <option value=""{% if not valores.tipo_incidencia %} selected{% endif %}>Elija un tipo…</option>
+            {% for valor, etiqueta in tipos %}<option value="{{ valor }}"{% if valores.tipo_incidencia == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+          </select>
+          {% if errores.tipo_incidencia %}<p class="sg-field__msg" id="tipo_incidencia-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.tipo_incidencia }}</span></p>{% endif %}
+        </div>
+
+        {# Prioridad propuesta #}
+        <div class="sg-field sg-field--6 sg-field--static{% if errores.prioridad %} is-error{% endif %}">
+          <fieldset class="rep-fase">
+            <legend class="sg-field__label"><span>Prioridad que propone</span></legend>
+            <div class="rep-prio" role="presentation">
+              {% for valor, etiqueta in prioridades reversed %}
+              <label class="rep-prio__opt rep-prio__opt--{% if valor == '3' %}alta{% elif valor == '2' %}media{% else %}baja{% endif %}">
+                <input type="radio" name="prioridad" value="{{ valor }}"{% if valores.prioridad|default:prioridad_defecto == valor %} checked{% endif %}
+                       data-hint="{% if valor == '3' %}Alta: hay riesgo para las personas o un servicio está detenido, por ejemplo una fuga grande o un local sin corriente.{% elif valor == '2' %}Media: afecta el uso del local, pero puede esperar unos días.{% else %}Baja: es una molestia menor o un arreglo que no impide usar el local.{% endif %}">
+                <span class="rep-prio__lab"><span class="sg-prio" aria-hidden="true"><i></i><i></i><i></i></span>{{ etiqueta }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            <p class="sg-field__hint" id="rep-prio-hint" aria-live="polite">{% if puede.gestionar_prioridad %}Como administrador, la prioridad que elija queda confirmada.{% else %}Es una propuesta: la Dirección de Mantenimiento la confirmará o la corregirá.{% endif %}</p>
+            {% if errores.prioridad %}<p class="sg-field__msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.prioridad }}</span></p>{% endif %}
+          </fieldset>
+        </div>
+
+        {# Ubicación #}
+        <div class="sg-field{% if errores.ubicacion %} is-error{% endif %}">
+          <label class="sg-field__label" for="ubicacion"><span>Ubicación</span></label>
+          <input id="ubicacion" name="ubicacion" type="text" value="{{ valores.ubicacion }}" maxlength="{{ ubicacion_max }}" required autocomplete="off" enterkeyhint="next"
+                 placeholder="Ej.: Res. 3, edif. B, apto 214" data-msg-required="Escriba dónde ocurre el problema."
+                 aria-describedby="ubicacion-ejemplo{% if errores.ubicacion %} ubicacion-msg{% endif %}"{% if errores.ubicacion %} aria-invalid="true"{% endif %}>
+          <span class="rep-count" id="ubicacion-count" aria-hidden="true">{{ valores.ubicacion|length }}/{{ ubicacion_max }}</span>
+          <ul class="rep-zonas" aria-label="Ayuda según la zona del campus">
+            <li><button type="button" class="rep-zona" data-zona="residencia" aria-pressed="false">Residencia</button></li>
+            <li><button type="button" class="rep-zona" data-zona="docente" aria-pressed="false">Local docente u oficina</button></li>
+            <li><button type="button" class="rep-zona" data-zona="exterior" aria-pressed="false">Zona exterior o servicio</button></li>
+          </ul>
+          <p class="rep-ejemplo" id="ubicacion-ejemplo" aria-live="polite">Diga el lugar exacto: la residencia y el apartamento, el edificio y el local, o el punto de referencia más cercano. Máximo {{ ubicacion_max }} caracteres.</p>
+          {% if errores.ubicacion %}<p class="sg-field__msg" id="ubicacion-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.ubicacion }}</span></p>{% endif %}
+        </div>
+
+        {# Descripción #}
+        <div class="sg-field{% if errores.descripcion %} is-error{% endif %}">
+          <label class="sg-field__label" for="descripcion"><span>Descripción</span></label>
+          <textarea id="descripcion" name="descripcion" rows="5" maxlength="{{ descripcion_max }}" required data-msg-required="Describa qué ocurre, con sus palabras."
+                    placeholder="Qué se ha dañado, desde cuándo y qué efecto tiene."
+                    {% if errores.descripcion %}aria-invalid="true" aria-describedby="descripcion-msg"{% endif %}>{{ valores.descripcion }}</textarea>
+          <span class="rep-count" id="descripcion-count" aria-hidden="true">{{ valores.descripcion|length }}/{{ descripcion_max }}</span>
+          {% if errores.descripcion %}<p class="sg-field__msg" id="descripcion-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.descripcion }}</span></p>{% endif %}
+        </div>
+
+        {# Foto #}
+        <div class="sg-field sg-field--static{% if errores.imagen %} is-error{% endif %}">
+          <label class="sg-field__label" for="imagen"><span>Foto</span><span class="sg-field__opt">opcional</span></label>
+          <div class="rep-foto">
+            <div class="rep-foto__pick">
+              <input type="file" id="imagen" name="imagen" accept="image/*"{% if errores.imagen %} aria-invalid="true" aria-describedby="imagen-msg"{% endif %}>
+              <label for="imagen" class="sg-btn sg-btn--secondary rep-foto__btn">{% include 'partials/icon.html' with name='image' %}<span data-rep-foto-txt>Tomar o elegir una foto</span></label>
+              <button type="button" class="sg-btn sg-btn--ghost" data-rep-foto-quitar hidden>Quitar foto</button>
+            </div>
+            <div class="rep-foto__prev" data-rep-foto-prev hidden>
+              <span data-rep-foto-thumb></span>
+              <div class="rep-foto__info"><span class="rep-foto__name" data-rep-foto-name></span><span class="rep-foto__size" data-rep-foto-size></span></div>
+            </div>
+            <p class="rep-foto__estado" role="status" aria-live="polite" data-rep-foto-estado></p>
+          </div>
+          <p class="sg-field__hint">Formatos {{ imagen_formatos }}, hasta {{ imagen_max_mb }} MB. La foto se reduce sola antes de subirla, para que llegue aunque la conexión sea lenta.</p>
+          {% if errores.imagen %}<p class="sg-field__msg" id="imagen-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.imagen }}</span></p>{% endif %}
+        </div>
+      </div>
     </div>
 
-
-    <script>
-// Contador de caracteres y validación de longitud máxima
-document.addEventListener('DOMContentLoaded', function () {
-    const ubicacionInput = document.getElementById('ubicacion');
-    const descripcionInput = document.getElementById('descripcion');
-    const contadorUbicacion = document.getElementById('contador-ubicacion');
-    const contadorDescripcion = document.getElementById('contador-descripcion');
-
-    // Contadores dinámicos
-    if (ubicacionInput && contadorUbicacion) {
-        ubicacionInput.addEventListener('input', function () {
-            const valor = ubicacionInput.value;
-            const longitud = valor.length;
-            contadorUbicacion.textContent = `${longitud}/50`;
-            if (longitud > 50) {
-                ubicacionInput.setCustomValidity("Máximo 50 caracteres.");
-                ubicacionInput.reportValidity();
-            } else {
-                ubicacionInput.setCustomValidity("");
-            }
-        });
-    }
-
-    if (descripcionInput && contadorDescripcion) {
-        descripcionInput.addEventListener('input', function () {
-            const valor = descripcionInput.value;
-            const longitud = valor.length;
-            contadorDescripcion.textContent = `${longitud}/1000`;
-
-            if (longitud > 1000) {
-                descripcionInput.setCustomValidity("Máximo 1000 caracteres.")
-                descripcionInput.reportValidity()
-            } else {
-                descripcionInput.setCustomValidity("")
-            }
-        });
-    }
-    
-
-    // Validación en submit
-    document.getElementById('registroForm').addEventListener('submit', function (e) {
-        let valido = true;
-
-        const ubicacion = document.getElementById('ubicacion');
-        const descripcion = document.getElementById('descripcion');
-
-        if (ubicacion.value.length > 50) {
-            e.preventDefault();
-            e.stopPropagation();
-            alert("La ubicación no puede tener más de 50 caracteres.");
-            valido = false;
-        }
-
-        if (descripcion.value.length > 1000) {
-            e.preventDefault();
-            e.stopPropagation();
-            alert("La descripción no puede tener más de 1000 caracteres.");
-            valido = false;
-        }
-
-        if (!valido) {
-            return false;
-        }
-    });
-
-    // Opcional: Limpiar mensajes de error cuando se cierre el modal
-    document.querySelector('#modalIncidencia').addEventListener('hidden.bs.modal', function () {
-        document.getElementById('ubicacion').setCustomValidity('');
-        document.getElementById('descripcion').setCustomValidity('');
-    });
-
-});
-</script>
-
-
+    <div class="rep-actions">
+      <a class="sg-btn sg-btn--secondary" href="{{ url_lista }}">Cancelar</a>
+      <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Registrando…">{% include 'partials/icon.html' with name='check' %}Registrar incidencia</button>
+    </div>
+  </form>
+</div>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'sgum/pages/incidencia-reportar.js' %}"></script>{% endblock %}

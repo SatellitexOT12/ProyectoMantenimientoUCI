@@ -1,199 +1,178 @@
 {% extends "master.html" %}
 {% load static %}
 
-{% block title %}
-Dashboard de Incidencias
-{% endblock %}
+{% block title %}Estadísticas{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/dashboard.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="text-center mb-4">Dashboard de Incidencias</h1>
+<div class="sg-sheet">
+  <header class="sg-page-head">
+    <div class="sg-page-head__main">
+      <h1 class="sg-page-head__title">Estadísticas</h1>
+      <p class="sg-page-head__desc">Incidencias del campus por estado, mes y tipo, para decidir y para informar a la Dirección.</p>
+    </div>
+    <div class="sg-page-head__actions">
+      <a class="sg-btn sg-btn--primary" href="{% url 'exportar_dashboard' %}?anio={{ year }}">{% include 'partials/icon.html' with name='download' %}Exportar a Excel</a>
+    </div>
+  </header>
 
-    <form id="registroForm" method="get" class="needs-validation" novalidate>
-        {% csrf_token %}
-        <!-- Filtros -->
-        <div class="row mb-5 align-items-start">
-        <div class="col-md-4">
-            <label for="mesAnio" class="form-label">Selecciona Mes y Año</label>
-            <input type="month" class="form-control" name="mesAnio" id="mesAnio" max="{{ today|date:'Y-m' }}" required>
-            <div id="errorMesAnio" class="invalid-feedback">
-                Por favor, selecciona un mes válido.
-            </div>
-        </div>
-            <div class="col-md-4 mt-auto"> <!-- Cambio aquí -->
-                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-            </div>
-        </div>
+  <div class="sg-toolbar">
+    <form class="dash-filter" id="filtroPeriodo" method="get" action="{% url 'reportes' %}" novalidate>
+      <input type="hidden" name="anio" value="{{ year }}">
+      <div class="dash-filter__field">
+        <label class="sg-label" for="filtro-mes">Mes que se analiza</label>
+        <input class="sg-input" type="month" id="filtro-mes" name="mesAnio" value="{{ mesAnio }}" min="2000-01" max="{{ today|date:'Y-m' }}" placeholder="AAAA-MM" autocomplete="off" aria-describedby="filtro-error">
+      </div>
+      <button class="sg-btn sg-btn--secondary" type="submit">Aplicar mes</button>
+      {% if mesAnio %}<a class="sg-btn sg-btn--ghost" href="{% url 'reportes' %}?anio={{ year }}">Ver todos los periodos</a>{% endif %}
+      <p class="dash-filter__error sg-field__msg" id="filtro-error" role="alert" hidden></p>
     </form>
+    <p class="dash-scope" aria-live="polite">
+      Estado, tipo y listado de abiertas: <strong>{% include 'dash_periodo.html' %}</strong>.
+      <span>El gráfico mensual muestra el año {{ year }}. «Exportar a Excel» incluye todas las incidencias, sin importar el mes elegido.</span>
+    </p>
+  </div>
 
-    <!-- Tarjetas de Resumen -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-header">Reportes Totales</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{totalReportes}}</h5>
-                    <p class="card-text">Reportes generados en el periodo.</p>
-                </div>
-            </div>
+  {% if conteos.total %}
+  <div class="dash-row dash-row--split">
+    <section class="dash-cell" aria-labelledby="t-estado">
+      <div class="dash-cell__head">
+        <div>
+          <h2 id="t-estado">Estado de las incidencias</h2>
+          <p class="dash-cell__sub">Reportadas en {% include 'dash_periodo.html' %}</p>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-header">Reportes Resueltos</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{reporte_resuelto}}</h5>
-                    <p class="card-text">Reportes resueltos en el periodo.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-danger mb-3">
-                <div class="card-header">Reportes Pendientes</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{reporte_pendiente}}</h5>
-                    <p class="card-text">Reportes pendientes de resolver.</p>
-                </div>
-            </div>
-        </div>
+      </div>
+      <div class="dash-bar" role="img" aria-label="De {{ conteos.total }} incidencias:{% for e in por_estado %} {{ e.etiqueta }}, {{ e.cantidad }}{% if not forloop.last %};{% endif %}{% endfor %}.">
+        {% for e in por_estado %}{% if e.cantidad %}<span class="dash-bar__seg dash-seg--{{ e.codigo }}" style="flex-grow: {{ e.cantidad }}"></span>{% endif %}{% endfor %}
+      </div>
+      <table class="sg-table sg-table--dense dash-tabla">
+        <caption class="sg-visually-hidden">Incidencias por estado en {% include 'dash_periodo.html' %}</caption>
+        <thead>
+          <tr><th scope="col">Estado</th><th scope="col" class="sg-num">Incidencias</th><th scope="col" class="sg-num">Del total</th></tr>
+        </thead>
+        <tbody>
+          {% for e in por_estado %}
+          <tr>
+            <th scope="row"><span class="dash-swatch dash-seg--{{ e.codigo }}" aria-hidden="true"></span>{{ e.etiqueta }}</th>
+            <td class="sg-num sg-data">{{ e.cantidad }}</td>
+            <td class="sg-num sg-data">{% widthratio e.cantidad conteos.total 100 %} %</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">Total</th><td class="sg-num sg-data">{{ conteos.total }}</td><td class="sg-num sg-data">100 %</td></tr>
+        </tfoot>
+      </table>
 
-        <div class="col-md-3">
-            <div class="card text-white bg-secondary mb-3">
-                <div class="card-header">Reportes En Proceso</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{reporte_enProceso}}</h5>
-                    <p class="card-text">Reportes en proceso de resolver.</p>
-                </div>
-            </div>
+      <h3 class="dash-sub">Entre las {{ conteos.abiertas }} abiertas</h3>
+      {% if conteos.abiertas %}
+      <ul class="dash-avisos">
+        {% if conteos.sin_tecnico %}
+        <li>{% include 'partials/icon.html' with name='alert' %}<span class="dash-avisos__txt"><span class="sg-num">{{ conteos.sin_tecnico }}</span> sin técnico asignado</span>{% if not mesAnio %}<a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'incidencias' %}?estado=abiertas&amp;tecnico=sin">Ver en Incidencias</a>{% endif %}</li>
+        {% endif %}
+        {% if conteos.sin_confirmar %}
+        <li>{% include 'partials/icon.html' with name='alert' %}<span class="dash-avisos__txt"><span class="sg-num">{{ conteos.sin_confirmar }}</span> con prioridad sin confirmar</span>{% if not mesAnio %}<a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'incidencias' %}?estado=abiertas&amp;confirmada=0">Ver en Incidencias</a>{% endif %}</li>
+        {% endif %}
+        {% if not conteos.sin_tecnico and not conteos.sin_confirmar %}
+        <li class="dash-avisos__ok">{% include 'partials/icon.html' with name='check' %}<span class="dash-avisos__txt">Todas tienen técnico y prioridad confirmada.</span></li>
+        {% endif %}
+      </ul>
+      {% else %}
+      <ul class="dash-avisos"><li class="dash-avisos__ok">{% include 'partials/icon.html' with name='check' %}<span class="dash-avisos__txt">No queda ninguna incidencia abierta en este periodo.</span></li></ul>
+      {% endif %}
+    </section>
+
+    {% include 'dash_mes.html' %}
+  </div>
+
+  <div class="dash-row dash-row--split">
+    <section class="dash-cell" aria-labelledby="t-tipo">
+      <div class="dash-cell__head">
+        <div>
+          <h2 id="t-tipo">Tipos de incidencia</h2>
+          <p class="dash-cell__sub">Reportadas en {% include 'dash_periodo.html' %}, de mayor a menor</p>
         </div>
-    </div>
-
-    <!-- Gráficos -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Reportes por Estado</div>
-                <div class="card-body">
-                    <canvas id="estadoChart" width="400" height="200"></canvas>
-                </div>
-            </div>
+      </div>
+      <div class="dash-chart dash-chart--tipos" id="tipo-lienzo"><canvas id="grafico-tipo" role="img" aria-label="Gráfico de barras de incidencias por tipo. Los mismos datos están en la tabla que sigue."></canvas></div>
+      <p class="dash-note" id="tipo-nota"></p>
+      <details class="dash-datos" id="tipo-datos">
+        <summary>{% include 'partials/icon.html' with name='chevron-down' class='sg-icon--sm' %}Ver los datos en tabla</summary>
+        <div class="sg-table-wrap">
+          <table class="sg-table sg-table--dense" id="tipo-tabla">
+            <caption class="sg-visually-hidden">Incidencias por tipo en {% include 'dash_periodo.html' %}</caption>
+            <thead><tr><th scope="col">Tipo</th><th scope="col" class="sg-num">Incidencias</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Reportes por Mes</div>
-                <div class="card-body">
-                    <canvas id="mesChart" width="400" height="200"></canvas>
-                </div>
-            </div>
+      </details>
+    </section>
+
+    <section class="dash-cell" aria-labelledby="t-abiertas">
+      <div class="dash-cell__head">
+        <div>
+          <h2 id="t-abiertas">Abiertas, de la más antigua a la más reciente</h2>
+          <p class="dash-cell__sub">{% if conteos.abiertas %}<span class="sg-data">{{ conteos.abiertas }}</span> sin resolver, reportadas en {% include 'dash_periodo.html' %}{% else %}Sin incidencias abiertas en {% include 'dash_periodo.html' %}{% endif %}</p>
         </div>
-    </div>
-
-    <!-- Tabla de reportes -->
-    <div class="table-responsive">
-        <table  id="tablaReportes"  class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-
-                {% for x in tableReporte %}
-                <tr>
-                    <td>{{x.id}}</td>
-                    <td>{{x.fecha}}</td>
-                    <td>{{x.tipo}}</td>
-                    <td>{{x.descripcion}}</td>
-                    <td>{{x.reporte_incidencia.get_estado_display}}</td>
-                </tr>
-
-                {%endfor%}
-                <!-- Más filas aquí -->
-            </tbody>
+      </div>
+      {% if conteos.abiertas %}
+      <div class="sg-table-wrap dash-abiertas">
+        <table class="sg-table sg-table--dense sg-table--stack">
+          <caption class="sg-visually-hidden">Incidencias sin resolver ordenadas por antigüedad, con la más antigua primero</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="sg-col-n">Nº</th>
+              <th scope="col">Incidencia</th>
+              <th scope="col">Ubicación</th>
+              <th scope="col">Reportada</th>
+              <th scope="col">Prioridad</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Técnico</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for x in tableReporte reversed %}{% with i=x.reporte_incidencia %}{% if i and i.estado != 'resuelto' %}
+            <tr>
+              <td class="sg-col-n" data-label="Nº"></td>
+              <td data-label="Incidencia"><div><a class="dash-id" href="{% url 'incidencias' %}?q={{ i.id }}">n.º {{ i.id }}</a><span class="dash-tipo">{{ i.get_tipo_display }}</span></div></td>
+              <td data-label="Ubicación">{{ i.ubicacion }}</td>
+              <td class="dash-fecha" data-label="Reportada"><div><span class="sg-data">{{ i.fecha|date:"d/m/Y" }}</span><span class="dash-desde">hace {{ i.fecha|timesince }}</span></div></td>
+              <td data-label="Prioridad"><div>{% include 'partials/badge_prioridad.html' with prioridad=i.prioridad %}{% if not i.prioridad_confirmada %}<span class="dash-prop sg-muted">propuesta</span>{% endif %}</div></td>
+              <td data-label="Estado">{% include 'partials/badge_estado.html' with estado=i.estado %}</td>
+              <td data-label="Técnico">{% if i.tecnico_asignado_id %}Asignado{% else %}<span class="dash-sin">{% include 'partials/icon.html' with name='alert' class='sg-icon--sm' %}Sin técnico</span>{% endif %}</td>
+            </tr>
+            {% endif %}{% endwith %}{% endfor %}
+          </tbody>
         </table>
-    </div>
+      </div>
+      {% else %}
+      <p class="dash-vacio"><strong>No hay incidencias abiertas</strong>Todo lo reportado en este periodo ya está resuelto.</p>
+      {% endif %}
+    </section>
+  </div>
 
-    <!-- Botón de exportar -->
-    <div class="text-center mt-4">
-        <a href="{% url 'exportar_dashboard' %}" class="btn btn-success">Exportar a Excel</a>
+  {% if materiales_consumo %}
+  <div class="dash-row">{% include 'dash_materiales.html' %}</div>
+  {% endif %}
+
+  {% else %}
+  <div class="dash-row">
+    <div class="dash-cell">
+      {% include 'partials/empty.html' with icon='chart' title='No hay incidencias en este periodo' text='Cuando se reporte una incidencia, aquí verá cuántas hay por estado y por tipo, y cuáles llevan más tiempo sin resolver.' action2_url=request.path action2_label='Ver todos los periodos' %}
     </div>
+  </div>
+  <div class="dash-row">{% include 'dash_mes.html' %}</div>
+  {% endif %}
 </div>
 
+{{ incidencias_data|json_script:"dato-mes" }}
+{{ por_tipo|json_script:"dato-tipo" }}
+{{ meses|json_script:"dato-meses" }}
+<div id="dash-config" hidden data-year="{{ year }}" data-mes-anio="{{ mesAnio }}"></div>
+{% endblock %}
 
-
-<!-- Incluir Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Gráfico de Reportes por Estado
-    var ctxEstado = document.getElementById('estadoChart').getContext('2d');
-    var estadoChart = new Chart(ctxEstado, {
-        type: 'pie', // Tipo de gráfico (puede ser 'pie', 'doughnut', etc.)
-        data: {
-            labels: ['Pendiente', 'Resuelto', 'En Proceso'], // Etiquetas para cada estado
-            datasets: [{
-                label: 'Reportes por Estado',
-                data: [{{ reporte_pendiente }}, {{ reporte_resuelto }}, {{ reporte_enProceso }}], // Datos dinámicos (ejemplo: 30 pendientes, 120 resueltos, 50 en proceso)
-    backgroundColor: [
-        'rgba(255, 205, 86, 0.6)', // Amarillo para Pendiente
-        'rgba(75, 192, 192, 0.6)', // Verde para Resuelto
-        'rgba(169, 169, 169, 0.6)' // Gris para En Proceso
-    ],
-        borderColor: [
-            'rgba(255, 205, 86, 1)', // Borde amarillo
-            'rgba(75, 192, 192, 1)', // Borde verde
-            'rgba(169, 169, 169, 1)' // Borde gris
-        ],
-            borderWidth: 1 // Ancho del borde
-            }]
-        },
-    options: {
-        responsive: true, // Hace que el gráfico sea responsive
-            plugins: {
-            legend: {
-                position: 'top', // Posición de la leyenda
-                },
-            title: {
-                display: true,
-                    text: 'Reportes por Estado' // Título del gráfico
-            }
-        }
-    }
-    });
-
-    // Gráfico de Reportes por Mes
-    var ctxMes = document.getElementById('mesChart').getContext('2d');
-    var incidenciasData = {{ incidencias_data| safe }};
-    var mesChart = new Chart(ctxMes, {
-        type: 'bar',
-        data: {
-            labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-            datasets: [{
-                label: 'Reportes por Mes',
-                data: incidenciasData,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Reportes por Mes'
-                }
-            }
-        }
-    });
-
-
-</script>
-
-
+{% block scripts %}
+<script src="{% static 'vendor/chart.umd.min.js' %}"></script>
+<script src="{% static 'sgum/pages/dashboard.js' %}"></script>
+<script src="{% static 'js/validarFechaReporte.js' %}"></script>
 {% endblock %}

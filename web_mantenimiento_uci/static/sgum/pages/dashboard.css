@@ -1,0 +1,127 @@
+/* ==========================================================================
+   SGUM-UCI · Estadísticas (dashboard)
+   Requiere tokens.css y sgum.css. Prefijo dash-.
+   Celdas de plano: las divisiones son líneas finas compartidas, sin tarjetas ni sombras.
+   Los gráficos leen sus colores de los tokens (--sg-*) desde dashboard.js.
+   ========================================================================== */
+
+/* Filtro de periodo (una sola fila sobre todo lo que filtra) */
+.dash-filter { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sg-s-3); margin: 0; }
+.dash-filter__field { display: flex; flex-direction: column; min-width: 12rem; }
+.dash-filter__field .sg-label { margin-bottom: var(--sg-s-1); }
+.dash-filter__error { flex-basis: 100%; margin: 0; }
+.dash-filter__error[hidden] { display: none; }
+.dash-scope {
+  margin: 0; flex: 1 1 22rem; min-width: 0; max-width: var(--sg-measure);
+  font-size: var(--sg-fs-sm); color: var(--sg-text-2); line-height: var(--sg-lh-snug); text-wrap: pretty;
+}
+.dash-scope strong { color: var(--sg-text); font-weight: var(--sg-fw-semi); }
+.dash-scope span { display: block; color: var(--sg-text-3); }
+@media (max-width: 575.98px) {
+  .dash-filter { align-items: stretch; }
+  .dash-filter__field { flex: 1 1 100%; }
+  .dash-filter > .sg-btn { flex: 1 1 auto; }
+}
+
+/* Rejilla de celdas */
+.dash-row { display: grid; grid-template-columns: minmax(0, 1fr); }
+.dash-cell { min-width: 0; padding: var(--sg-s-5); border-top: var(--sg-line) solid var(--sg-grid-strong); }
+.sg-toolbar + .dash-row > .dash-cell { border-top: 0; }
+@media (min-width: 1100px) {
+  .dash-row--split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .dash-row--split > .dash-cell + .dash-cell { border-left: var(--sg-line) solid var(--sg-grid-strong); }
+}
+@media (max-width: 575.98px) { .dash-cell { padding: var(--sg-s-4); } }
+
+.dash-cell__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sg-s-3); margin-bottom: var(--sg-s-4); }
+.dash-cell__head h2 { margin: 0; font-size: var(--sg-fs-lg); }
+.dash-cell__sub { margin: var(--sg-s-1) 0 0; font-size: var(--sg-fs-sm); color: var(--sg-text-3); }
+.dash-sub { margin: var(--sg-s-5) 0 var(--sg-s-2); font-size: var(--sg-fs-md); font-weight: var(--sg-fw-semi); color: var(--sg-text); }
+
+/* Estado: barra de una pieza (parte del todo) + tabla que hace de leyenda.
+   Cada estado lleva su patrón, igual que sus insignias: rayado = pendiente, líneas verticales = en proceso, lleno = resuelto. */
+.dash-bar {
+  display: flex; gap: 2px; height: 2rem; padding: 0;
+  background: var(--sg-paper); border: var(--sg-line-strong) solid var(--sg-ink);
+}
+.dash-bar__seg { flex: 1 1 0; min-width: 0; }
+.dash-seg--pendiente { background: var(--sg-warn-bg) repeating-linear-gradient(135deg, var(--sg-warn-line) 0 2px, transparent 2px 7px); }
+.dash-seg--en_proceso { background: var(--sg-info-bg) repeating-linear-gradient(90deg, var(--sg-info-line) 0 4px, transparent 4px 9px); }
+.dash-seg--resuelto { background: var(--sg-ok-line); }
+.dash-swatch { display: inline-block; flex: none; width: 1rem; height: 1rem; margin-right: var(--sg-s-2); vertical-align: -0.15em; border: 1.5px solid var(--sg-line-control); }
+.dash-swatch.dash-seg--pendiente { border-color: var(--sg-warn-line); }
+.dash-swatch.dash-seg--en_proceso { border-color: var(--sg-info-line); }
+.dash-swatch.dash-seg--resuelto { border-color: var(--sg-ok-line); }
+
+.dash-tabla { margin-top: var(--sg-s-3); }
+.dash-tabla tbody th, .dash-tabla tfoot th, .dash-datos tbody th, .dash-datos tfoot th { text-align: left; font-weight: var(--sg-fw-medium); color: var(--sg-text); white-space: nowrap; }
+.dash-tabla tfoot th, .dash-tabla tfoot td, .dash-datos tfoot th, .dash-datos tfoot td { border-top: var(--sg-line-strong) solid var(--sg-ink); border-bottom: 0; font-weight: var(--sg-fw-semi); }
+.dash-tabla thead th { position: static; }
+.dash-tabla .sg-num { width: 1%; white-space: nowrap; }
+.dash-tabla tbody tr:hover td, .dash-tabla tbody tr:hover th { background: transparent; }
+
+/* Avisos de atención (lo que el despachador puede resolver hoy) */
+.dash-avisos { margin: 0; padding: 0; list-style: none; border-top: var(--sg-line) solid var(--sg-grid); }
+.dash-avisos li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sg-s-1) var(--sg-s-3); min-height: var(--sg-touch); padding: var(--sg-s-2) 0; border-bottom: var(--sg-line) solid var(--sg-grid); }
+.dash-avisos .sg-icon { color: var(--sg-warn-line); }
+.dash-avisos .dash-avisos__ok .sg-icon { color: var(--sg-ok-line); }
+.dash-avisos__txt { flex: 1 1 12rem; min-width: 0; }
+.dash-avisos__txt .sg-num { font-family: var(--sg-font-mono); font-weight: var(--sg-fw-bold); }
+
+/* Gráficos */
+.dash-chart { position: relative; width: 100%; height: 18rem; }
+.dash-chart--tipos { height: 18rem; }
+.dash-chart canvas { display: block; max-width: 100%; }
+.dash-insight { margin: 0 0 var(--sg-s-3); font-size: var(--sg-fs-md); color: var(--sg-text); max-width: var(--sg-measure); text-wrap: pretty; }
+.dash-insight:empty { display: none; }
+.dash-note { margin: var(--sg-s-2) 0 0; font-size: var(--sg-fs-sm); color: var(--sg-text-3); max-width: var(--sg-measure); text-wrap: pretty; }
+.dash-note:empty { display: none; }
+.dash-vacio { margin: 0; padding: var(--sg-s-6) var(--sg-s-4); text-align: center; color: var(--sg-text-2); background: var(--sg-panel); border: var(--sg-line) solid var(--sg-grid); }
+.dash-vacio strong { display: block; margin-bottom: var(--sg-s-1); color: var(--sg-ink); font-size: var(--sg-fs-lg); }
+.dash-vacio[hidden] { display: none; }
+
+/* Navegación de año del gráfico mensual */
+.dash-year { display: inline-flex; align-items: center; gap: var(--sg-s-1); flex: none; }
+.dash-year__n { min-width: 3.5rem; text-align: center; font-family: var(--sg-font-mono); font-variant-numeric: tabular-nums; font-weight: var(--sg-fw-semi); color: var(--sg-text); }
+.dash-year .sg-btn[aria-disabled="true"] { pointer-events: none; }
+
+/* Tabla de datos (alternativa accesible al gráfico) */
+.dash-datos { margin-top: var(--sg-s-3); border-top: var(--sg-line) solid var(--sg-grid); }
+.dash-datos > summary {
+  display: inline-flex; align-items: center; gap: var(--sg-s-2); min-height: var(--sg-touch); padding: 0 var(--sg-s-1);
+  font-size: var(--sg-fs-sm); font-weight: var(--sg-fw-semi); color: var(--sg-ink); cursor: pointer; list-style: none;
+}
+.dash-datos > summary::-webkit-details-marker { display: none; }
+.dash-datos > summary:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+.dash-datos > summary .sg-icon { transition: transform var(--sg-dur-fast) var(--sg-ease); }
+.dash-datos[open] > summary .sg-icon { transform: rotate(180deg); }
+.dash-datos .sg-table-wrap { --sg-table-max: 20rem; max-height: var(--sg-table-max); }
+
+/* Incidencias abiertas: Nº por contador CSS (numera solo las filas que se dibujan) */
+.dash-abiertas { --sg-table-max: 26rem; border: var(--sg-line) solid var(--sg-grid-strong); }
+.dash-abiertas tbody { counter-reset: fila; }
+.dash-abiertas tbody tr { counter-increment: fila; }
+.dash-abiertas td.sg-col-n::after { content: counter(fila); }
+.dash-abiertas .sg-table th, .dash-abiertas .sg-table td { padding-inline: var(--sg-s-2); }
+.dash-abiertas .sg-table .sg-col-n { width: 2.75rem; min-width: 2.75rem; }
+.dash-abiertas .sg-table td[data-label="Prioridad"] { white-space: nowrap; }
+.dash-abiertas .dash-id { display: block; font-weight: var(--sg-fw-semi); }
+.dash-abiertas .dash-tipo { display: block; font-size: var(--sg-fs-xs); color: var(--sg-text-3); }
+.dash-abiertas .dash-desde { display: block; font-size: var(--sg-fs-xs); color: var(--sg-text-3); }
+.dash-abiertas td.dash-fecha { white-space: nowrap; }
+.dash-abiertas td.dash-fecha .sg-data { display: block; }
+.dash-sin { display: inline-flex; align-items: center; gap: var(--sg-s-1); font-weight: var(--sg-fw-semi); color: var(--sg-danger-fg); white-space: nowrap; }
+.dash-sin .sg-icon { color: var(--sg-danger-line); }
+.dash-prop { margin-left: var(--sg-s-1); font-size: var(--sg-fs-xs); }
+
+/* Materiales consumidos (solo si el servidor los envía) */
+.dash-consumo { position: relative; display: block; height: 0.75rem; min-width: 6rem; background: var(--sg-panel); border: var(--sg-line) solid var(--sg-grid-strong); }
+.dash-consumo > span { display: block; height: 100%; background: var(--sg-ink); }
+
+.dash-tabla tbody tr:last-child th { border-bottom: 0; }
+@media (max-width: 767.98px) {
+  /* Lista compacta: se limita el alto para no obligar a desplazar 24 fichas seguidas */
+  .dash-abiertas.sg-table-wrap { max-height: 34rem; }
+  .dash-abiertas td.dash-fecha .sg-data { display: inline; }
+  .dash-abiertas .sg-table td > div { min-width: 0; }
+}

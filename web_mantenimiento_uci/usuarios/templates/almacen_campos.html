@@ -1,0 +1,36 @@
+{% comment %}
+Celdas de cajetín del material (nombre, tipo, cantidad). Las usan el alta (almacen_registro.html) y la edición.
+Parámetros: pref (prefijo de los id, «m» por defecto), nombre, tipo, cantidad (valores actuales; cantidad como texto),
+            legado (opcional: tipo antiguo que el material ya tenía y que no está en la lista vigente).
+Contexto que espera: tipos (pares código/etiqueta), errores, cantidad_max.
+Nombres de campo del servidor: nombre, tipo, cantidad (alias documentados en backend-contract.md §3.12 y §3.13).
+{% endcomment %}{% with p=pref|default:'m' %}<div class="sg-fields">
+  <div class="sg-field sg-field--4{% if errores.nombre %} is-error{% endif %}">
+    <label class="sg-field__label" for="{{ p }}-nombre"><span>Nombre del material</span></label>
+    <div class="sg-field__row">
+      <input class="sg-field__control" id="{{ p }}-nombre" name="nombre" type="text" value="{{ nombre }}" maxlength="100" autocomplete="off" required data-al-campo="nombre"{% if errores.nombre %} aria-invalid="true" aria-describedby="{{ p }}-nombre-msg"{% endif %}>
+    </div>
+    <p class="sg-field__hint">Como se conoce en el almacén, por ejemplo «Llave de paso».</p>
+    {% if errores.nombre %}<p class="sg-field__msg" id="{{ p }}-nombre-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.nombre }}</span></p>{% endif %}
+  </div>
+
+  <div class="sg-field sg-field--4{% if errores.tipo %} is-error{% endif %}">
+    <label class="sg-field__label" for="{{ p }}-tipo"><span>Tipo</span></label>
+    <select id="{{ p }}-tipo" name="tipo" required data-al-campo="tipo"{% if errores.tipo %} aria-invalid="true" aria-describedby="{{ p }}-tipo-msg"{% endif %}>
+      <option value=""{% if not tipo %} selected{% endif %} disabled>Elija un tipo</option>
+      {% if legado %}<option value="{{ legado }}" hidden{% if tipo == legado %} selected{% endif %}>{{ legado }} (tipo anterior)</option>{% endif %}
+      {% for codigo, etiqueta in tipos %}<option value="{{ codigo }}"{% if tipo == codigo %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+    </select>
+    <p class="sg-field__hint">El área de mantenimiento a la que sirve.</p>
+    {% if errores.tipo %}<p class="sg-field__msg" id="{{ p }}-tipo-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.tipo }}</span></p>{% endif %}
+  </div>
+
+  <div class="sg-field sg-field--4{% if errores.cantidad %} is-error{% endif %}">
+    <label class="sg-field__label" for="{{ p }}-cantidad"><span>Cantidad en existencia</span></label>
+    <div class="sg-field__row">
+      <input class="sg-field__control" id="{{ p }}-cantidad" name="cantidad" type="text" inputmode="numeric" pattern="[0-9]*" value="{{ cantidad }}" maxlength="7" autocomplete="off" required data-al-campo="cantidad" data-max="{{ cantidad_max }}"{% if errores.cantidad %} aria-invalid="true" aria-describedby="{{ p }}-cantidad-msg"{% endif %}>
+    </div>
+    <p class="sg-field__hint">Número entero, de 0 a {{ cantidad_max|floatformat:"0g" }}. Con 0 queda agotado.</p>
+    {% if errores.cantidad %}<p class="sg-field__msg" id="{{ p }}-cantidad-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.cantidad }}</span></p>{% endif %}
+  </div>
+</div>{% endwith %}

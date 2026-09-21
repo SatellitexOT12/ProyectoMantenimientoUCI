@@ -12,20 +12,46 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+
+from django.contrib.messages import constants as message_constants
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _entorno_bool(nombre, por_defecto):
+    valor = os.environ.get(nombre)
+    if valor is None:
+        return por_defecto
+    return valor.strip().lower() in ('1', 'true', 'yes', 'on', 'si')
+
+
+def _entorno_lista(nombre):
+    return [x.strip() for x in os.environ.get(nombre, '').split(',') if x.strip()]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+#
+# Los valores siguientes se pueden fijar con variables de entorno. Si no se
+# definen, se usan los de siempre, de modo que quien ya ejecuta el proyecto
+# no tiene que cambiar nada. EN PRODUCCION defina al menos DJANGO_SECRET_KEY,
+# DJANGO_DEBUG=0, DJANGO_ALLOWED_HOSTS y DB_PASSWORD.
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1r7h7@3*c6@56lx)x9(iime84yp#ilu-rglf*(zko!*az+c#ps'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-1r7h7@3*c6@56lx)x9(iime84yp#ilu-rglf*(zko!*az+c#ps',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _entorno_bool('DJANGO_DEBUG', True)
 
-ALLOWED_HOSTS = []
+# Lista separada por comas, p. ej. DJANGO_ALLOWED_HOSTS=sgum.uci.cu,10.0.0.5
+ALLOWED_HOSTS = _entorno_lista('DJANGO_ALLOWED_HOSTS')
+
+# Orígenes de confianza para CSRF cuando se sirve detrás de un proxy/HTTPS.
+CSRF_TRUSTED_ORIGINS = _entorno_lista('DJANGO_CSRF_TRUSTED_ORIGINS')
 
 
 # Application definition
@@ -65,6 +91,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'usuarios.context_processors.roles',
             ],
         },
     },
@@ -78,12 +105,12 @@ WSGI_APPLICATION = 'web_mantenimiento_uci.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mantenimientouci',
-        'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.environ.get('DB_NAME', 'mantenimientouci'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -110,9 +137,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# Django no trae la variante 'es-cu'; 'es' cubre el español general.
+LANGUAGE_CODE = 'es'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Havana'
 
 USE_I18N = True
 
@@ -134,7 +162,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'main'
+LOGOUT_REDIRECT_URL = 'login'
+
+# Clases de las alertas de django.contrib.messages: success, info, warning y
+# danger (Django etiqueta «error» como 'error'; el sistema de diseño usa 'danger').
+MESSAGE_TAGS = {
+    message_constants.DEBUG: 'info',
+    message_constants.INFO: 'info',
+    message_constants.SUCCESS: 'success',
+    message_constants.WARNING: 'warning',
+    message_constants.ERROR: 'danger',
+}
 
 MEDIA_URL = '/media/'  # URL para acceder a los archivos multimedia
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -1,13 +1,16 @@
-
-<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 mt-4 px-3 border-top bg-dark">
-    <p class="col-md-4 mb-0 text-body-secondary text-light">© 2025 Universidad de las Ciencias Informaticas</p>
-
-    <a href="/" class="col-md-4 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-        <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
-    </a>
-
-    <ul class="nav col-md-4 justify-content-end">
-        <li class="nav-item"><a href="/main" class="nav-link px-2 text-body-secondary">Home</a></li>
-    </ul>
+<footer class="sg-foot">
+    <div class="sg-foot__grid">
+        <div class="sg-foot__cell">
+            <strong>SGUM-UCI</strong>
+            Sistema de Gestión Universitaria de Mantenimiento
+        </div>
+        <div class="sg-foot__cell">
+            <strong>Universidad de las Ciencias Informáticas</strong>
+            © {% now "Y" %}
+        </div>
+        <nav class="sg-foot__cell sg-foot__links" aria-label="Enlaces del pie">
+            <a href="{% url 'main' %}">Inicio</a>
+            {% if user.is_authenticated %}<a href="{% url 'solicitar_soporte' %}">Soporte</a>{% endif %}
+        </nav>
+    </div>
 </footer>
-

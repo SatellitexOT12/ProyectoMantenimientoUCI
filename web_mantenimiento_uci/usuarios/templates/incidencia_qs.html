@@ -1,0 +1,4 @@
+{% comment %}
+Parámetros GET que se conservan al cambiar de vista por estado, como «&clave=valor»:
+todos menos «estado», «page», «tecnico», «confirmada» (las vistas «Sin técnico» y «Prioridad sin confirmar» son propias) y «as».
+{% endcomment %}{% for k, vs in request.GET.lists %}{% if k != 'estado' and k != 'page' and k != 'tecnico' and k != 'confirmada' and k != 'as' %}{% for v in vs %}&{{ k|urlencode }}={{ v|urlencode }}{% endfor %}{% endif %}{% endfor %}

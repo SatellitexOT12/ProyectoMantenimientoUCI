@@ -1,0 +1,14 @@
+{% comment %}
+Solo el formulario de búsqueda (GET, parámetro q). Conserva el resto de parámetros de la URL (filtros, orden) y reinicia la paginación.
+Úselo dentro de su propia barra <div class="sg-toolbar"> cuando además necesite filtros; si solo hay búsqueda, use partials/toolbar.html.
+Parámetros opcionales: placeholder, label (nombre accesible), input_id.
+{% endcomment %}<form class="sg-search" method="get" role="search" action="{{ request.path }}" data-sg-search>
+  {% for k, vs in request.GET.lists %}{% if k != 'q' and k != 'page' %}{% for v in vs %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endif %}{% endfor %}
+  <div class="sg-search__field">
+    {% include 'partials/icon.html' with name='search' %}
+    <label class="sg-visually-hidden" for="{{ input_id|default:'sg-q' }}">{{ label|default:'Buscar' }}</label>
+    <input class="sg-input" type="search" id="{{ input_id|default:'sg-q' }}" name="q" value="{{ request.GET.q }}" placeholder="{{ placeholder|default:'Buscar…' }}" autocomplete="off" enterkeyhint="search">
+    {% if request.GET.q %}<a class="sg-btn sg-btn--ghost sg-btn--icon sg-search__clear" href="{{ request.path }}" data-sg-clear aria-label="Limpiar búsqueda">{% include 'partials/icon.html' with name='x' %}</a>{% endif %}
+  </div>
+  <button class="sg-btn sg-btn--secondary" type="submit">Buscar</button>
+</form>

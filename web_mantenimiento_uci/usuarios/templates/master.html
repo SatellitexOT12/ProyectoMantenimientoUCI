@@ -1,62 +1,43 @@
-{% load static %}
-
-<!DOCTYPE html>
-<html lang="en">
+{% load static %}<!DOCTYPE html>
+<html lang="es">
 <head>
-    
-    <title>{% block title%}{%endblock%}</title>
-    {% load bootstrap5 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-    
-    <style>
-  .notification.read {
-    color: #6c757d;
-    font-style: italic;
-  }
-  .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        max-width: 300px;
-    }
-    .toast.position-relative {
-    display: none;
-    position: absolute;
-    z-index: 9999;
-    min-width: 200px;
-    transform: translateY(-40px);
-}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0b4a7f">
+    <title>{% block title %}Inicio{% endblock %} · SGUM-UCI</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo-marca.png' %}">
 
-  
-</style>
+    {# Todo local: la aplicación funciona solo dentro de la intranet, sin CDN. #}
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'sgum/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'sgum/sgum.css' %}">
+    {% block extra_head %}{% endblock %}
+
+    <script>
+        const NOTIFICATIONS_URL = "{% url 'get_notifications' %}";
+        const csrftoken = "{{ csrf_token }}";
+    </script>
+    <script src="{% static 'vendor/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/jquery.min.js' %}"></script>
+    <script src="{% static 'sgum/sgum.js' %}" defer></script>
+    <script src="{% static 'togglepassword.js' %}" defer></script>
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="sg-app">
+    <a class="sg-skip" href="#contenido">Saltar al contenido</a>
+    {% include 'partials/icons_sprite.html' %}
 
-    {%include 'navbar.html' %}
+    {% include 'navbar.html' %}
 
-    <div class="flex-grow-1">
-    {%block content%}
-    
-    {%endblock%}
-    </div>
-    {%include 'footer.html' %}
+    <main id="contenido" class="sg-main" tabindex="-1">
+        {% block messages %}{% include 'partials/messages.html' %}{% endblock %}
+        {% block content %}{% endblock %}
+    </main>
 
+    {% include 'footer.html' %}
+
+    <div class="sg-toasts" id="sg-toasts" role="region" aria-label="Avisos"></div>
+
+    <script src="{% static 'js/notificaciones.js' %}"></script>
+    {% block scripts %}{% endblock %}
 </body>
-
-<script>
-    const NOTIFICATIONS_URL = "{% url 'get_notifications' %}";
-    const csrftoken = "{{ csrf_token }}";
-</script>
-<script src="{% static 'js/notificaciones.js'  %}"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    function mostrarToast() {
-        const toast = document.getElementById('toastSeleccionar');
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
-    }
-</script>
-
 </html>

@@ -1,95 +1,80 @@
 {% extends "master.html" %}
 {% load static %}
-    {% block title%}
-    Gestionar Materiales
-    {%endblock%}
 
-    {%block content%}
-    <div class="container-fluid mt-3 px-4">
-        <div class="row container">
-        <div class="col"><h1>Gestionar Materiales</h1></div>
-        <div class="col d-flex flex-row-reverse p-3 ">
+{% block title %}Materiales{% endblock %}
 
-            <button class="btn btn-danger mx-5" type="button" onclick="validarSeleccion()">
-            Eliminar
-            </button>
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/almacen.css' %}">{% endblock %}
 
-            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
-        </div>
-
-        {% include 'modalRegistrarMaterial.html' %}
-        {% include 'modalEliminarMaterial.html' %}
-            
-        </div>
-        <form id="eliminar_material" method="post" action="{% url 'materiales' %}">
-            {% csrf_token %}
-            <input type="hidden" id="action" name="action" value="">
-            
-        <table class="table table-hover" id="userTable">
-            <thead>
-                <tr class="table-dark">
-                    <th>Nombre</th>
-                    <th>Tipo</th>
-                    <th>Cantidad</th>
-                    <th>Seleccionar Todos
-                        <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
-                    </th>
-                    <th>Modificar</th>
-                </tr>
-            </thead>
-
-                
-            <tbody>
-            {% for x in page_obj %}
-            <tr>
-                <td>{{x.nombre}}</td>
-                <td>{{x.tipo}}</td>
-                <td>{{x.cantidad}}</td>
-                <td> 
-                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{x.id}}" >
-                    </div>            
-                </td>
-                <td>
-                    <a class="nav-link"  href="{% url 'editar_material' x.id %}">Editar...</a>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-            </form>
-        </table>
-
-        {% include 'paginacion.html' %}
-
-        </form>
-
-        <!-- Mensaje tipo Toast -->
-<div class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="polite" aria-atomic="true" id="toastSeleccionar">
-    <div class="d-flex">
-        <div class="toast-body bg-warning">
-            Debes seleccionar al menos 1 material para eliminar.
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+{% block content %}
+<div class="sg-sheet">
+  <header class="sg-page-head">
+    <div class="sg-page-head__main">
+      <h1 class="sg-page-head__title">Materiales</h1>
+      <p class="sg-page-head__desc">Inventario del almacén. La cantidad baja sola cuando un material se asigna a una incidencia.</p>
     </div>
+    <div class="sg-page-head__actions">
+      <a class="sg-btn sg-btn--primary" href="#registrar" data-al-abrir="registrar" aria-controls="registrar" aria-expanded="{% if abrir_registro %}true{% elif page_obj.paginator.count or q %}false{% else %}true{% endif %}">{% include 'partials/icon.html' with name='plus' %}Registrar material</a>
+    </div>
+  </header>
+
+  {% include 'almacen_registro.html' %}
+
+  {% include 'partials/toolbar.html' with placeholder='Buscar por nombre o tipo' count=page_obj.paginator.count count_label='materiales' %}
+
+  {% if page_obj.paginator.count %}
+  {% with umbral=stock_bajo_umbral|default:5 %}
+  <div class="sg-table-wrap">
+    <table class="sg-table sg-table--stack">
+      <caption class="sg-visually-hidden">Inventario de materiales, ordenado por nombre</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="sg-col-n">Nº</th>
+          <th scope="col">Material</th>
+          <th scope="col">Tipo</th>
+          <th scope="col" class="sg-num">Existencias</th>
+          <th scope="col">Consumos</th>
+          <th scope="col" class="sg-col-actions"><span class="sg-visually-hidden">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for x in page_obj %}{% with usos=x.materialincidencia_set.count %}
+        <tr>
+          <td class="sg-col-n" data-label="Nº">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+          <td data-label="Material"><strong>{{ x.nombre }}</strong></td>
+          <td data-label="Tipo"><span class="al-tipo" data-raw="{{ x.tipo }}">{% for codigo, etiqueta in tipos %}{% if codigo == x.tipo %}{{ etiqueta }}{% endif %}{% endfor %}</span></td>
+          <td class="sg-num" data-label="Existencias">
+            <span class="al-qty{% if x.cantidad <= 0 %} al-qty--agotado{% endif %}">
+              {% if x.cantidad <= 0 %}<span class="sg-badge al-stock al-stock--agotado"><span class="sg-badge__mark" aria-hidden="true"></span>Agotado</span>{% elif x.cantidad <= umbral %}<span class="sg-badge al-stock al-stock--bajo"><span class="sg-badge__mark" aria-hidden="true"></span>Stock bajo</span>{% endif %}
+              <span class="al-qty__n">{{ x.cantidad }}</span>
+            </span>
+          </td>
+          <td class="al-consumos" data-label="Consumos"><span>{% if usos %}<span class="sg-data">{{ usos }}</span> asignaci{{ usos|pluralize:"ón,ones" }}{% else %}<span class="sg-muted">Sin consumos</span>{% endif %}</span></td>
+          <td class="sg-col-actions">
+            <div class="sg-actions al-actions">
+              <a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'editar_material' x.id %}" aria-label="Editar material {{ x.nombre }}">Editar</a>
+              {% if not usos %}<button type="button" class="sg-btn sg-btn--danger-outline sg-btn--sm sg-btn--icon" data-bs-toggle="modal" data-bs-target="#modalEliminarMaterial" data-id="{{ x.id }}" data-nombre="{{ x.nombre }}" aria-label="Eliminar material {{ x.nombre }}">{% include 'partials/icon.html' with name='trash' %}</button>{% else %}<span class="al-slot" aria-hidden="true"></span>{% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endwith %}
+
+  {% include 'paginacion.html' %}
+
+  <p class="al-note">{% include 'partials/icon.html' with name='info' class='sg-icon--sm' %}<span>Un material asignado a una incidencia no se puede eliminar, porque se perdería el registro de lo consumido. Para retirarlo del uso, edítelo y deje su cantidad en 0. El aviso «Stock bajo» aparece con {{ stock_bajo_umbral|default:5 }} unidades o menos.</span></p>
+
+  {% include 'modalEliminarMaterial.html' %}
+
+  {% elif q %}
+  {% include 'partials/empty.html' with icon='search' title='Sin resultados para «'|add:q|add:'»' text='Revise la ortografía o pruebe con el tipo del material.' action2_url=request.path action2_label='Quitar búsqueda' %}
+
+  {% else %}
+  {% include 'partials/empty.html' with icon='box' title='Aún no hay materiales en el inventario' text='Registre el primero con el formulario de arriba para poder asignarlo a incidencias.' %}
+  {% endif %}
 </div>
+{% endblock %}
 
-    </div>
-
-<script src="{% static 'js/validarMateriales.js'  %}"></script>
-
-<script>
-function validarSeleccion() {
-    const checkboxes = document.querySelectorAll('input[name="ids"]:checked');
-
-    if (checkboxes.length === 0) {
-        // Muestra el toast si no hay selección
-        mostrarToast();
-        return;
-    }
-
-    // Si hay elementos seleccionados → abre el modal
-    $('#ModalEliminar').modal('show');
-}
-</script>
-
-    {%endblock%}
+{% block scripts %}<script src="{% static 'js/validarMateriales.js' %}"></script>{% endblock %}

@@ -1,379 +1,205 @@
 {% extends "master.html" %}
 {% load static %}
-{% load auth_extras %}
-{% block title %}
-Lista de Incidencias
-{% endblock %}
+{% block title %}Incidencias{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/incidencias.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-3 px-4">
-    <div class="row container">
-        <div class="col">
-            {% if request.user|has_groups:"administrador" %}
-            <h1>Gestionar Incidencias</h1>
-            {%else%}
-            <h1>Mis Incidencias</h1>
-            {%endif%}
-        </div>
-        {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
+{% url 'reportar_incidencia' as url_reportar %}
+{% firstof filtros.q filtros.estado filtros.tipo filtros.prioridad filtros.tecnico filtros.confirmada as hay_filtro %}
+{% firstof filtros.tipo filtros.prioridad filtros.tecnico filtros.confirmada as filtro_sel %}
+<div class="sg-sheet">
+  {% if is_cliente %}
+    {% include 'partials/page_head.html' with title='Mis incidencias' desc='Lo que usted ha reportado y en qué estado está.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus' %}
+  {% elif puede.asignar_tecnico %}
+    {% include 'partials/page_head.html' with title='Incidencias' desc='Confirme prioridades y asigne técnicos y materiales.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus' %}
+  {% elif puede.ver_todas_las_incidencias %}
+    {% include 'partials/page_head.html' with title='Incidencias' desc='Todas las incidencias del campus. Usted asigna los materiales que se consumen.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus' %}
+  {% else %}
+    {% include 'partials/page_head.html' with title='Incidencias' desc='Las que usted atiende y las que usted reportó.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus' %}
+  {% endif %}
+
+  {# Vistas rápidas: cuánto hay en cada estado y qué espera decisión #}
+  <nav class="inc-tabs" aria-label="Vistas por estado">
+    <a class="inc-tab" href="?estado={% include 'incidencia_qs.html' %}"{% if not filtros.estado and filtros.tecnico != 'sin' and filtros.confirmada != '0' %} aria-current="true"{% endif %}>Todas <span class="inc-tab__n">{{ conteos.total }}</span></a>
+    <a class="inc-tab" href="?estado=abiertas{% include 'incidencia_qs.html' %}"{% if filtros.estado == 'abiertas' and filtros.tecnico != 'sin' and filtros.confirmada != '0' %} aria-current="true"{% endif %}>Abiertas <span class="inc-tab__n">{{ conteos.abiertas }}</span></a>
+    <a class="inc-tab" href="?estado=pendiente{% include 'incidencia_qs.html' %}"{% if filtros.estado == 'pendiente' and filtros.tecnico != 'sin' and filtros.confirmada != '0' %} aria-current="true"{% endif %}>Pendientes <span class="inc-tab__n">{{ conteos.pendiente }}</span></a>
+    <a class="inc-tab" href="?estado=en_proceso{% include 'incidencia_qs.html' %}"{% if filtros.estado == 'en_proceso' and filtros.tecnico != 'sin' and filtros.confirmada != '0' %} aria-current="true"{% endif %}>En proceso <span class="inc-tab__n">{{ conteos.en_proceso }}</span></a>
+    <a class="inc-tab" href="?estado=resuelto{% include 'incidencia_qs.html' %}"{% if filtros.estado == 'resuelto' and filtros.tecnico != 'sin' and filtros.confirmada != '0' %} aria-current="true"{% endif %}>Resueltas <span class="inc-tab__n">{{ conteos.resuelto }}</span></a>
+    {% if puede.asignar_tecnico %}
+    <span class="inc-tabs__sep" aria-hidden="true"></span>
+    <a class="inc-tab" href="?estado=abiertas&amp;tecnico=sin"{% if filtros.tecnico == 'sin' %} aria-current="true"{% endif %}>Sin técnico <span class="inc-tab__n">{{ conteos.sin_tecnico }}</span></a>
+    <a class="inc-tab" href="?estado=abiertas&amp;confirmada=0"{% if filtros.confirmada == '0' %} aria-current="true"{% endif %}>Prioridad sin confirmar <span class="inc-tab__n">{{ conteos.sin_confirmar }}</span></a>
+    {% endif %}
+  </nav>
+
+  <div class="sg-toolbar inc-toolbar">
+    {% include 'partials/search_form.html' with placeholder='Buscar n.º, lugar o persona' label='Buscar incidencias' %}
+    <form class="inc-filtros{% if not filtro_sel %} is-collapsible{% endif %}" id="inc-filtros" method="get" action="{{ request.path }}">
+      <input type="hidden" name="q" value="{{ filtros.q }}">
+      <input type="hidden" name="estado" value="{{ filtros.estado }}">
+      <input type="hidden" name="confirmada" value="{{ filtros.confirmada }}">
+      <button type="button" class="inc-filtros__sum" aria-expanded="{% if filtro_sel %}true{% else %}false{% endif %}" aria-controls="inc-filtros-box" data-inc-filtros-toggle>
+        <span>Filtros y orden</span>{% include 'partials/icon.html' with name='chevron-down' %}
+      </button>
+      <div class="inc-filtros__box sg-toolbar__filters" id="inc-filtros-box">
+        <select class="sg-select" name="prioridad" aria-label="Filtrar por prioridad" onchange="this.form.requestSubmit()">
+          <option value="">Toda prioridad</option>
+          {% for valor, etiqueta in prioridades %}<option value="{{ valor }}"{% if filtros.prioridad == valor %} selected{% endif %}>Prioridad {{ etiqueta|lower }}</option>{% endfor %}
+        </select>
+        <select class="sg-select" name="tipo" aria-label="Filtrar por tipo de incidencia" onchange="this.form.requestSubmit()">
+          <option value="">Todos los tipos</option>
+          {% for valor, etiqueta in tipos %}<option value="{{ valor }}"{% if filtros.tipo == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+        </select>
+        {% if puede.asignar_tecnico %}
+        <select class="sg-select" name="tecnico" aria-label="Filtrar por técnico" onchange="this.form.requestSubmit()">
+          <option value="">Todos los técnicos</option>
+          <option value="sin"{% if filtros.tecnico == 'sin' %} selected{% endif %}>Sin técnico</option>
+          {% for t in tecnicos %}<option value="{{ t.id }}"{% if filtros.tecnico == t.id|stringformat:'s' %} selected{% endif %}>{{ t.trabajador.get_full_name|default:t.trabajador.username }}</option>{% endfor %}
+        </select>
         {% endif %}
-        <div class="col d-flex flex-row-reverse p-3 ">
-
-            <button class="btn btn-danger mx-5" type="button" onclick="validarSeleccion()">
-            Eliminar
-            </button>
-
-            <a class="btn btn-primary" type="button" href="/reportar_incidencia">Registrar</a>
-        </div>
-
-        {% include 'modalEliminarIncidencia.html' %}
-    </div>
-
-
-    {% csrf_token %}
-    <input type="hidden" id="action" name="action" value="">
-
-    <table class="table table-hover " id="userTable" data-orden="asc">
-        <thead>
-            <tr class="table-dark">
-                <th>Tipo de Incidencia</th>
-                <th>Prioridad</th>
-                <th>Fecha</th>
-                <th>Ubicación</th>
-                <th>Descripción</th>
-                <th>Estado</th>
-                <th>Usuario</th>
-                <th>Imagen</th>
-                <th>Técnico Asignado</th>
-                <th>Materiales</th>
-                <th>Seleccionar Todos
-                    <input class="form-check-input checkbox" type="checkbox" id="selectAll"
-                        onclick="toggleCheckboxes(this)">
-                </th>
-                <th>Modificar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for x in page_obj %}
-            <tr>
-                <td>{{x.get_tipo_display}}</td>
-
-                <!-- Prioridad con color -->
-                <td>
-                    {% if x.prioridad == "2" %}
-                    <span class="badge bg-warning text-dark">{{ x.get_prioridad_display }}</span>
-                    {% elif x.prioridad == "3" %}
-                    <span class="badge bg-danger text-dark">{{ x.get_prioridad_display }}</span>
-                    {% else %}
-                    <span class="badge bg-secondary text-dark">{{ x.get_prioridad_display }}</span>
-                    {% endif %}
-                </td>
-
-                <td>{{x.fecha}}</td>
-                <td>
-                    <span title="{{ x.ubicacion }}" style="cursor: pointer;">
-                        {{ x.ubicacion|truncatechars:15}}
-                    </span>
-                </td>
-                <td><button class="btn btn-sm btn-primary" onclick="mostrarDescripcion('{{x.descripcion}}')"
-                        data-bs-toggle="modal" data-bs-target="#descripcionModal">
-                        Ver
-                    </button>
-
-                </td>
-
-                <!-- Estado con color -->
-                <td>
-                    {% if x.estado == "pendiente" %}
-                    <span class="badge bg-warning text-dark">{{ x.get_estado_display }}</span>
-                    {% elif x.estado == "resuelto" %}
-                    <span class="badge bg-success text-dark">{{ x.get_estado_display }}</span>
-                    {% else %}
-                    <span class="badge bg-secondary text-dark">{{ x.get_estado_display }}</span>
-                    {% endif %}
-                </td>
-
-                <td>{{x.usuario_reporte.username}}</td>
-                <td>
-                    {% if x.imagen %}
-                    <img src="{{ x.imagen.url }}" alt="Imagen de la incidencia" class="img-thumbnail"
-                        style="width: 100px; cursor: pointer;" onclick='abrirImagen("{{ x.imagen.url }}")'
-                        data-bs-toggle="modal" data-bs-target="#imagenModal">
-                    {% else %}
-                    <p>No img</p>
-                    {% endif %}
-                </td>
-
-                <!-- Técnico Asignado -->
-                <td>
-                    {% if x.tecnico_asignado %}
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span>{{ x.tecnico_asignado.trabajador.username }}</span>
-                        {% if request.user|has_groups:"administrador" %}
-                        <div class="btn-group btn-group-sm" role="group">
-                            <a href="#" class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                data-bs-target="#modalAsignarTecnico" onclick="setIncidenciaId({{ x.id }})">
-                                Cambiar
-                            </a>
-                            <a href="{% url 'quitar_tecnico' x.id %}" class="btn btn-danger btn-sm"
-                                onclick="return confirm('¿Estás seguro de quitar al técnico?')">
-                                <i class="fas fa-times"></i>
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% else %}
-                    {% if request.user|has_groups:"administrador" %}
-                    <a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                        data-bs-target="#modalAsignarTecnico" onclick="setIncidenciaId_tecnico({{ x.id }})">
-                        Asignar Técnico
-                    </a>
-                    {% endif %}
-                    {% endif %}
-                </td>
-
-                <!-- Materiales Asignados -->
-                <!-- Materiales Asignados -->
-                <td>
-                    {% if x.materialincidencia_set.all %}
-                    <ul class="list-group list-group-flush">
-                        {% for mi in x.materialincidencia_set.all %}
-                        <li class="list-group-item d-flex align-items-center justify-content-between py-2 px-3">
-                            <!-- Nombre del material -->
-                            <span class="d-block text-truncate" style="max-width: 150px;">
-                                {{ mi.material.nombre }}
-                            </span>
-
-                            <!-- Botón de cantidad y acción -->
-                            <div class="d-flex align-items-center gap-2">
-                                <!-- Botón de cantidad usada -->
-                                <button type="button" class="btn btn-sm btn-primary btn-material-cantidad">
-                                    {{ mi.cantidad_usada }}
-                                </button>
-
-                                <!-- Botón de quitar -->
-                                <form action="{% url 'quitar_material' %}" method="post" class="mb-0">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="material_incidencia_id" value="{{ mi.id }}">
-                                    <button type="submit" class="btn btn-sm btn-danger btn-material-remove"
-                                        title="Quitar material">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <span class="text-muted">Ningún material asignado</span>
-                    {% endif %}
-
-                    {% if request.user|has_groups:"administrador,almacenero" %}
-                    <!-- Botón Asignar Material -->
-                    <div class="mt-2">
-                        <button type="button" class="btn btn-sm btn-outline-success w-100" data-bs-toggle="modal"
-                            data-bs-target="#modalAsignarMaterial" onclick="setIncidenciaId({{ x.id }})">
-                            Asignar Material
-                        </button>
-                    </div>
-                    {% endif %}
-                </td>
-                <!-- Checkbox -->
-                <td>
-                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                        <input class="form-check-input checkbox" type="checkbox" name="ids" value="{{x.id}}">
-                    </div>
-                </td>
-
-                <!-- Editar -->
-                <td>
-                    {% if x.estado == 'pendiente' or request.user|has_groups:"administrador,tecnico"%}
-                    <a href="{% url 'editar_incidencia' x.id %}" class="btn btn-sm btn-info">Editar</a>
-                    {% else %}
-                    <button class="btn btn-sm btn-secondary" disabled title="Solo incidencias pendientes">
-                        Editar
-                    </button>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="12" class="text-center">No hay incidencias registradas.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    {% include 'paginacion.html' %}
-
-    <!-- Formulario para eliminar -->
-    <form id="eliminar_incidencia" method="post" action="{% url 'incidencias' %}">
-        {% csrf_token %}
-        <input type="hidden" id="action" name="action" value="eliminar">
-        <div id="checkboxes-seleccionados"></div>
+        <select class="sg-select" name="orden" aria-label="Ordenar incidencias" onchange="this.form.requestSubmit()">
+          {% for valor, etiqueta in ordenes %}<option value="{{ valor }}"{% if filtros.orden == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+        </select>
+        <noscript><button type="submit" class="sg-btn sg-btn--secondary">Aplicar</button></noscript>
+        {% if filtro_sel %}<a class="inc-limpiar" href="?estado={{ filtros.estado|urlencode }}&amp;q={{ filtros.q|urlencode }}">Quitar filtros</a>{% endif %}
+      </div>
     </form>
+    <p class="sg-toolbar__count" aria-live="polite"><span class="sg-num">{{ total_filtrado }}</span> {% if total_filtrado == 1 %}incidencia{% else %}incidencias{% endif %}{% if hay_filtro %} de <span class="sg-num">{{ conteos.total }}</span>{% endif %}</p>
+  </div>
 
-    <!-- Modal Imagen -->
-    <div class="modal fade" id="imagenModal" tabindex="-1" aria-labelledby="imagenModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="imagenModalLabel">Imagen de la Incidencia</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="imagenEnFoco" src="" alt="Imagen en foco" class="img-fluid">
-                </div>
-            </div>
-        </div>
-    </div>
+  <div class="inc-bulk" id="inc-bulk" role="region" aria-label="Acciones sobre la selección" hidden>
+    <p class="inc-bulk__n" aria-live="polite"><span class="sg-num" data-inc-bulk-n>0</span> <span data-inc-bulk-txt>seleccionadas</span></p>
+    <button type="button" class="sg-btn sg-btn--ghost sg-btn--sm" data-inc-bulk-clear>Quitar selección</button>
+    <button type="button" class="sg-btn sg-btn--danger sg-btn--sm" data-bs-toggle="modal" data-bs-target="#eliminarIncidencias">{% include 'partials/icon.html' with name='trash' %}Eliminar seleccionadas</button>
+  </div>
 
-    <!-- Modal Descripcion -->
-    <div class="modal fade" id="descripcionModal" tabindex="-1" aria-labelledby="descripcionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="descripcionModalLabel">Descripción de la Incidencia</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <strong>Descripción:</strong><br>
-                    <p id="descripcionModalEnFoco"
-                        style="white-space: pre-wrap; word-break: break-word; margin-bottom: 0;"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Asignar Técnico -->
-    <div class="modal fade" id="modalAsignarTecnico" tabindex="-1" aria-labelledby="modalAsignarTecnicoLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAsignarTecnicoLabel">Seleccionar Técnico</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="asignarTecnicoForm" method="post" action="{% url 'asignar_tecnico' %}">
-                        {% csrf_token %}
-                        <input type="hidden" id="incidencia_id" name="incidencia_id" value="">
-
-                        <ul class="list-group">
-                            {% for tecnico in tecnicos_disponibles %}
-                            <li class="list-group-item">
-                                <input class="form-check-input me-1" type="radio" name="tecnico_id"
-                                    value="{{ tecnico.id }}" required>
-                                {{ tecnico.trabajador.username }}
-                            </li>
-                            {% empty %}
-                            <li class="list-group-item text-center text-muted">
-                                No hay técnicos disponibles.
-                            </li>
-                            {% endfor %}
-                        </ul>
-
-                        <!-- Botón solo aparece si hay técnicos disponibles -->
-                        {% if tecnicos_disponibles %}
-                        <div class="mt-3 d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">Guardar Asignación</button>
-                        </div>
-                        {% endif %}
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Asignar Material -->
-    <div class="modal fade" id="modalAsignarMaterial" tabindex="-1" aria-labelledby="modalAsignarMaterialLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <form method="post" action="{% url 'asignar_material' %}">
-                    {% csrf_token %}
-                    <input type="hidden" id="incidencia_id_modal" name="incidencia_id">
-
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalAsignarMaterialLabel">Asignar Materiales</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <p>Selecciona un material y la cantidad a usar:</p>
-
-                        <select name="material" class="form-select mb-3" required>
-                            <option value="">Selecciona un material</option>
-                            {% for material in materiales_disponibles %}
-                            <option value="{{ material.id }}">{{ material.nombre }} - {{ material.tipo }} (Disponible:
-                                {{ material.cantidad }})</option>
-                            {% endfor %}
-                        </select>
-
-                        <input type="number" name="cantidad" class="form-control mb-3" placeholder="Cantidad a usar"
-                            min="1" required>
-
-                        <div class="alert alert-warning" role="alert">
-                            Los materiales se descontarán del inventario al guardar.
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Guardar</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
+  {% if page_obj.object_list %}
+  <div class="sg-table-wrap inc-wrap">
+    <table class="sg-table inc-table" id="inc-table">
+      <caption class="sg-visually-hidden">Incidencias{% if hay_filtro %} filtradas{% endif %}, {{ total_filtrado }} en total</caption>
+      <thead>
+        <tr>
+          <th class="sg-col-check" scope="col"><label><input class="form-check-input" type="checkbox" data-sg-select-all aria-label="Seleccionar todas las incidencias de esta página"></label></th>
+          <th class="sg-col-n" scope="col">N.º</th>
+          <th scope="col"{% if filtros.orden == 'recientes' %} aria-sort="descending"{% elif filtros.orden == 'antiguas' %} aria-sort="ascending"{% endif %}>
+            <a class="sg-sort" href="?{{ qs }}&amp;orden={% if filtros.orden == 'recientes' %}antiguas{% else %}recientes{% endif %}">Fecha {% include 'partials/icon.html' with name='chevron-down' %}</a>
+          </th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Ubicación y descripción</th>
+          <th scope="col"{% if filtros.orden == 'prioridad' %} aria-sort="descending"{% endif %}>
+            <a class="sg-sort" href="?{{ qs }}&amp;orden={% if filtros.orden == 'prioridad' %}recientes{% else %}prioridad{% endif %}">Prioridad {% include 'partials/icon.html' with name='chevron-down' %}</a>
+          </th>
+          <th scope="col">Estado</th>
+          <th scope="col">Técnico</th>
+          <th scope="col">Materiales</th>
+          <th class="sg-col-actions" scope="col"><span class="sg-visually-hidden">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for x in page_obj %}
+        {% with mats=x.materialincidencia_set.all %}
+        <tr class="inc-row" id="inc-{{ x.id }}" data-inc="{{ x.id }}">
+          <td class="sg-col-check">
+            {% if x.puede_eliminar %}
+              {% if mats %}
+              <span class="inc-nolock" role="img" aria-label="No se puede eliminar la incidencia {{ x.id }}: tiene materiales asignados" title="No se puede eliminar: tiene materiales asignados. Retírelos primero.">{% include 'partials/icon.html' with name='lock' class='sg-icon--sm' %}</span>
+              {% else %}
+              <label><input class="form-check-input" type="checkbox" name="ids" value="{{ x.id }}" form="form-eliminar-incidencias" aria-label="Seleccionar la incidencia {{ x.id }}"></label>
+              {% endif %}
+            {% endif %}
+          </td>
+          <td class="sg-col-n" data-label="N.º">{{ x.id }}</td>
+          <td class="inc-c-fecha" data-label="Fecha"><span class="inc-fecha">{{ x.fecha|date:"d/m/Y" }}</span><span class="inc-hora">{{ x.fecha|date:"H:i" }}</span></td>
+          <td class="inc-c-tipo" data-label="Tipo">{{ x.get_tipo_display }}</td>
+          <td class="inc-c-ubic" data-label="Ubicación">
+            <button type="button" class="inc-toggle" data-inc-toggle="{{ x.id }}" aria-expanded="false" aria-controls="inc-{{ x.id }}-detalle" title="Ver descripción, foto y gestión de la incidencia {{ x.id }}">
+              <span>
+                <span class="inc-toggle__loc">{{ x.ubicacion }}</span>
+                <span class="inc-toggle__desc">{{ x.descripcion|truncatechars:140 }}</span>
+                {% if x.imagen %}<span class="inc-foto-mark">{% include 'partials/icon.html' with name='image' %}Con foto</span>{% endif %}
+              </span>
+              {% include 'partials/icon.html' with name='chevron-down' class='inc-toggle__chev' %}
+            </button>
+          </td>
+          <td class="inc-c-prio" data-label="Prioridad">
+            <div class="inc-prio">
+              {% include 'partials/badge_prioridad.html' with prioridad=x.prioridad %}
+              <div class="inc-prio__row">
+                {% if x.prioridad_confirmada %}
+                <span class="inc-conf inc-conf--confirmada">{% include 'partials/icon.html' with name='check' %}Confirmada</span>
+                {% else %}
+                <span class="inc-conf inc-conf--propuesta" title="Propuesta por quien reportó; la confirma la Dirección de Mantenimiento">Propuesta</span>
+                {% if x.puede_gestionar_prioridad %}
+                <form class="inc-inline" method="post" action="{% url 'confirmar_prioridad' %}" data-sg-loading>
+                  {% csrf_token %}
+                  <input type="hidden" name="incidencia_id" value="{{ x.id }}">
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <button type="submit" class="sg-btn sg-btn--secondary sg-btn--xs" aria-label="Confirmar prioridad {{ x.get_prioridad_display|lower }} de la incidencia {{ x.id }}">Confirmar</button>
                 </form>
+                {% endif %}
+                {% endif %}
+              </div>
             </div>
-        </div>
-    </div>
-    <!-- Mensaje tipo Toast -->
-<div class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="polite" aria-atomic="true" id="toastSeleccionar">
-    <div class="d-flex">
-        <div class="toast-body bg-warning">
-            Debes seleccionar al menos 1 incidencia para eliminar.
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
+          </td>
+          <td class="inc-c-estado" data-label="Estado">{% include 'partials/badge_estado.html' with estado=x.estado %}</td>
+          <td class="inc-c-tec" data-label="Técnico">
+            {% if x.tecnico_asignado %}<span class="inc-tec-nombre">{{ x.tecnico_asignado.trabajador.get_full_name|default:x.tecnico_asignado.trabajador.username }}</span>
+            {% elif x.estado == 'resuelto' %}<span class="sg-muted">Sin técnico</span>
+            {% else %}<span class="inc-sin">Sin técnico</span>{% endif %}
+          </td>
+          <td class="inc-c-mat" data-label="Materiales">
+            {% if mats %}
+            <ul class="inc-mini">
+              {% for mi in mats|slice:":2" %}<li><span class="inc-mini__name" title="{{ mi.material.nombre }}">{{ mi.material.nombre }}</span> <span class="sg-data">×{{ mi.cantidad_usada }}</span></li>{% endfor %}
+              {% if mats|length > 2 %}<li class="sg-muted">y {{ mats|length|add:"-2" }} más</li>{% endif %}
+            </ul>
+            {% else %}<span class="sg-muted">Ninguno</span>{% endif %}
+          </td>
+          <td class="sg-col-actions inc-c-acc">
+            <div class="inc-acciones">
+              {% if puede.asignar_tecnico and not x.tecnico_asignado and x.estado != 'resuelto' %}
+                <button type="button" class="sg-btn sg-btn--secondary sg-btn--sm" data-inc-toggle="{{ x.id }}" data-inc-focus="tecnico" aria-controls="inc-{{ x.id }}-detalle" aria-label="Asignar técnico a la incidencia {{ x.id }}">Asignar técnico</button>
+                {% if x.puede_editar %}<a class="sg-btn sg-btn--ghost sg-btn--icon sg-btn--sm" href="{% url 'editar_incidencia' x.id %}" aria-label="Editar la incidencia {{ x.id }}" title="Editar">{% include 'partials/icon.html' with name='edit' %}</a>{% endif %}
+              {% elif x.puede_editar %}
+                <a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'editar_incidencia' x.id %}" aria-label="{% if x.es_asignada_a_mi and not x.es_mia and not puede.asignar_tecnico %}Actualizar el estado de la incidencia {{ x.id }}{% else %}Editar la incidencia {{ x.id }}{% endif %}">{% if x.es_asignada_a_mi and not x.es_mia and not puede.asignar_tecnico %}Actualizar estado{% else %}Editar{% endif %}</a>
+              {% elif x.puede_asignar_material %}
+                <button type="button" class="sg-btn sg-btn--secondary sg-btn--sm" data-inc-toggle="{{ x.id }}" data-inc-focus="materiales" aria-controls="inc-{{ x.id }}-detalle" aria-label="Asignar material a la incidencia {{ x.id }}">Asignar material</button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        <tr class="inc-detail" id="inc-{{ x.id }}-detalle" hidden>
+          <td colspan="10">{% include 'incidencia_detalle.html' %}</td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif hay_filtro %}
+    {% include 'partials/empty.html' with icon='search' title='Ninguna incidencia coincide' text='Pruebe con otras palabras, otro estado o menos filtros.' action2_url=request.path action2_label='Quitar búsqueda y filtros' %}
+  {% elif conteos.total == 0 %}
+    {% if is_cliente %}
+      {% include 'partials/empty.html' with icon='inbox' title='Aún no ha reportado incidencias' text='Cuando reporte un problema, aquí podrá seguir su estado: Pendiente, En proceso o Resuelto.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus' %}
+    {% else %}
+      {% include 'partials/empty.html' with icon='inbox' title='Aún no hay incidencias' text='Cuando alguien reporte un problema aparecerá aquí para que se priorice y se asigne un técnico.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus' %}
+    {% endif %}
+  {% else %}
+    {% include 'partials/empty.html' with icon='inbox' title='Sin incidencias en esta vista' text='No hay incidencias en este estado.' action2_url=request.path action2_label='Ver todas' %}
+  {% endif %}
+
+  {% include 'paginacion.html' %}
 </div>
-</div>
 
+<form id="form-eliminar-incidencias" method="post" action="{% url 'incidencias' %}" data-sg-loading>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="eliminar">
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+</form>
 
-<script src="{% static 'js/scripts.js' %}"></script>
-
-<script>
-    function setIncidenciaId(id) {
-        document.getElementById('incidencia_id_modal').value = id;
-    }
-
-    function setIncidenciaId_tecnico(id) {
-        document.getElementById('incidencia_id').value = id;
-    }
-
-    function mostrarDescripcion(descripcion) {
-        document.getElementById('descripcionModalEnFoco').innerText = descripcion
-    }
-    function validarSeleccion() {
-    const checkboxes = document.querySelectorAll('input[name="ids"]:checked');
-
-    if (checkboxes.length === 0) {
-        // Muestra el toast si no hay selección
-        mostrarToast();
-        return;
-    }
-
-    // Si hay elementos seleccionados → abre el modal
-    $('#ModalEliminar').modal('show');
-}
-</script>
-
-
-
-
+{% include 'modalEliminarIncidencia.html' %}
+{% if puede.asignar_tecnico %}{% include 'incidencia_modal_quitar_tecnico.html' %}{% endif %}
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'sgum/pages/incidencias.js' %}"></script>{% endblock %}

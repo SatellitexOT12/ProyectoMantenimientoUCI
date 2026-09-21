@@ -1,0 +1,9 @@
+{% comment %}
+Celda de texto que conserva lo escrito si el servidor devuelve errores y, si no, muestra el valor guardado.
+Se usa en editar_usuario.html. Recibe los mismos parámetros que partials/field.html (id, name, label, span, required,
+optional, autocomplete, maxlength, type, hint, error, password) más:
+  nuevo    lo que el usuario escribió (valores.campo; puede ser vacío a propósito)
+  anterior el valor guardado en la cuenta
+Con «valores» en el contexto (formulario devuelto con errores) manda «nuevo»; sin él, «anterior».
+Se distingue por «valores» y no por el contenido para no resucitar el valor viejo cuando alguien vació un campo opcional.
+{% endcomment %}{% if valores %}{% include 'partials/field.html' with value=nuevo %}{% else %}{% include 'partials/field.html' with value=anterior %}{% endif %}
