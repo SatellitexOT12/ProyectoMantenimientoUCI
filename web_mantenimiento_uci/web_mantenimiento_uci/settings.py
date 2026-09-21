@@ -15,6 +15,11 @@ import os
 
 from django.contrib.messages import constants as message_constants
 
+try:
+    import dj_database_url  # noqa: E402
+except ImportError:
+    dj_database_url = None  # noqa: N806
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,13 +50,20 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = _entorno_bool('DJANGO_DEBUG', True)
+# En Vercel, DATABASE_URL está definida → producción.
+DEBUG = _entorno_bool('DJANGO_DEBUG', 'DATABASE_URL' not in os.environ)
 
-# Lista separada por comas, p. ej. DJANGO_ALLOWED_HOSTS=sgum.uci.cu,10.0.0.5
-ALLOWED_HOSTS = _entorno_lista('DJANGO_ALLOWED_HOSTS')
+# Hosts permitidos. En Vercel, el dominio es *.vercel.app.
+_allowed = _entorno_lista('DJANGO_ALLOWED_HOSTS')
+if 'DATABASE_URL' in os.environ and not _allowed:
+    _allowed.append('*.vercel.app')
+ALLOWED_HOSTS = _allowed
 
 # Orígenes de confianza para CSRF cuando se sirve detrás de un proxy/HTTPS.
-CSRF_TRUSTED_ORIGINS = _entorno_lista('DJANGO_CSRF_TRUSTED_ORIGINS')
+_csrf = _entorno_lista('DJANGO_CSRF_TRUSTED_ORIGINS')
+if 'DATABASE_URL' in os.environ and not _csrf:
+    _csrf.append('https://*.vercel.app')
+CSRF_TRUSTED_ORIGINS = _csrf
 
 
 # Application definition
@@ -102,17 +114,25 @@ WSGI_APPLICATION = 'web_mantenimiento_uci.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
-        'NAME': os.environ.get('DB_NAME', 'mantenimientouci'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+#
+# Vercel Postgres provee DATABASE_URL. Si no existe, usa los variables
+# DB_* individuales (desarrollo local / CI).
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
+            'NAME': os.environ.get('DB_NAME', 'mantenimientouci'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 
 # Password validation

@@ -165,3 +165,31 @@ python manage.py check
 # Collect static
 python manage.py collectstatic --noinput
 ```
+
+## Vercel deployment
+
+The project is deployed on Vercel (GitHub connected). Key files:
+- `vercel.json` — framework preset `"python"`, build commands for migrate + collectstatic
+- `server.py` — WSGI entry point exposing `application` (at repo root)
+- `requirements.txt` — includes `gunicorn`, `dj-database-url`, `psycopg2-binary`
+
+### Environment variables required on Vercel:
+- `DJANGO_SECRET_KEY` — secure random key
+- `DJANGO_DEBUG=0`
+- `DJANGO_ALLOWED_HOSTS` — optional; auto-configured to `*.vercel.app` when `DATABASE_URL` is set
+- Vercel Postgres integration automatically provides `DATABASE_URL`
+
+### Database:
+- Vercel uses **Postgres** via the Vercel Postgres integration
+- `DATABASE_URL` is injected automatically by Vercel Postgres
+- `settings.py` auto-detects `DATABASE_URL` and uses `dj-database-url` to parse it
+- Falls back to `DB_*` env vars for local dev
+
+### Troubleshooting 500 errors:
+1. Verify `vercel.json` and `server.py` are committed to the branch
+2. Check that Vercel Postgres is connected in the Vercel dashboard
+3. Ensure `DJANGO_SECRET_KEY` is set in Vercel environment variables
+4. Check Vercel deployment logs (`vercel logs` or dashboard)
+5. Verify `requirements.txt` includes all dependencies (especially `dj-database-url`)
+
+## Common commands
