@@ -1,89 +1,45 @@
-{% load static %}<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#f3f6f9">
-    <title>Acceso · SGUM-UCI</title>
-    <link rel="icon" type="image/png" href="{% static 'img/logo-marca.png' %}">
-    <link rel="stylesheet" href="{% static 'vendor/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'sgum/tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'sgum/sgum.css' %}">
-    <link rel="stylesheet" href="{% static 'sgum/login.css' %}">
-    <script src="{% static 'sgum/sgum.js' %}" defer></script>
-    <script src="{% static 'togglepassword.js' %}" defer></script>
-</head>
-<body class="lg-body">
-    {% include 'partials/icons_sprite.html' %}
+{% extends "master.html" %}
+{% load static %}
+{% block title %}Acceso{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'sgum/login.css' %}">
+{% endblock %}
+{% block content %}
+<div class="sg-login">
+  <figure class="sg-login__photo">
+    <img src="{% static 'portada_fidel_2.jpeg' %}" width="1600" height="1200" alt="Valla de la Universidad de las Ciencias Informáticas junto a una avenida con palmas reales">
+  </figure>
+  <div class="sg-login__form">
+    <div class="sg-sheet">
+      {% include 'partials/page_head.html' with title='Acceso' %}
+      <form method="post" action="{% url 'login' %}" data-sg-validate data-sg-loading novalidate>
+        {% csrf_token %}
+        {% if request.GET.next or request.POST.next %}<input type="hidden" name="next" value="{% firstof request.GET.next request.POST.next %}">{% endif %}
 
-    <div class="lg-frame">
-        <div class="lg-zones lg-zones--top" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
-        <div class="lg-zones lg-zones--left" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
-        <div class="lg-zones lg-zones--right" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
-        <div class="lg-zones lg-zones--bottom" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+        {% if error %}
+        <div class="sg-alert sg-alert--danger" role="alert">
+          {% include 'partials/icon.html' with name='alert' class='sg-icon--lg' %}
+          <div>
+            <strong>No se pudo iniciar sesión</strong>
+            <p>{% if error == 'Credenciales inválidas' %}Usuario o contraseña incorrectos. Revíselos e inténtelo de nuevo.{% else %}{{ error }}{% endif %}</p>
+          </div>
+        </div>
+        {% endif %}
 
-        <main class="lg-sheet">
-            <section class="lg-view" aria-label="Vista de la Universidad">
-                <div class="lg-view__meta" aria-hidden="true"><span>VISTA 01 · ACCESO</span><span>UNIVERSIDAD DE LAS CIENCIAS INFORMÁTICAS</span></div>
-                <figure class="lg-photo">
-                    <img src="{% static 'img/portada-valla.jpg' %}" width="1600" height="1200" fetchpriority="high" alt="Valla de la Universidad de las Ciencias Informáticas junto a una avenida con palmas reales">
-                </figure>
-            </section>
+        {% include 'partials/field.html' with id='username' name='username' label='Usuario' required=True autocomplete='username' autocapitalize='none' autocorrect='off' spellcheck='false' value=request.POST.username autofocus=True %}
 
-            <section class="lg-block" aria-labelledby="lg-titulo">
-                <div class="lg-head">
-                    <div class="lg-logo"><img src="{% static 'logoSGUM.png' %}" width="500" height="500" alt="SGUM-UCI. Gestión inteligente, comunidad conectada."></div>
-                    <h1 class="lg-name" id="lg-titulo">Sistema de Gestión Universitaria de Mantenimiento</h1>
-                </div>
+        {% include 'partials/field.html' with id='password' name='password' label='Contraseña' required=True autocomplete='current-password' password=True autofocus=error %}
+        <p class="sg-field__msg" data-sg-caps-for="password" hidden>{% include 'partials/icon.html' with name='alert' %}<span>Bloq Mayús está activado.</span></p>
 
-                <form class="lg-form" method="post" action="{% url 'login' %}" data-sg-validate data-sg-loading novalidate>
-                    {% csrf_token %}
-                    {% if request.GET.next or request.POST.next %}<input type="hidden" name="next" value="{% firstof request.GET.next request.POST.next %}">{% endif %}
+        <div class="sg-form-actions">
+          <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Accediendo…">Acceder</button>
+        </div>
+      </form>
 
-                    {% if error %}
-                    <div class="lg-alert" role="alert">
-                        {% include 'partials/icon.html' with name='alert' class='sg-icon--lg' %}
-                        <div>
-                            <strong>No se pudo iniciar sesión</strong>
-                            <p>{% if error == 'Credenciales inválidas' %}Usuario o contraseña incorrectos. Revíselos e inténtelo de nuevo.{% else %}{{ error }}{% endif %}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% for message in messages %}
-                    <div class="lg-alert lg-alert--info" role="status">
-                        {% include 'partials/icon.html' with name='info' class='sg-icon--lg' %}
-                        <div><p>{{ message }}</p></div>
-                    </div>
-                    {% endfor %}
+      <p class="sg-help"><strong>¿Sin acceso?</strong> Solicite su cuenta a la Dirección de Mantenimiento.</p>
 
-                    <div class="lg-cells">
-                        <div class="sg-field">
-                            <label class="sg-field__label" for="username"><span>Usuario</span></label>
-                            <input class="sg-field__control" type="text" id="username" name="username" value="{{ request.POST.username }}" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required data-msg-required="Escriba su usuario."{% if not error or not request.POST.username %} autofocus{% endif %}{% if error %} aria-invalid="true"{% endif %}>
-                        </div>
-                        <div class="sg-field">
-                            <label class="sg-field__label" for="password"><span>Contraseña</span></label>
-                            <div class="sg-field__row">
-                                <input class="sg-field__control" type="password" id="password" name="password" autocomplete="current-password" required data-msg-required="Escriba su contraseña."{% if error and request.POST.username %} autofocus{% endif %}{% if error %} aria-invalid="true"{% endif %}>
-                                <button type="button" class="sg-field__btn" data-sg-toggle-password aria-controls="password" aria-pressed="false" aria-label="Mostrar contraseña">
-                                    <span data-icon-show>{% include 'partials/icon.html' with name='eye' class='sg-icon--lg' %}</span>
-                                    <span data-icon-hide hidden>{% include 'partials/icon.html' with name='eye-off' class='sg-icon--lg' %}</span>
-                                </button>
-                            </div>
-                            <p class="sg-field__msg lg-caps" data-sg-caps-for="password" hidden>{% include 'partials/icon.html' with name='alert' %}<span>Bloq Mayús está activado.</span></p>
-                        </div>
-                    </div>
-
-                    <div class="lg-submit">
-                        <button type="submit" class="sg-btn sg-btn--primary lg-button" data-loading-label="Accediendo…">Acceder</button>
-                    </div>
-                </form>
-
-                <p class="lg-help"><strong>¿Sin acceso?</strong> Solicite su cuenta a la Dirección de Mantenimiento.</p>
-
-                <div class="lg-foot" aria-hidden="true"><span>LÁMINA 01</span><span>ACCESO</span></div>
-            </section>
-        </main>
+      <div class="sg-foot" aria-hidden="true"><span>LÁMINA 01</span><span>ACCESO</span></div>
     </div>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}

@@ -21,7 +21,7 @@ incidencias.js escribe el título y el texto con textContent y fija la acción d
       </div>
       <div class="modal-footer">
         <button type="button" class="sg-btn sg-btn--secondary" data-bs-dismiss="modal">Cancelar</button>
-        <form method="post" action="{% url 'incidencias' %}" id="quitarTecnico-form" data-sg-loading>
+        <form method="post" action="" id="quitarTecnico-form" data-sg-loading>
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.get_full_path }}">
           <button type="submit" class="sg-btn sg-btn--danger" data-loading-label="Quitando…">Quitar técnico</button>
