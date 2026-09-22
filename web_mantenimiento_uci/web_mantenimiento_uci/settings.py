@@ -124,6 +124,14 @@ if DATABASE_URL:
     if DATABASE_URL.startswith('https://'):
         DATABASE_URL = DATABASE_URL.replace('https://', 'postgresql://', 1)
     _db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    # dj_database_url a veces no extrae NAME de URLs Supabase.
+    # Fallback: extraer el NAME manualmente del path de la URL.
+    if not _db_config.get('NAME') and DATABASE_URL.startswith('postgresql'):
+        from urllib.parse import urlparse
+        _parsed = urlparse(DATABASE_URL)
+        _name = _parsed.path.lstrip('/') if _parsed.path else 'postgres'
+        if _name:
+            _db_config['NAME'] = _name
     # Forzar SSL para Supabase (y cualquier proveedor que lo exija)
     _db_config['OPTIONS'] = _db_config.get('OPTIONS', {})
     _db_config['OPTIONS']['sslmode'] = _db_config['OPTIONS'].get('sslmode', 'require')
