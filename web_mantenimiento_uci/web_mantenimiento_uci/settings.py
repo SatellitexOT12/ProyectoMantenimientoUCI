@@ -123,7 +123,9 @@ if DATABASE_URL:
     # dj_database_url solo soporta 'postgresql://', así que normalizamos.
     if DATABASE_URL.startswith('https://'):
         DATABASE_URL = DATABASE_URL.replace('https://', 'postgresql://', 1)
-    _db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    # En serverless (Vercel) usar el pooler de Supabase (6543) en vez del
+    # puerto directo (5432), y desactivar conn_max_age (invocaciones efímeras).
+    _db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=0)
     # dj_database_url a veces no extrae NAME de URLs Supabase.
     # Fallback: extraer el NAME manualmente del path de la URL.
     if not _db_config.get('NAME') and DATABASE_URL.startswith('postgresql'):
@@ -132,9 +134,14 @@ if DATABASE_URL:
         _name = _parsed.path.lstrip('/') if _parsed.path else 'postgres'
         if _name:
             _db_config['NAME'] = _name
-    # Forzar SSL para Supabase (y cualquier proveedor que lo exija)
+    # Pooler de Supabase: puerto 6543 (6543 en vez de 5432 para serverless)
+    if _db_config.get('HOST', '').endswith('supabase.co') and _db_config.get('PORT') == '5432':
+        _db_config['PORT'] = '6543'
+    # SSL + timeout corto para que falle rápido en vez de colgar el build
     _db_config['OPTIONS'] = _db_config.get('OPTIONS', {})
     _db_config['OPTIONS']['sslmode'] = _db_config['OPTIONS'].get('sslmode', 'require')
+    _db_config['OPTIONS']['connect_timeout'] = 10
+    _db_config['OPTIONS']['keepalives'] = 1
     DATABASES = {'default': _db_config}
 else:
     DATABASES = {
