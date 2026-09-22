@@ -6,13 +6,5 @@
   "buildCommand": "cd web_mantenimiento_uci && python manage.py migrate --noinput && python manage.py collectstatic --noinput",
   "env": {
     "DJANGO_SETTINGS_MODULE": "web_mantenimiento_uci.settings"
-  },
-  "staticFiles": [
-    {
-      "src": "/static/**/*",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    }
-  ]
+  }
 }
