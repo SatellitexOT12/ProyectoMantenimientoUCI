@@ -15,12 +15,17 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web_mantenimiento_uci.settings'
 
 # Migraciones en runtime: Vercel no expone env vars del dashboard durante
 # buildCommand, solo en runtime. Por eso migrate va aquí.
+print('[sgum] server.py importado — entrypoint activo', flush=True)
 try:
     from django.core.management import call_command
-    call_command('migrate', '--noinput', verbosity=0)
+    call_command('migrate', '--noinput')
+    print('[sgum] migrate OK (server.py)', flush=True)
 except Exception:
-    # No bloquear el arranque si la BD no está lista aún
-    pass
+    # No bloquear el arranque si la BD no está lista aún,
+    # pero dejar el error visible en `vercel logs`.
+    import traceback
+    print('[sgum] migrate FALLÓ (server.py):', flush=True)
+    traceback.print_exc()
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
