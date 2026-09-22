@@ -18,6 +18,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web_mantenimiento_uci.settings'
 # vive también aquí. Es idempotente y el error queda visible en `vercel logs`.
 print('[sgum] wsgi.py importado — entrypoint activo', flush=True)
 try:
+    import django
+    django.setup()  # poblar el registry de apps: call_command lo exige
     from django.core.management import call_command
     call_command('migrate', '--noinput')
     print('[sgum] migrate OK (wsgi.py)', flush=True)

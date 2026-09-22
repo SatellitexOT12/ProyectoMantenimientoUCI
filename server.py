@@ -17,6 +17,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web_mantenimiento_uci.settings'
 # buildCommand, solo en runtime. Por eso migrate va aquí.
 print('[sgum] server.py importado — entrypoint activo', flush=True)
 try:
+    import django
+    django.setup()  # poblar el registry de apps: call_command lo exige
     from django.core.management import call_command
     call_command('migrate', '--noinput')
     print('[sgum] migrate OK (server.py)', flush=True)
