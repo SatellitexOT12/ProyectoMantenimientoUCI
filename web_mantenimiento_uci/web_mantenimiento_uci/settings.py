@@ -117,7 +117,9 @@ WSGI_APPLICATION = 'web_mantenimiento_uci.wsgi.application'
 #
 # Vercel/Supabase proveen DATABASE_URL o SUPABASE_URL.
 # Si no existe, usa las variables DB_* individuales (desarrollo local / CI).
-DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('SUPABASE_URL')
+# Supabase en Vercel inyecta SUPABASE_URL que es la API URL (https://...),
+# NO el connection string de PostgreSQL. Solo DATABASE_URL sirve para la BD.
+DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     # Supabase puede proveer URL con esquema 'https://'.
     # dj_database_url solo soporta 'postgresql://', así que normalizamos.
