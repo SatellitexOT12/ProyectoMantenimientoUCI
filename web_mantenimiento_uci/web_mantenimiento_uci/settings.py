@@ -93,6 +93,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Servir /static/ desde el propio proceso WSGI: obligatorio en Vercel
+    # (serverless, DEBUG=False — no hay servidor web que los sirva).
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
