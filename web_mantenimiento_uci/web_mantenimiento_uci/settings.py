@@ -119,6 +119,10 @@ WSGI_APPLICATION = 'web_mantenimiento_uci.wsgi.application'
 # Si no existe, usa las variables DB_* individuales (desarrollo local / CI).
 DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('SUPABASE_URL')
 if DATABASE_URL:
+    # Supabase puede proveer URL con esquema 'https://'.
+    # dj_database_url solo soporta 'postgresql://', así que normalizamos.
+    if DATABASE_URL.startswith('https://'):
+        DATABASE_URL = DATABASE_URL.replace('https://', 'postgresql://', 1)
     _db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     # Forzar SSL para Supabase (y cualquier proveedor que lo exija)
     _db_config['OPTIONS'] = _db_config.get('OPTIONS', {})
