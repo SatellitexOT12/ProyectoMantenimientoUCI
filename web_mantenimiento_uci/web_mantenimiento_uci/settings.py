@@ -115,13 +115,17 @@ WSGI_APPLICATION = 'web_mantenimiento_uci.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 #
-# Vercel Postgres provee DATABASE_URL. Si no existe, usa los variables
+# Vercel/Supabase proveen DATABASE_URL. Si no existe, usa las variables
 # DB_* individuales (desarrollo local / CI).
+# Supabase exige SSL; dj-database-url lo configura automáticamente
+# pero forzamos sslmode=require como respaldo.
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    }
+    _db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    # Forzar SSL para Supabase (y cualquier proveedor que lo exija)
+    _db_config['OPTIONS'] = _db_config.get('OPTIONS', {})
+    _db_config['OPTIONS']['sslmode'] = _db_config['OPTIONS'].get('sslmode', 'require')
+    DATABASES = {'default': _db_config}
 else:
     DATABASES = {
         'default': {
