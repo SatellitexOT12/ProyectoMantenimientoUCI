@@ -3,8 +3,9 @@
   "framework": "python",
   "regions": ["iad1"],
   "installCommand": "pip install -r requirements.txt",
-  "buildCommand": "cd web_mantenimiento_uci && python manage.py migrate --noinput && python manage.py collectstatic --noinput",
+  "buildCommand": "cd web_mantenimiento_uci && python3 manage.py migrate --noinput && python3 manage.py collectstatic --noinput",
   "env": {
-    "DJANGO_SETTINGS_MODULE": "web_mantenimiento_uci.settings"
+    "DJANGO_SETTINGS_MODULE": "web_mantenimiento_uci.settings",
+    "PYTHONPATH": "."
   }
 }
