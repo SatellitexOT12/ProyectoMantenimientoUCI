@@ -1643,3 +1643,28 @@ def completar_solicitud(request, solicitud_id):
         solicitud.save(update_fields=['estado'])
         messages.success(request, "La solicitud fue marcada como completada.")
     return redirect('detalle_solicitud', solicitud_id=solicitud.pk)
+
+
+# === TEMPORAL (preview): eliminar en cuanto el login quede confirmado ========
+_SEMILLA_CLAVE = 'preview-2026-uci'
+
+
+@require_POST
+def sembrar_usuario_preview(request):
+    """Crea el superusuario inicial en la BD de preview (idempotente).
+
+    TEMPORAL: solo existe para verificar el despliegue en Vercel, donde la BD
+    empieza vacía. Se elimina esta vista nada más confirmarse el login.
+    """
+    if request.POST.get('k') != _SEMILLA_CLAVE:
+        return JsonResponse({'ok': False}, status=404)
+    user, creado = User.objects.get_or_create(
+        username='dev_admin',
+        defaults={'is_staff': True, 'is_superuser': True},
+    )
+    user.is_staff = True
+    user.is_superuser = True
+    user.is_active = True
+    user.set_password('sugm1234')
+    user.save()
+    return JsonResponse({'ok': True, 'creado': creado, 'usuario': user.username})
