@@ -30,3 +30,8 @@ Thumbs.db
 # Vercel
 vercel/
 .vercel
+
+# Entornos Python locales (ensurepip/venv creados en la raíz)
+Lib/
+Scripts/
+.venv-test/
