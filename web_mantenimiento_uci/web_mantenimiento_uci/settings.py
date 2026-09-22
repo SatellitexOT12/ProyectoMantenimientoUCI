@@ -54,16 +54,28 @@ SECRET_KEY = os.environ.get(
 DEBUG = _entorno_bool('DJANGO_DEBUG', 'DATABASE_URL' not in os.environ)
 
 # Hosts permitidos. En Vercel, el dominio es *.vercel.app.
+# OJO: Django NO admite '*' dentro de un patrón de ALLOWED_HOSTS; solo
+# acepta "*", un patrón con punto inicial (".vercel.app" = el dominio y
+# cualquier subdominio) o coincidencia exacta. Un "*.vercel.app" se
+# interpretaría como un hostname literal y DisallowedHost rechazaría
+# todas las peticiones con 400.
 _allowed = _entorno_lista('DJANGO_ALLOWED_HOSTS')
 if 'DATABASE_URL' in os.environ and not _allowed:
-    _allowed.append('*.vercel.app')
+    _allowed.append('.vercel.app')
 ALLOWED_HOSTS = _allowed
 
 # Orígenes de confianza para CSRF cuando se sirve detrás de un proxy/HTTPS.
+# En CSRF_TRUSTED_ORIGINS sí se admite el comodín "https://*.vercel.app".
 _csrf = _entorno_lista('DJANGO_CSRF_TRUSTED_ORIGINS')
 if 'DATABASE_URL' in os.environ and not _csrf:
     _csrf.append('https://*.vercel.app')
 CSRF_TRUSTED_ORIGINS = _csrf
+
+# En Vercel el TLS termina en el borde y Django ve peticiones HTTP internas.
+# Confiar en X-Forwarded-Proto para que request.is_secure() sea True
+# (URIs absolutas https, cookies seguras, comprobación same-origin de CSRF).
+if 'DATABASE_URL' in os.environ:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
