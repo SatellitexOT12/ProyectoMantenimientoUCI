@@ -1,61 +1,120 @@
 {% extends "master.html" %}
-{% block title %}Detalle de Solicitud{% endblock %}
 {% load static %}
+{% load auth_extras %}
+{% comment %}
+Conversación de una solicitud de soporte. Datos de la vista `detalle_solicitud` (backend-contract.md §3.19):
+solicitud, respuestas (ordenadas, con .autor), es_autor, puede_responder, puede_completar, mensaje_max.
+Cada mensaje dice quién lo escribió, su rol y cuándo. Los propios van a la derecha con «Usted» y línea de tinta;
+los ajenos, a la izquierda con línea fina: la diferencia no depende del color.
+El borrador del mensaje lo conserva pages/soporte.js (data-so-composer) si el envío falla o se sale de la página.
+{% endcomment %}
+{% block title %}Solicitud de soporte n.º {{ solicitud.pk }}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/soporte.css' %}">{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <h3>Solicitud de Soporte</h3>
-            
-            <!-- Mensaje original -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <p><strong>{{ solicitud.usuario.username }}</strong> - {{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</p>
-                    <p>{{ solicitud.descripcion }}</p>
-                </div>
-            </div>
+{% url 'completar_solicitud' solicitud.pk as url_completar %}
+<div class="sg-sheet sg-sheet--medium">
 
-            <!-- Historial de respuestas -->
-            {% for respuesta in solicitud.respuestas.all|dictsort:"fecha" %}
-                {% if respuesta.autor == solicitud.usuario %}
-                    <!-- Usuario -->
-                    <div class="card mb-2 bg-light">
-                        <div class="card-body">
-                            <small class="text-muted">{{ respuesta.autor.username }} - {{ respuesta.fecha|date:"d/m/Y H:i" }}</small>
-                            <p class="mt-2">{{ respuesta.mensaje }}</p>
-                        </div>
-                    </div>
-                {% else %}
-                    <!-- Admin/Técnico -->
-                    <div class="card mb-2 border-primary">
-                        <div class="card-body">
-                            <small class="text-muted">{{ respuesta.autor.username }} - {{ respuesta.fecha|date:"d/m/Y H:i" }}</small>
-                            <p class="mt-2">{{ respuesta.mensaje }}</p>
-                        </div>
-                    </div>
-                {% endif %}
-            {% empty %}
-                <p class="text-muted">Aún no hay respuestas.</p>
-            {% endfor %}
-
-            <!-- Formulario de nueva respuesta -->
-            <form method="post" action="{% url 'detalle_solicitud' solicitud.id %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="mensaje" class="form-label">Tu respuesta:</label>
-                    <textarea name="mensaje" class="form-control" rows="3" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-success">Enviar</button>
-            </form>
-
-            <!-- Botón para completar -->
-            {% if request.user == solicitud.usuario %}
-                <form method="post" action="{% url 'completar_solicitud' solicitud.id %}" class="mt-3">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-primary btn-sm">Marcar como Completada</button>
-                </form>
-            {% endif %}
-        </div>
+  <header class="sg-page-head">
+    <div class="sg-page-head__back">
+      {% if puede.bandeja_soporte and not es_autor %}
+      <a class="sg-backlink" href="{% url 'bandeja_entrada_soporte' %}">{% include 'partials/icon.html' with name='arrow-left' class='sg-icon--sm' %}Volver a la bandeja de soporte</a>
+      {% else %}
+      <a class="sg-backlink" href="{% url 'solicitar_soporte' %}">{% include 'partials/icon.html' with name='arrow-left' class='sg-icon--sm' %}Volver a mis solicitudes</a>
+      {% endif %}
     </div>
+    <div class="sg-page-head__main">
+      <h1 class="sg-page-head__title">Solicitud de soporte n.º <span class="sg-num">{{ solicitud.pk }}</span></h1>
+      <p class="sg-page-head__desc">{{ solicitud.get_tipo_display }} · {% if es_autor %}enviada por usted{% else %}enviada por {{ solicitud.usuario.username }}{% endif %} el {{ solicitud.fecha_solicitud|date:"d/m/Y" }} a las {{ solicitud.fecha_solicitud|date:"H:i" }}</p>
+    </div>
+    <div class="sg-page-head__actions">
+      {% if puede_completar %}
+      <button type="button" class="sg-btn sg-btn--secondary" data-bs-toggle="modal" data-bs-target="#completarSolicitud">{% include 'partials/icon.html' with name='check' %}Marcar como completada</button>
+      {% elif solicitud.estado == 'resuelto' %}
+      <p class="so-actions-note">{% include 'partials/badge_estado.html' with estado='resuelto' label='Solicitud completada' %}</p>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="sg-fields so-meta" role="group" aria-label="Datos de la solicitud">
+    <div class="sg-field sg-field--3 sg-field--static">
+      <span class="sg-field__label"><span>Estado</span></span>
+      <div class="sg-field__value">{% include 'partials/badge_estado.html' with estado=solicitud.estado %}</div>
+    </div>
+    <div class="sg-field sg-field--3 sg-field--static">
+      <span class="sg-field__label"><span>Tipo</span></span>
+      <div class="sg-field__value">{{ solicitud.get_tipo_display }}</div>
+    </div>
+    <div class="sg-field sg-field--3 sg-field--static">
+      <span class="sg-field__label"><span>Solicitante</span></span>
+      <div class="sg-field__value">{{ solicitud.usuario.username }}{% if es_autor %} <span class="sg-muted">(usted)</span>{% endif %}</div>
+    </div>
+    <div class="sg-field sg-field--3 sg-field--static">
+      <span class="sg-field__label"><span>Mensajes</span></span>
+      <div class="sg-field__value sg-num">{{ respuestas|length|add:1 }}</div>
+    </div>
+  </div>
+
+  <section class="so-section" aria-labelledby="so-conv">
+    <h2 id="so-conv">Conversación</h2>
+    <ol class="so-thread">
+      {# Mensaje inicial: la descripción de la solicitud #}
+      <li class="so-msg {% if es_autor %}so-msg--mine{% else %}so-msg--other{% endif %}"{% if es_autor %} data-so-mine data-texto="{{ solicitud.descripcion }}"{% endif %}>
+        <div class="so-msg__head">
+          <strong class="so-msg__who">{% if es_autor %}Usted{% else %}{{ solicitud.usuario.username }}{% endif %}</strong>
+          <span class="so-role">{{ solicitud.usuario|roles_texto }}</span>
+          <span class="so-tag">Solicitud inicial</span>
+          <time class="so-msg__time sg-mono" datetime="{{ solicitud.fecha_solicitud|date:'c' }}">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</time>
+        </div>
+        <p class="so-msg__body">{{ solicitud.descripcion|linebreaksbr }}</p>
+      </li>
+      {% for r in respuestas %}
+      <li class="so-msg {% if r.autor_id == request.user.pk %}so-msg--mine{% else %}so-msg--other{% endif %}"{% if r.autor_id == request.user.pk %} data-so-mine data-texto="{{ r.mensaje }}"{% endif %}>
+        <div class="so-msg__head">
+          <strong class="so-msg__who">{% if r.autor_id == request.user.pk %}Usted{% else %}{{ r.autor.username }}{% endif %}</strong>
+          <span class="so-role">{{ r.autor|roles_texto }}</span>
+          <time class="so-msg__time sg-mono" datetime="{{ r.fecha|date:'c' }}">{{ r.fecha|date:"d/m/Y H:i" }}</time>
+        </div>
+        <p class="so-msg__body">{{ r.mensaje|linebreaksbr }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+    {% if not respuestas %}
+    <p class="so-thread__empty">{% if es_autor %}Aún no hay respuestas. Recibirá un aviso en sus notificaciones cuando el personal de soporte responda.{% else %}Aún nadie ha respondido a esta solicitud. Escriba la primera respuesta abajo.{% endif %}</p>
+    {% endif %}
+  </section>
+
+  {% if puede_responder %}
+  <section class="so-section so-composer" aria-labelledby="so-escribir">
+    <h2 id="so-escribir">{% if solicitud.estado == 'resuelto' %}Añadir un mensaje{% else %}Escribir un mensaje{% endif %}</h2>
+    {% if solicitud.estado == 'resuelto' %}<p class="so-section__hint">La solicitud está completada. Si escribe, {% if es_autor %}el personal de soporte recibirá su mensaje{% else %}el solicitante recibirá su mensaje{% endif %}; la solicitud seguirá figurando como completada.</p>{% endif %}
+    <div class="sg-alert sg-alert--info so-recovered" role="status" data-so-recovered hidden>
+      {% include 'partials/icon.html' with name='info' %}
+      <div class="sg-alert__body">Recuperamos el mensaje que estaba escribiendo y no llegó a enviarse. Revíselo y pulse «Enviar mensaje».</div>
+    </div>
+    <form method="post" action="{% url 'detalle_solicitud' solicitud.pk %}" data-sg-validate data-sg-loading data-so-composer data-so-draft="so-borrador-{{ solicitud.pk }}" novalidate>
+      {% csrf_token %}
+      <div class="sg-fields">
+        <div class="sg-field">
+          <label class="sg-field__label" for="so-mensaje"><span>Su mensaje</span></label>
+          <textarea id="so-mensaje" name="mensaje" rows="4" maxlength="{{ mensaje_max }}" data-max="{{ mensaje_max }}" required data-msg-required="Escriba el mensaje antes de enviarlo." aria-describedby="so-mensaje-ayuda"></textarea>
+          <div class="so-hintrow" id="so-mensaje-ayuda">
+            <p class="sg-field__hint">La tecla Enter añade una línea; para enviar use el botón.</p>
+            <p class="sg-field__hint so-count" data-so-counter="so-mensaje"><span class="sg-mono" data-so-count>0</span> de <span class="sg-mono">{{ mensaje_max }}</span> caracteres<span class="sg-visually-hidden" role="status" data-so-status></span></p>
+          </div>
+        </div>
+      </div>
+      <div class="sg-form-actions">
+        <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Enviando…">{% include 'partials/icon.html' with name='send' %}Enviar mensaje</button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
 </div>
+
+{% if puede_completar %}
+{% include 'partials/modal_confirm.html' with id='completarSolicitud' title='¿Marcar la solicitud como completada?' text='Pasará a «Resuelto» y dejará de figurar como pendiente para el personal de soporte.' detail='Podrá seguir escribiendo mensajes, pero no puede volver a abrirla.' confirm_label='Marcar como completada' action_url=url_completar safe=True %}
+{% endif %}
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'sgum/pages/soporte.js' %}"></script>{% endblock %}

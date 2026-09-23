@@ -1,110 +1,70 @@
 {% extends "master.html" %}
 {% load static %}
-{% block title %}Bandeja de Soporte Técnico{% endblock %}
+{% comment %}
+Bandeja de soporte para administradores y técnicos. Datos de la vista (backend-contract.md §3.19):
+page_obj (filas con .sin_leer y .usuario), q, puede_eliminar (solo el administrador elimina; el técnico ve y responde).
+{% endcomment %}
+{% block title %}Bandeja de soporte{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/soporte.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-3 px-4">
-    <div class="row">
-        <div class="col"><h2>Bandeja de Entrada</h2></div>
-        <div class="col d-flex flex-row-reverse p-3 ">
-    <button class="btn btn-danger mx-5" type="button" onclick="validarSeleccion()">
-            Eliminar
-            </button>
-</div>
+<div class="sg-sheet">
+  {% include 'partials/page_head.html' with title='Bandeja de soporte' desc='Solicitudes de todos los usuarios, las más recientes primero. Las que tienen un mensaje sin leer del solicitante están marcadas.' count=page_obj.paginator.count count_label='solicitudes' %}
 
-    {% include 'soporte/modalEliminarSolicitud.html' %}
+  <div class="sg-toolbar">
+    {% include 'partials/search_form.html' with placeholder='Buscar por usuario, tipo, estado o texto' label='Buscar solicitudes de soporte' %}
+    {% if puede_eliminar and page_obj.paginator.count %}
+    <div class="sg-toolbar__filters">
+      <button type="button" class="sg-btn sg-btn--danger-outline" data-so-delete="eliminar_solicitud" data-so-modal="eliminarSolicitudes">{% include 'partials/icon.html' with name='trash' %}Eliminar seleccionadas</button>
     </div>
-<form id="eliminar_solicitud" method="post" action="{% url 'bandeja_entrada_soporte' %}">
-            {% csrf_token %}
-            <input type="hidden" id="action" name="action" value="">
-    <table class="table table-hover mt-4">
-        <thead class="table-dark">
-            <tr>
-                <th>Usuario</th>
-                <th>Tipo</th>
-                <th>Descripción</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-                <th>Seleccionar Todos
-                    <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
-                </th>
-                <th>Acciones</th>
-            </tr>
+    {% endif %}
+    {% if q %}<p class="sg-toolbar__count" aria-live="polite"><span class="sg-num">{{ page_obj.paginator.count }}</span> resultado{{ page_obj.paginator.count|pluralize }} para «{{ q }}»</p>{% endif %}
+  </div>
+
+  {% if page_obj.paginator.count %}
+  <form id="eliminar_solicitud" method="post" action="{% url 'bandeja_entrada_soporte' %}">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete">
+    <div class="sg-table-wrap">
+      <table class="sg-table so-table">
+        <caption class="sg-visually-hidden">Solicitudes de soporte de todos los usuarios, de la más reciente a la más antigua</caption>
+        <thead>
+          <tr>
+            {% if puede_eliminar %}<th class="sg-col-check" scope="col"><label><span class="sg-visually-hidden">Seleccionar todas las solicitudes de esta página</span><input class="form-check-input" type="checkbox" data-sg-select-all></label></th>{% endif %}
+            <th class="sg-col-n" scope="col">Nº</th>
+            <th scope="col">Solicitante</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Enviada</th>
+            <th scope="col"><span class="sg-visually-hidden">Acción</span></th>
+          </tr>
         </thead>
         <tbody>
-            {% for s in page_obj %}
-            <tr>
-                <td>{{ s.usuario.username }}</td>
-                <td>{{ s.get_tipo_display }}</td>
-                <td>{{ s.descripcion|truncatechars:50 }}</td>
-                <td>
-                    {% if s.estado == "pendiente" %}
-                        <span class="badge bg-warning text-dark">{{ s.get_estado_display }}</span>
-                    {% else %}
-                        <span class="badge bg-success">{{ s.get_estado_display }}</span>
-                    {% endif %}
-                </td>
-                <td>{{ s.fecha_solicitud|date:"d/m/Y H:i" }}</td>
-
-                <td> 
-                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{s.id}}" >
-                    </div>            
-                </td>
-                
-                {% if s in solicitudes_por_leer %}
-                <td>
-                    <div style="display: flex; flex-direction: row; align-items: center; position: relative;">
-                        <a href="{% url 'detalle_solicitud' s.id %}" class="btn btn-sm btn-info">Ver Detalles</a>
-                        <div class="d-inline-block rounded-circle bg-danger" style="width: 20px; height: 20px; position: absolute; left: 80px; top:-3px; "></div>
-                    </div>
-                </td>
-                {% else %}
-                <td>
-                    <a href="{% url 'detalle_solicitud' s.id %}" class="btn btn-sm btn-info">Ver Detalles</a>
-                </td>
-                {% endif %}
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" class="text-center">No hay solicitudes.</td></tr>
-            {% endfor %}
+          {% for s in page_obj %}
+          <tr{% if s.sin_leer %} class="is-unread"{% endif %}>
+            {% if puede_eliminar %}<td class="sg-col-check"><label><span class="sg-visually-hidden">Seleccionar la solicitud de {{ s.usuario.username }} del {{ s.fecha_solicitud|date:"d/m/Y" }}</span><input class="form-check-input" type="checkbox" name="ids" value="{{ s.id }}"></label></td>{% endif %}
+            <td class="sg-col-n so-c-n">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+            <td class="so-c-quien" data-label="Solicitante:">{{ s.usuario.username }}</td>
+            <td class="so-c-tipo" data-label="Tipo:">{{ s.get_tipo_display }}</td>
+            <td class="so-c-desc"><span class="so-desc">{{ s.descripcion }}</span></td>
+            <td class="so-c-estado">{% include 'partials/badge_estado.html' with estado=s.estado %}{% if s.sin_leer %}<span class="so-unread"><span class="so-unread__mark" aria-hidden="true"></span>Mensaje sin leer</span>{% endif %}</td>
+            <td class="so-c-fecha sg-data" data-label="Enviada:">{{ s.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+            <td class="so-c-act sg-col-actions"><a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'detalle_solicitud' s.id %}" aria-label="{% if s.estado == 'resuelto' %}Abrir{% else %}Responder{% endif %} la solicitud de {{ s.usuario.username }} del {{ s.fecha_solicitud|date:'d/m/Y' }}{% if s.sin_leer %}, con un mensaje sin leer{% endif %}">{% if s.estado == 'resuelto' %}Abrir{% else %}Responder{% endif %}</a></td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
-    {% include 'paginacion.html' %}
-
-</form>
-
-<!-- Mensaje tipo Toast -->
-<div class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="polite" aria-atomic="true" id="toastSeleccionar">
-    <div class="d-flex">
-        <div class="toast-body  bg-warning">
-            Debes seleccionar al menos 1 solicitud para eliminar.
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </table>
     </div>
+  </form>
+  {% include 'paginacion.html' %}
+  {% if puede_eliminar %}{% include 'soporte/modalEliminarSolicitud.html' with modal_id='eliminarSolicitudes' form_id='eliminar_solicitud' %}{% endif %}
+  {% elif q %}
+  {% include 'partials/empty.html' with icon='search' title='Sin resultados para «'|add:q|add:'»' text='Revise la ortografía o pruebe con menos palabras: puede buscar por nombre de usuario, tipo, estado o parte de la descripción.' action2_url=request.path action2_label='Quitar búsqueda' %}
+  {% else %}
+  {% include 'partials/empty.html' with icon='inbox' title='No hay solicitudes de soporte' text='Cuando un usuario envíe una solicitud aparecerá aquí y recibirá usted un aviso en sus notificaciones. Podrá responderla y marcarla como completada.' %}
+  {% endif %}
 </div>
-</div>
-
-<script>
-    //Seleccionar todos los checkbox
-function toggleCheckboxes(masterCheckbox) {
-const checkboxes = document.querySelectorAll('.checkbox');
-checkboxes.forEach((checkbox) => {
-    checkbox.checked = masterCheckbox.checked;
-});
-}
-
-function validarSeleccion() {
-    const checkboxes = document.querySelectorAll('input[name="ids"]:checked');
-
-    if (checkboxes.length === 0) {
-        // Muestra el toast si no hay selección
-        mostrarToast();
-        return;
-    }
-
-    // Si hay elementos seleccionados → abre el modal
-    $('#ModalEliminar').modal('show');
-}
-</script>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'sgum/pages/soporte.js' %}"></script>{% endblock %}

@@ -1,0 +1,18 @@
+{% comment %}
+Mensajes de Django con el aspecto del sistema. Etiquetas que entiende: success, info, warning y danger
+(el ajuste MESSAGE_TAGS de settings.py llama «danger» a los errores; también se acepta «error» y «debug»).
+master.html ya lo incluye una vez sobre el contenido: NO repita el bucle de mensajes en cada página.
+Éxito e información se cierran solos a los 6 s; errores y advertencias se quedan hasta que el usuario los cierre.
+{% endcomment %}{% if messages %}
+<div class="sg-messages" role="region" aria-label="Mensajes del sistema">
+  {% for message in messages %}
+  {% with tag=message.level_tag %}
+  <div class="sg-alert sg-alert--{% if tag == 'danger' or tag == 'error' %}danger{% elif tag == 'warning' %}warn{% elif tag == 'success' %}ok{% else %}info{% endif %}" role="{% if tag == 'danger' or tag == 'error' or tag == 'warning' %}alert{% else %}status{% endif %}"{% if tag != 'danger' and tag != 'error' and tag != 'warning' %} data-sg-autodismiss="6000"{% endif %}>
+    {% if tag == 'danger' or tag == 'error' or tag == 'warning' %}{% include 'partials/icon.html' with name='alert' %}{% elif tag == 'success' %}{% include 'partials/icon.html' with name='check' %}{% else %}{% include 'partials/icon.html' with name='info' %}{% endif %}
+    <div class="sg-alert__body">{{ message }}</div>
+    <button type="button" class="btn-close sg-alert__close" data-sg-dismiss aria-label="Cerrar aviso"></button>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+{% endif %}

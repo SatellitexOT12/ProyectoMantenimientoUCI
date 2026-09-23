@@ -1,0 +1,1 @@
+{% for k, vs in request.GET.lists %}{% if k != 'page' %}{% for v in vs %}&{{ k|urlencode }}={{ v|urlencode }}{% endfor %}{% endif %}{% endfor %}

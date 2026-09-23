@@ -1,0 +1,32 @@
+{% comment %}
+Confirmación única para quitar el técnico de una incidencia (formulario POST con CSRF).
+Se abre desde un botón con data-bs-target="#quitarTecnico" y estos atributos:
+  data-action="{% url 'quitar_tecnico' x.id %}"  data-incidencia="12"  data-tecnico="nombre"
+incidencias.js escribe el título y el texto con textContent y fija la acción del formulario.
+{% endcomment %}<div class="modal fade sg-modal--confirm" id="quitarTecnico" tabindex="-1" aria-labelledby="quitarTecnico-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="quitarTecnico-title">¿Quitar al técnico de esta incidencia?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="sg-modal__lead">
+          {% include 'partials/icon.html' with name='alert' class='sg-icon--lg' %}
+          <div>
+            <p id="quitarTecnico-texto">La incidencia vuelve a Pendiente y queda sin técnico hasta que asigne otro.</p>
+            <p>Puede volver a asignar un técnico en cualquier momento.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="sg-btn sg-btn--secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form method="post" action="" id="quitarTecnico-form" data-sg-loading>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="sg-btn sg-btn--danger" data-loading-label="Quitando…">Quitar técnico</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

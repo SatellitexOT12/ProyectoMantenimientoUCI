@@ -1,57 +1,45 @@
+{% extends "master.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    {% load bootstrap5 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'log.css' %}">
-</head>
-<body>
-
-    <div class="row">
-    <div class="presentacion col justify-content-center align-items-centerdiv m-5 p-5 text-white rounded"">
-        <h1 class="text-prest">Bienvenido</h1>
-        <h2 class="text-sub">Sistema de mantenimiento de la Universidad de Ciencias Informáticas</h2>
-    </div>
-    
-    <div class="col d-flex justify-content-center align-items-center ">
-    <form method="post"  action="{% url 'login' %}" class="was-validated p-5 my-5  rounded">
-        <h4 class="form-label d-flex justify-content-center align-items-center text-white">Iniciar Sesión</h4>
-        <div class="mb-3 mt-3">
-        <label for="uname" class="form-label text-white">Usuario:</label>
-        <input type="text" class="form-control" id="username" placeholder="Enter username" name="username" required>
-        <div class="valid-feedback">Válido.</div>
-        <div class="invalid-feedback ">Por favor llena este campo.</div>
-        </div>
-        <div class="mb-3">
-        <label for="pwd" class="form-label text-white">Contraseña:</label>
-        <div class="input-group">
-        <input type="password" class="form-control" id="password" placeholder="Enter password" name="password" required>
-        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-            <i class="bi bi-eye"></i> <!-- Ícono de ojo cerrado -->
-        </button>
-        </div>
-        <div class="valid-feedback">Válido.</div>
-        <div class="invalid-feedback">Por favor llena este campo.</div>
-        </div>
-        <div class="mb-3">
-            {% if error %}
-            <div class="err">{{ error }}</div>
-            {%endif%}
-        </div>
+{% block title %}Acceso{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'sgum/login.css' %}">
+{% endblock %}
+{% block content %}
+<div class="sg-login">
+  <figure class="sg-login__photo">
+    <img src="{% static 'portada_fidel_2.jpeg' %}" width="1600" height="1200" alt="Valla de la Universidad de las Ciencias Informáticas junto a una avenida con palmas reales">
+  </figure>
+  <div class="sg-login__form">
+    <div class="sg-sheet">
+      {% include 'partials/page_head.html' with title='Acceso' %}
+      <form method="post" action="{% url 'login' %}" data-sg-validate data-sg-loading novalidate>
         {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Acceder</button>
-    </form> 
+        {% if request.GET.next or request.POST.next %}<input type="hidden" name="next" value="{% firstof request.GET.next request.POST.next %}">{% endif %}
+
+        {% if error %}
+        <div class="sg-alert sg-alert--danger" role="alert">
+          {% include 'partials/icon.html' with name='alert' class='sg-icon--lg' %}
+          <div>
+            <strong>No se pudo iniciar sesión</strong>
+            <p>{% if error == 'Credenciales inválidas' %}Usuario o contraseña incorrectos. Revíselos e inténtelo de nuevo.{% else %}{{ error }}{% endif %}</p>
+          </div>
+        </div>
+        {% endif %}
+
+        {% include 'partials/field.html' with id='username' name='username' label='Usuario' required=True autocomplete='username' autocapitalize='none' autocorrect='off' spellcheck='false' value=request.POST.username autofocus=True %}
+
+        {% include 'partials/field.html' with id='password' name='password' label='Contraseña' required=True autocomplete='current-password' password=True autofocus=error %}
+        <p class="sg-field__msg" data-sg-caps-for="password" hidden>{% include 'partials/icon.html' with name='alert' %}<span>Bloq Mayús está activado.</span></p>
+
+        <div class="sg-form-actions">
+          <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Accediendo…">Acceder</button>
+        </div>
+      </form>
+
+      <p class="sg-help"><strong>¿Sin acceso?</strong> Solicite su cuenta a la Dirección de Mantenimiento.</p>
+
+      <div class="sg-foot" aria-hidden="true"><span>LÁMINA 01</span><span>ACCESO</span></div>
     </div>
-
-    </div>
-
-    <script src="{% static '../static/togglePassword.js'  %}" ></script>
-
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% comment %}
+Modal de confirmación para acciones destructivas o irreversibles (los únicos modales que el sistema usa; el resto se resuelve en la página).
+Se abre con un botón:  <button data-bs-toggle="modal" data-bs-target="#{{ id }}">.
+Parámetros: id, title (una pregunta: «¿Eliminar 3 incidencias?»), text (qué pasará), detail (por defecto «Esta acción no se puede deshacer.»),
+            confirm_label (nombra la acción: «Eliminar incidencias»), cancel_label (por defecto «Cancelar»), safe=True (acción no destructiva: botón primario).
+Cómo se ejecuta la confirmación (elija una):
+  · form='id-del-formulario'  → el botón de confirmar envía ese formulario (atributo HTML form=, sin JavaScript).
+  · action_url='/ruta/'       → el modal lleva su propio formulario POST con {% csrf_token %} y un campo oculto opcional (hidden_name + hidden_value).
+  · onclick='funcion()'       → llama a una función de la página.
+El cuerpo tiene id «<id>-body» por si la página necesita actualizar el texto (p. ej. cuántas filas hay seleccionadas).
+{% endcomment %}<div class="modal fade sg-modal--confirm" id="{{ id }}" tabindex="-1" aria-labelledby="{{ id }}-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="{{ id }}-title">{{ title }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="sg-modal__lead">
+          {% if safe %}{% include 'partials/icon.html' with name='info' class='sg-icon--lg' %}{% else %}{% include 'partials/icon.html' with name='alert' class='sg-icon--lg' %}{% endif %}
+          <div id="{{ id }}-body">
+            <p>{{ text }}</p>
+            <p>{{ detail|default:'Esta acción no se puede deshacer.' }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="sg-btn sg-btn--secondary" data-bs-dismiss="modal">{{ cancel_label|default:'Cancelar' }}</button>
+        {% if action_url %}
+        <form method="post" action="{{ action_url }}" data-sg-loading>
+          {% csrf_token %}
+          {% if hidden_name %}<input type="hidden" name="{{ hidden_name }}" value="{{ hidden_value }}">{% endif %}
+          <button type="submit" class="sg-btn {% if safe %}sg-btn--primary{% else %}sg-btn--danger{% endif %}" id="{{ id }}-confirm" data-loading-label="Procesando…">{{ confirm_label }}</button>
+        </form>
+        {% else %}
+        <button type="{% if form %}submit{% else %}button{% endif %}" class="sg-btn {% if safe %}sg-btn--primary{% else %}sg-btn--danger{% endif %}" id="{{ id }}-confirm"{% if form %} form="{{ form }}"{% endif %}{% if onclick %} onclick="{{ onclick }}"{% endif %}>{{ confirm_label }}</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

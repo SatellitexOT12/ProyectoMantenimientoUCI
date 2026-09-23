@@ -2,7 +2,36 @@
 *.log
 
 # ignore ALL files in ANY directory named temp
-temp/ 
+temp/
 
-# ignore ALL .pyc
+# ignore ALL .pyc and __pycache__
 *.pyc
+__pycache__/
+
+# Build artifacts
+staticfiles/
+db.sqlite3
+*.sqlite3
+
+# Environment and venv
+.env
+.env.*
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vercel
+vercel/
+.vercel
+
+# Entornos Python locales (ensurepip/venv creados en la raíz)
+Lib/
+Scripts/
+.venv-test/

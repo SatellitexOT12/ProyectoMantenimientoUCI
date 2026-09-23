@@ -1,0 +1,31 @@
+{% comment %}
+Celda «Incidencias por mes» (gráfico de columnas del año y navegación de año). No depende del mes elegido en el filtro.
+Contexto: year, today, mesAnio, incidencias_data (12 enteros). Lo dibuja static/sgum/pages/dashboard.js.
+{% endcomment %}<section class="dash-cell" aria-labelledby="t-mes">
+  <div class="dash-cell__head">
+    <div>
+      <h2 id="t-mes">Incidencias por mes</h2>
+      <p class="dash-cell__sub">Año <span class="sg-data">{{ year }}</span>, de enero a diciembre</p>
+    </div>
+    <nav class="dash-year" aria-label="Año del gráfico mensual">
+      <a class="sg-btn sg-btn--secondary sg-btn--icon" href="?anio={{ year|add:'-1' }}{% if mesAnio %}&amp;mesAnio={{ mesAnio }}{% endif %}" aria-label="Ver el año {{ year|add:'-1' }}">{% include 'partials/icon.html' with name='chevron-left' %}</a>
+      <span class="dash-year__n" aria-live="polite">{{ year }}</span>
+      {% if year < today.year %}<a class="sg-btn sg-btn--secondary sg-btn--icon" href="?anio={{ year|add:'1' }}{% if mesAnio %}&amp;mesAnio={{ mesAnio }}{% endif %}" aria-label="Ver el año {{ year|add:'1' }}">{% include 'partials/icon.html' with name='chevron-right' %}</a>
+      {% else %}<span class="sg-btn sg-btn--secondary sg-btn--icon" aria-disabled="true" aria-label="No hay un año posterior al actual">{% include 'partials/icon.html' with name='chevron-right' %}</span>{% endif %}
+    </nav>
+  </div>
+  <p class="dash-insight" id="mes-resumen" aria-live="polite"></p>
+  <div class="dash-chart" id="mes-lienzo"><canvas id="grafico-mes" role="img" aria-label="Gráfico de columnas de incidencias por mes del año {{ year }}. Los mismos datos están en la tabla que sigue."></canvas></div>
+  <p class="dash-vacio" id="mes-vacio" hidden><strong>No hay incidencias registradas en {{ year }}.</strong>Use las flechas para ver otro año.</p>
+  <p class="dash-note" id="mes-nota"></p>
+  <details class="dash-datos" id="mes-datos">
+    <summary>{% include 'partials/icon.html' with name='chevron-down' class='sg-icon--sm' %}Ver los datos en tabla</summary>
+    <div class="sg-table-wrap">
+      <table class="sg-table sg-table--dense" id="mes-tabla">
+        <caption class="sg-visually-hidden">Incidencias registradas por mes en {{ year }}</caption>
+        <thead><tr><th scope="col">Mes</th><th scope="col" class="sg-num">Incidencias</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+</section>

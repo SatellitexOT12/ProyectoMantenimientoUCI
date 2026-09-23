@@ -1,0 +1,24 @@
+{% comment %}
+Encabezado de página tipo cajetín (título, descripción, acciones). Va dentro de <div class="sg-sheet">, arriba.
+Parámetros (todos opcionales salvo title):
+  title, desc, count (número) + count_label (por defecto «registros»),
+  back_url + back_label (enlace de regreso sobre el título, para páginas de detalle o edición),
+  action_url + action_label + action_icon  (acción primaria, p. ej. «Registrar incidencia»),
+  action2_url + action2_label + action2_icon (acción secundaria).
+Si necesita otros botones (p. ej. «Eliminar» con modal), escriba el bloque a mano con las mismas clases:
+  <header class="sg-page-head"> ... <div class="sg-page-head__actions"> botones </div></header>
+Ejemplo: include 'partials/page_head.html' with title='Incidencias' desc='Reportes del campus y su estado.' count=page_obj.paginator.count action_url=url_reportar action_label='Registrar incidencia' action_icon='plus'
+{% endcomment %}<header class="sg-page-head">
+  {% if back_url %}<div class="sg-page-head__back"><a class="sg-backlink" href="{{ back_url }}">{% include 'partials/icon.html' with name='arrow-left' class='sg-icon--sm' %}{{ back_label|default:'Volver' }}</a></div>{% endif %}
+  <div class="sg-page-head__main">
+    <h1 class="sg-page-head__title">{{ title }}</h1>
+    {% if desc %}<p class="sg-page-head__desc">{{ desc }}</p>{% endif %}
+    {% if count is not None %}<p class="sg-page-head__count"><span class="sg-num">{{ count }}</span> {{ count_label|default:'registros' }}</p>{% endif %}
+  </div>
+  {% if action_url or action2_url %}
+  <div class="sg-page-head__actions">
+    {% if action2_url %}<a class="sg-btn sg-btn--secondary" href="{{ action2_url }}">{% if action2_icon %}{% include 'partials/icon.html' with name=action2_icon %}{% endif %}{{ action2_label }}</a>{% endif %}
+    {% if action_url %}<a class="sg-btn sg-btn--primary" href="{{ action_url }}">{% if action_icon %}{% include 'partials/icon.html' with name=action_icon %}{% endif %}{{ action_label }}</a>{% endif %}
+  </div>
+  {% endif %}
+</header>

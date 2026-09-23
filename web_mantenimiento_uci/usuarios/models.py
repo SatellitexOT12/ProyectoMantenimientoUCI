@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 
 # Create your models here
@@ -14,35 +15,43 @@ class Incidencia(models.Model):
     ]
     
     TIPO_CHOICES = [
-        ('plomeria', 'Plomeria'),
+        ('plomeria', 'Plomería'),
         ('electricidad', 'Electricidad'),
         ('infraestructura', 'Infraestructura'),
-        ('mantenimiento_equipos', 'Mantenimiento de Equipos'),
+        ('mantenimiento_equipos', 'Mantenimiento de equipos'),
         ('saneamiento', 'Saneamiento'),
         ('seguridad', 'Seguridad'),
-        ('jardineria', 'Jardineria'),
-        ('agua_potable', 'Sistema de Agua Potable'),
-        ('gas', 'Sistema de Gas'),
-        ('incendios', 'Sistema de Incendios')
+        ('jardineria', 'Jardinería'),
+        ('agua_potable', 'Sistema de agua potable'),
+        ('gas', 'Sistema de gas'),
+        ('incendios', 'Sistema de incendios')
     ]
     
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
-        ('en_proceso', 'En Proceso'),
+        ('en_proceso', 'En proceso'),
         ('resuelto', 'Resuelto'),
     ]
     
+    # Límites que valida el servidor (no son columnas). El formulario de
+    # reporte debe usar los mismos valores (se pasan al contexto).
+    UBICACION_MAX = 50
+    DESCRIPCION_MAX = 1000
+    IMAGEN_MAX_BYTES = 8 * 1024 * 1024
+
     tipo = models.CharField(max_length=50, choices=TIPO_CHOICES, default='plomeria')
-    prioridad = models.CharField(max_length=10, choices=PRIORIDAD_CHOICES, default='media')
+    # El solicitante la propone; el administrador la confirma o la corrige.
+    prioridad = models.CharField(max_length=10, choices=PRIORIDAD_CHOICES, default='2')
+    prioridad_confirmada = models.BooleanField(default=False)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
     fecha = models.DateTimeField()
     ubicacion = models.CharField(max_length=100)
     descripcion = models.TextField()
     imagen = models.ImageField(upload_to='incidencias/', null=True, blank=True)
-    
+
     #Llave foraneo del usuario que reporta la incidencia
     usuario_reporte = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+
     tecnico_asignado = models.ForeignKey(
         'Personal',
         on_delete=models.SET_NULL,
@@ -50,7 +59,23 @@ class Incidencia(models.Model):
         blank=True,
         related_name='incidencias_asignadas'
     )
-    
+
+    # Marcas de tiempo del ciclo (para medir los tiempos de respuesta).
+    fecha_asignacion = models.DateTimeField(null=True, blank=True)
+    fecha_resolucion = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Incidencia {self.pk}: {self.get_tipo_display()} en {self.ubicacion}"
+
+    @property
+    def prioridad_situacion(self):
+        """Texto para la interfaz: «Confirmada» o «Propuesta»."""
+        return "Confirmada" if self.prioridad_confirmada else "Propuesta"
+
+    @property
+    def esta_abierta(self):
+        return self.estado != 'resuelto'
+
 class Material(models.Model):
     
     nombre = models.CharField(max_length=100)
@@ -87,12 +112,31 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Noti para {self.user.username}"
+
+    @property
+    def url(self):
+        """Ruta absoluta a la que lleva la notificación (nunca vacía)."""
+        destino = (self.urlAsociated or '').strip()
+        if not destino or destino == 'none':
+            return reverse('main')
+        return destino if destino.startswith('/') else '/' + destino
     
     
 class Personal(models.Model):
     trabajador = models.ForeignKey(User, on_delete=models.CASCADE)
-    incidencia = models.ForeignKey(Incidencia,on_delete=models.CASCADE,null=True, blank=True)
-    
+    # Reflejo de la incidencia abierta más reciente del técnico. La fuente de
+    # verdad de la asignación es Incidencia.tecnico_asignado; este campo se
+    # mantiene sincronizado (usuarios.servicios.sincronizar_personal). Si se
+    # elimina la incidencia, el técnico NO se elimina (antes CASCADE).
+    incidencia = models.ForeignKey(Incidencia,on_delete=models.SET_NULL,null=True, blank=True)
+
+    def __str__(self):
+        return self.trabajador.get_username()
+
+    @property
+    def incidencias_abiertas(self):
+        return self.incidencias_asignadas.exclude(estado='resuelto')
+
 class SolicitudSoporte(models.Model):
     TIPO_SOFTWARE = 'software'
     TIPO_HARDWARE = 'hardware'

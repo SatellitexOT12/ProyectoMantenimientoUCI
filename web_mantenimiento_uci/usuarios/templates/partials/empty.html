@@ -1,0 +1,17 @@
+{% comment %}
+Estado vacío que enseña qué hacer (no un simple «no hay datos»).
+Parámetros: title, text (qué ocurre y cuál es el siguiente paso), icon (por defecto 'inbox'),
+            action_url + action_label + action_icon (acción principal), action2_url + action2_label (secundaria).
+Ejemplo: include 'partials/empty.html' with title='Aún no hay incidencias' text='Cuando un solicitante reporte un problema aparecerá aquí para que usted lo priorice y asigne un técnico.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus'
+Para «sin resultados de búsqueda» use title='Sin resultados para «...»', text='Revise la ortografía o pruebe con menos palabras.' y action2_url=request.path action2_label='Quitar búsqueda'.
+{% endcomment %}<div class="sg-empty">
+  <div class="sg-empty__mark" aria-hidden="true">{% include 'partials/icon.html' with name=icon|default:'inbox' %}</div>
+  <h2 class="sg-empty__title">{{ title }}</h2>
+  {% if text %}<p class="sg-empty__text">{{ text }}</p>{% endif %}
+  {% if action_url or action2_url %}
+  <div class="sg-empty__actions">
+    {% if action_url %}<a class="sg-btn sg-btn--primary" href="{{ action_url }}">{% if action_icon %}{% include 'partials/icon.html' with name=action_icon %}{% endif %}{{ action_label }}</a>{% endif %}
+    {% if action2_url %}<a class="sg-btn sg-btn--secondary" href="{{ action2_url }}">{{ action2_label }}</a>{% endif %}
+  </div>
+  {% endif %}
+</div>

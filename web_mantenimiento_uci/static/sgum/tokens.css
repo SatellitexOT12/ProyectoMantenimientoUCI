@@ -1,0 +1,172 @@
+/* ==========================================================================
+   SGUM-UCI · «Plano de la UCI» · tokens de diseño
+   Hoja blanco azulada, tinta azul UCI, retícula fina, esquinas rectas.
+   Todo local: sin fuentes ni recursos remotos (solo intranet).
+   Los componentes viven en sgum.css; aquí solo hay variables.
+   ========================================================================== */
+
+:root {
+  /* ---- Color: tinta y hoja ------------------------------------------------ */
+  --sg-ink:        #0b4a7f;   /* tinta UCI: líneas, texto de marca, acción primaria */
+  --sg-ink-deep:   #083a66;   /* hover de la tinta */
+  --sg-ink-press:  #062d50;   /* active de la tinta */
+  --sg-text:       #0b2a44;   /* texto de cuerpo y valores (13,5:1 sobre la hoja) */
+  --sg-text-2:     #33536b;   /* texto secundario (7,5:1) */
+  --sg-text-3:     #46667f;   /* etiquetas y ayudas (5,6:1) */
+  --sg-on-ink:     #ffffff;   /* texto sobre tinta */
+
+  --sg-sheet:      #f3f6f9;   /* hoja: fondo de la aplicación */
+  --sg-panel:      #f9fbfd;   /* segunda capa neutra: barras, cajetín, pie */
+  --sg-paper:      #ffffff;   /* celdas de trabajo, tablas, modales */
+  --sg-hover:      #e4eef6;   /* fila o elemento bajo el puntero */
+  --sg-selected:   #d7e8f5;   /* fila o elemento seleccionado */
+
+  --sg-grid:         #c9d3dc; /* retícula y divisiones finas (decorativas) */
+  --sg-grid-strong:  #9db3c6; /* retícula marcada */
+  --sg-line-control: #5d7d97; /* borde de controles sueltos (4:1) */
+
+  --sg-cyan:       #2a94d4;   /* cian del logo: SOLO marcas de registro y estado activo */
+  --sg-focus:      #1a7fbd;   /* anillo de foco de teclado (4:1 sobre la hoja) */
+
+  /* ---- Color: estados (siempre acompañados de texto y patrón) ------------- */
+  --sg-warn-bg:    #fdf1d0;  --sg-warn-fg:    #5a3c00;  --sg-warn-line:    #8a5a00;
+  --sg-ok-bg:      #e2f3e8;  --sg-ok-fg:      #0f5a30;  --sg-ok-line:      #17643a;
+  --sg-danger-bg:  #fbe4e5;  --sg-danger-fg:  #8f161d;  --sg-danger-line:  #a61d24;
+  --sg-info-bg:    #dcebf7;  --sg-info-fg:    #0a4470;  --sg-info-line:    #0b4a7f;
+  --sg-neutral-bg: #eaeff4;  --sg-neutral-fg: #33536b;  --sg-neutral-line: #6a8aa4;
+
+  --sg-danger:       #a61d24; /* botón peligro (7,4:1 con texto blanco) */
+  --sg-danger-deep:  #8f161d;
+  --sg-danger-press: #741015;
+  --sg-ok:           #17643a;
+  --sg-ok-deep:      #0f5a30;
+
+  --sg-backdrop:   rgba(11, 42, 68, 0.5); /* velo de modales */
+  --sg-scrim:      rgba(243, 246, 249, 0.72); /* velo de carga sobre contenido */
+
+  /* ---- Tipografía (pila del sistema; sin fuentes remotas) ----------------- */
+  --sg-font: "Segoe UI", system-ui, -apple-system, "Noto Sans", "Liberation Sans", "Helvetica Neue", Arial, sans-serif;
+  --sg-font-mono: ui-monospace, "Cascadia Mono", Consolas, "SFMono-Regular", "DejaVu Sans Mono", "Liberation Mono", monospace;
+
+  /* Escala fija, razón ≈ 1,125. Base 15 px. */
+  --sg-fs-2xs: 0.6875rem;  /* 11 px: etiquetas de cajetín (mayúsculas) */
+  --sg-fs-xs:  0.75rem;    /* 12 px: metadatos, pie */
+  --sg-fs-sm:  0.8125rem;  /* 13 px: tabla densa, ayudas */
+  --sg-fs-md:  0.9375rem;  /* 15 px: cuerpo, controles */
+  --sg-fs-lg:  1.0625rem;  /* 17 px: h3, valores destacados */
+  --sg-fs-xl:  1.1875rem;  /* 19 px: h2 */
+  --sg-fs-2xl: 1.375rem;   /* 22 px: título de modal / sección grande */
+  --sg-fs-3xl: 1.5625rem;  /* 25 px: h1 de lámina */
+  --sg-fs-4xl: 1.75rem;    /* 28 px: título de acceso */
+
+  --sg-lh-tight: 1.2;
+  --sg-lh-snug:  1.35;
+  --sg-lh-body:  1.5;
+
+  --sg-fw-regular: 400;
+  --sg-fw-medium:  500;
+  --sg-fw-semi:    600;
+  --sg-fw-bold:    700;
+
+  --sg-track-label: 0.08em;  /* etiquetas de cajetín en mayúsculas */
+  --sg-measure:     68ch;    /* prosa: 65–75 caracteres */
+
+  /* ---- Espaciado: módulo de 8 px (con medio paso de 4) -------------------- */
+  --sg-s-0: 0;
+  --sg-s-1: 0.25rem;   /* 4 */
+  --sg-s-2: 0.5rem;    /* 8 */
+  --sg-s-3: 0.75rem;   /* 12 */
+  --sg-s-4: 1rem;      /* 16 */
+  --sg-s-5: 1.5rem;    /* 24 */
+  --sg-s-6: 2rem;      /* 32 */
+  --sg-s-7: 3rem;      /* 48 */
+  --sg-s-8: 4rem;      /* 64 */
+
+  --sg-gutter:   1.25rem;  /* margen lateral de la lámina (20 px) */
+  --sg-sheet-max: 90rem;   /* ancho máximo de la lámina (1440 px) */
+  --sg-nav-h:    4rem;     /* alto de la barra superior */
+  --sg-touch:    2.75rem;  /* objetivo táctil mínimo (44 px) */
+  --sg-control-h: 2.75rem; /* alto de controles (44 px) */
+
+  /* ---- Formas y líneas: esquinas rectas ---------------------------------- */
+  --sg-radius:    0;
+  --sg-line:      1px;      /* línea fina */
+  --sg-line-strong: 1.5px;  /* línea de cajetín */
+  --sg-frame:     2px;      /* marco de lámina / modal */
+
+  /* ---- Sombras: solo funcionales (elevan capas flotantes) ---------------- */
+  --sg-shadow-pop: 0 6px 16px -6px rgba(11, 42, 68, 0.28);   /* dropdown, toast */
+
+  /* ---- Movimiento --------------------------------------------------------- */
+  --sg-ease: cubic-bezier(0.22, 1, 0.36, 1);  /* salida exponencial */
+  --sg-dur-fast: 150ms;
+  --sg-dur:      200ms;
+
+  /* ---- Capas -------------------------------------------------------------- */
+  --sg-z-sticky:   1020;
+  --sg-z-nav:      1030;
+  --sg-z-dropdown: 1040;
+  --sg-z-backdrop: 1050;
+  --sg-z-modal:    1055;
+  --sg-z-toast:    1090;
+
+  /* ---- Marcas de registro (cruces cian en las esquinas de la lámina) ------ */
+  --sg-registro: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M10 0V20M0 10H20' stroke='%232a94d4' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+
+  /* Retícula de fondo de la hoja (32 px, muy tenue) */
+  --sg-reticula: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M32 0V32H0' stroke='%239db3c6' stroke-opacity='0.22' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+
+  color-scheme: light;
+}
+
+/* ---- Ajuste de Bootstrap a los tokens -------------------------------------
+   Bootstrap 5.3 lee estas variables; las páginas sin migrar heredan el sistema. */
+:root, [data-bs-theme="light"] {
+  --bs-body-font-family: var(--sg-font);
+  --bs-body-font-size: var(--sg-fs-md);
+  --bs-body-font-weight: var(--sg-fw-regular);
+  --bs-body-line-height: var(--sg-lh-body);
+  --bs-body-color: var(--sg-text);
+  --bs-body-color-rgb: 11, 42, 68;
+  --bs-body-bg: var(--sg-sheet);
+  --bs-body-bg-rgb: 243, 246, 249;
+  --bs-emphasis-color: var(--sg-text);
+  --bs-secondary-color: var(--sg-text-2);
+  --bs-secondary-bg: var(--sg-hover);
+  --bs-tertiary-color: var(--sg-text-3);
+  --bs-tertiary-bg: var(--sg-panel);
+  --bs-heading-color: var(--sg-ink);
+  --bs-link-color: var(--sg-ink);
+  --bs-link-color-rgb: 11, 74, 127;
+  --bs-link-hover-color: var(--sg-ink-deep);
+  --bs-link-hover-color-rgb: 8, 58, 102;
+  --bs-border-color: var(--sg-grid);
+  --bs-border-color-translucent: var(--sg-grid);
+  --bs-border-width: 1px;
+  --bs-border-radius: 0;
+  --bs-border-radius-sm: 0;
+  --bs-border-radius-lg: 0;
+  --bs-border-radius-xl: 0;
+  --bs-border-radius-xxl: 0;
+  --bs-primary: var(--sg-ink);
+  --bs-primary-rgb: 11, 74, 127;
+  --bs-secondary: var(--sg-text-2);
+  --bs-secondary-rgb: 51, 83, 107;
+  --bs-success: var(--sg-ok);
+  --bs-success-rgb: 23, 100, 58;
+  --bs-danger: var(--sg-danger);
+  --bs-danger-rgb: 166, 29, 36;
+  --bs-warning: #8a5a00;
+  --bs-warning-rgb: 138, 90, 0;
+  --bs-info: var(--sg-ink);
+  --bs-info-rgb: 11, 74, 127;
+  --bs-light: var(--sg-sheet);
+  --bs-light-rgb: 243, 246, 249;
+  --bs-dark: var(--sg-text);
+  --bs-dark-rgb: 11, 42, 68;
+  --bs-focus-ring-color: rgba(26, 127, 189, 0.35);
+  --bs-box-shadow: none;
+  --bs-box-shadow-sm: none;
+  --bs-box-shadow-lg: var(--sg-shadow-pop);
+  --bs-box-shadow-inset: none;
+}

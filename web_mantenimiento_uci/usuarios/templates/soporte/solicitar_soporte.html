@@ -1,144 +1,106 @@
 {% extends "master.html" %}
 {% load static %}
-{% block title %}Solicitar Soporte Técnico{% endblock %}
+{% comment %}
+Soporte: nueva solicitud y «Mis solicitudes». Datos de la vista `solicitar_soporte` (backend-contract.md §3.19):
+page_obj (filas con .sin_leer), q, tipos_soporte, descripcion_max, errores {tipo, descripcion}, valores {tipo, descripcion}.
+{% endcomment %}
+{% block title %}Soporte{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/soporte.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Solicitar Soporte Técnico</h2>
+<div class="sg-sheet sg-sheet--medium">
+  {% include 'partials/page_head.html' with title='Soporte' desc='Pida ayuda con un programa, un equipo u otro problema, y siga la conversación con el personal de soporte.' %}
 
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <section class="so-section so-form" aria-labelledby="so-nueva">
+    <h2 id="so-nueva">Nueva solicitud</h2>
+    <form method="post" action="{% url 'solicitar_soporte' %}" data-sg-validate data-sg-loading novalidate>
+      {% csrf_token %}
+      <div class="sg-fields">
+        <div class="sg-field sg-field--4{% if errores.tipo %} is-error{% endif %}">
+          <label class="sg-field__label" for="so-tipo"><span>Tipo de soporte</span></label>
+          <select id="so-tipo" name="tipo" required data-msg-required="Elija el tipo de soporte: Software, Hardware u Otro."{% if errores.tipo %} aria-invalid="true" aria-describedby="so-tipo-msg"{% endif %}>
+            <option value="">Elija una opción</option>
+            {% for valor, etiqueta in tipos_soporte %}<option value="{{ valor }}"{% if valores.tipo == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+          </select>
+          {% if errores.tipo %}<p class="sg-field__msg" id="so-tipo-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.tipo }}</span></p>{% endif %}
         </div>
-        {% endfor %}
+        <div class="sg-field sg-field--8 sg-field--static">
+          <span class="sg-field__label"><span>Quién le responde</span></span>
+          <p class="so-note">Técnicos y administradores. Recibirá un aviso en sus notificaciones cuando respondan.</p>
+        </div>
+        <div class="sg-field{% if errores.descripcion %} is-error{% endif %}">
+          <label class="sg-field__label" for="so-descripcion"><span>Descripción del problema</span></label>
+          <textarea id="so-descripcion" name="descripcion" rows="5" maxlength="{{ descripcion_max }}" data-max="{{ descripcion_max }}" required data-msg-required="Describa el problema para que el equipo de soporte pueda ayudarle." aria-describedby="so-descripcion-ayuda{% if errores.descripcion %} so-descripcion-msg{% endif %}"{% if errores.descripcion %} aria-invalid="true"{% endif %}>{{ valores.descripcion }}</textarea>
+          <div class="so-hintrow" id="so-descripcion-ayuda">
+            <p class="sg-field__hint">Diga qué equipo o programa es, qué ocurre y desde cuándo.</p>
+            <p class="sg-field__hint so-count" data-so-counter="so-descripcion"><span class="sg-mono" data-so-count>0</span> de <span class="sg-mono">{{ descripcion_max }}</span> caracteres<span class="sg-visually-hidden" role="status" data-so-status></span></p>
+          </div>
+          {% if errores.descripcion %}<p class="sg-field__msg" id="so-descripcion-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.descripcion }}</span></p>{% endif %}
+        </div>
+      </div>
+      <div class="sg-form-actions">
+        <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Enviando…">{% include 'partials/icon.html' with name='send' %}Enviar solicitud</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="so-section so-section--flush" aria-labelledby="so-mias">
+    <h2 id="so-mias">Mis solicitudes</h2>
+    {% if page_obj.paginator.count or q %}
+    <div class="sg-toolbar">
+      {% include 'partials/search_form.html' with placeholder='Buscar por descripción, tipo o estado' label='Buscar entre mis solicitudes' %}
+      {% if page_obj.paginator.count %}
+      <div class="sg-toolbar__filters">
+        <button type="button" class="sg-btn sg-btn--danger-outline" data-so-delete="eliminar_solicitud" data-so-modal="eliminarSolicitudes">{% include 'partials/icon.html' with name='trash' %}Eliminar seleccionadas</button>
+      </div>
+      {% endif %}
+      <p class="sg-toolbar__count" aria-live="polite"><span class="sg-num">{{ page_obj.paginator.count }}</span> solicitud{{ page_obj.paginator.count|pluralize:"es" }}{% if q %} para «{{ q }}»{% endif %}</p>
+    </div>
     {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label class="form-label">Tipo de Soporte</label>
-            <select name="tipo" class="form-select" required>
-                <option value="">Selecciona un tipo</option>
-                <option value="software">Software</option>
-                <option value="hardware">Hardware</option>
-                <option value="otro">Otro</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Descripción del problema</label>
-            <textarea name="descripcion" class="form-control" rows="4" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Enviar Solicitud</button>
+    {% if page_obj.paginator.count %}
+    <form id="eliminar_solicitud" method="post" action="{% url 'solicitar_soporte' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete">
+      <div class="sg-table-wrap sg-table-wrap--free">
+        <table class="sg-table so-table so-table--own">
+          <caption class="sg-visually-hidden">Mis solicitudes de soporte, de la más reciente a la más antigua</caption>
+          <thead>
+            <tr>
+              <th class="sg-col-check" scope="col"><label><span class="sg-visually-hidden">Seleccionar todas las solicitudes de esta página</span><input class="form-check-input" type="checkbox" data-sg-select-all></label></th>
+              <th class="sg-col-n" scope="col">Nº</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Enviada</th>
+              <th scope="col"><span class="sg-visually-hidden">Acción</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in page_obj %}
+            <tr{% if s.sin_leer %} class="is-unread"{% endif %}>
+              <td class="sg-col-check"><label><span class="sg-visually-hidden">Seleccionar la solicitud de {{ s.get_tipo_display|lower }} del {{ s.fecha_solicitud|date:"d/m/Y" }}</span><input class="form-check-input" type="checkbox" name="ids" value="{{ s.id }}"></label></td>
+              <td class="sg-col-n so-c-n">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+              <td class="so-c-tipo" data-label="Tipo:">{{ s.get_tipo_display }}</td>
+              <td class="so-c-desc"><span class="so-desc">{{ s.descripcion }}</span></td>
+              <td class="so-c-estado">{% include 'partials/badge_estado.html' with estado=s.estado %}{% if s.sin_leer %}<span class="so-unread"><span class="so-unread__mark" aria-hidden="true"></span>Respuesta nueva</span>{% endif %}</td>
+              <td class="so-c-fecha sg-data" data-label="Enviada:">{{ s.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+              <td class="so-c-act sg-col-actions"><a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'detalle_solicitud' s.id %}" aria-label="Abrir la conversación de la solicitud de {{ s.get_tipo_display|lower }} del {{ s.fecha_solicitud|date:'d/m/Y' }}{% if s.sin_leer %}, con una respuesta nueva{% endif %}">Abrir</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </form>
-
-    <hr class="my-4">
-
-    <!-- Tabla Mis Solicitudes -->
-
-<div class="row container">
-<div class="col"><h4>Mis Solicitudes</h4> </div>
-<div class="col d-flex flex-row-reverse p-3 ">
-    <button class="btn btn-danger mx-5" type="button" onclick="validarSeleccion()">
-            Eliminar
-            </button>
-</div>
-
-{% include 'soporte/modalEliminarSolicitud.html' %}
-
-</div>
-{% if page_obj %}
-
-<form id="eliminar_solicitud" method="post" action="{% url 'solicitar_soporte' %}">
-            {% csrf_token %}
-            <input type="hidden" id="action" name="action" value="">
-<table class="table table-hover mt-3">
-    <thead class="table-dark">
-        <tr>
-            <th>Tipo</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th>Seleccionar Todos
-                <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
-            </th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for s in page_obj %}
-        <tr>
-            <td>{{ s.get_tipo_display }}</td>
-            <td>
-                {% if s.estado == "pendiente" %}
-                    <span class="badge bg-warning text-dark">{{ s.get_estado_display }}</span>
-                {% else %}
-                    <span class="badge bg-success">{{ s.get_estado_display }}</span>
-                {% endif %}
-            </td>
-            <td>{{ s.fecha_solicitud|date:"d/m/Y H:i" }}</td>
-
-            <td> 
-                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{s.id}}" >
-                    </div>            
-            </td>
-
-            {% if s in solicitudes_por_leer %}
-                <td>
-                    <div style="display: flex; flex-direction: row; align-items: center; position: relative;">
-                        <a href="{% url 'detalle_solicitud' s.id %}" class="btn btn-sm btn-info">Ver Detalles</a>
-                        <div class="d-inline-block rounded-circle bg-danger" style="width: 20px; height: 20px; position: absolute; left: 80px; top:-3px; "></div>
-                    </div>
-                </td>
-                {% else %}
-                <td>
-                    <a href="{% url 'detalle_solicitud' s.id %}" class="btn btn-sm btn-info">Ver Detalles</a>
-                </td>
-                {% endif %}
-        </tr>
-        {% empty %}
-        <tr><td colspan="4" class="text-center">No has realizado ninguna solicitud.</td></tr>
-       
-        {% endfor %}
-         {% endif %}
-    </tbody>
-</table>
     {% include 'paginacion.html' %}
-
-</form>
-<!-- Mensaje tipo Toast -->
-<div class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="polite" aria-atomic="true" id="toastSeleccionar">
-    <div class="d-flex">
-        <div class="toast-body  bg-warning">
-            Debes seleccionar al menos 1 solicitud para eliminar.
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
+    {% include 'soporte/modalEliminarSolicitud.html' with modal_id='eliminarSolicitudes' form_id='eliminar_solicitud' %}
+    {% elif q %}
+    {% include 'partials/empty.html' with icon='search' title='Sin resultados para «'|add:q|add:'»' text='Revise la ortografía o pruebe con menos palabras.' action2_url=request.path action2_label='Quitar búsqueda' %}
+    {% else %}
+    {% include 'partials/empty.html' with icon='inbox' title='Aún no ha pedido soporte' text='Cuando envíe una solicitud aparecerá aquí con su estado y la conversación con el personal de soporte. Use el formulario de arriba.' %}
+    {% endif %}
+  </section>
 </div>
-</div>
-
-
-<script>
-    //Seleccionar todos los checkbox
-function toggleCheckboxes(masterCheckbox) {
-const checkboxes = document.querySelectorAll('.checkbox');
-checkboxes.forEach((checkbox) => {
-    checkbox.checked = masterCheckbox.checked;
-});
-}
-
-function validarSeleccion() {
-    const checkboxes = document.querySelectorAll('input[name="ids"]:checked');
-
-    if (checkboxes.length === 0) {
-        // Muestra el toast si no hay selección
-        mostrarToast();
-        return;
-    }
-
-    // Si hay elementos seleccionados → abre el modal
-    $('#ModalEliminar').modal('show');
-}
-</script>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'sgum/pages/soporte.js' %}"></script>{% endblock %}

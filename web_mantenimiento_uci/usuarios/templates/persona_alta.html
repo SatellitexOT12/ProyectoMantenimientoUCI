@@ -1,0 +1,28 @@
+{% comment %}
+Panel de alta de usuario. Sustituye al modal «Registrar usuario»: se despliega dentro de la lámina (sin interrumpir la lista)
+con el botón #btn-alta o con las direcciones «#registrar» y «#registrar-tecnico» (esta última elige el rol Técnico).
+El envío es por fetch (personas.js) a la misma URL de siempre, con los campos que espera el servidor:
+username, name, lastname, email, password, confirmPassword, rol. Respuesta JSON: {success, id} o {errors: {...}} (400).
+Requiere en el contexto: roles, password_ayuda.
+{% endcomment %}<section id="alta-usuario" class="sg-section persona-alta" aria-labelledby="alta-titulo" hidden>
+  <h2 id="alta-titulo">Registrar usuario</h2>
+  <p class="persona-alta__intro">La cuenta queda activa desde el primer momento. El sistema no envía la contraseña por correo: comuníquesela usted al usuario por un medio seguro.</p>
+  <form id="form-alta" class="persona-form" method="post" action="{% url 'usuarios' %}" data-lista="{% url 'usuarios' %}" data-persona-fallo="el usuario no se registró" novalidate>
+    {% csrf_token %}
+    <div class="sg-form-error" role="alert" data-persona-resumen hidden>{% include 'partials/icon.html' with name='alert' %}<span data-persona-resumen-txt></span></div>
+    <div class="sg-fields">
+      {% include 'partials/field.html' with id='alta-name' name='name' label='Nombre' span='6' required=True autocomplete='off' maxlength=150 %}
+      {% include 'partials/field.html' with id='alta-lastname' name='lastname' label='Apellidos' span='6' required=True autocomplete='off' maxlength=150 %}
+      {% include 'partials/field.html' with id='alta-username' name='username' label='Usuario' span='6' required=True autocomplete='off' maxlength=150 hint='Con él iniciará sesión. Letras, números y @ . + - _ (sin espacios).' %}
+      {% include 'partials/field.html' with id='alta-email' name='email' type='email' label='Correo' span='6' required=True autocomplete='off' inputmode='email' hint='Por ejemplo nombre@uci.cu.' %}
+      {% include 'persona_rol.html' with id='alta-rol' anterior='cliente' %}
+      {% include 'partials/field.html' with id='alta-password' name='password' label='Contraseña' span='6' required=True password=True autocomplete='new-password' %}
+      {% include 'partials/field.html' with id='alta-confirm' name='confirmPassword' label='Repetir contraseña' span='6' required=True password=True autocomplete='new-password' %}
+      {% include 'persona_password.html' %}
+    </div>
+    <div class="persona-acciones">
+      <button type="button" class="sg-btn sg-btn--secondary" data-persona-cancelar>Cancelar</button>
+      <button type="submit" class="sg-btn sg-btn--primary" data-persona-enviar data-loading-label="Registrando…">Registrar usuario</button>
+    </div>
+  </form>
+</section>

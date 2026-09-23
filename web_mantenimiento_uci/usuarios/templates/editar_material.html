@@ -1,73 +1,90 @@
-{% extends 'master.html' %}
+{% extends "master.html" %}
 {% load static %}
 
-{% block title%}
-    Editar material
-{%endblock%}
+{% block title %}Editar material{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/almacen.css' %}">{% endblock %}
 
 {% block content %}
-<h1 class="display-1">Editar Material</h1>
-<h3 class="display-6">{{material.nombre}}</h3>
+{% url 'materiales' as url_lista %}
+{% with consumos=material.materialincidencia_set.all|dictsortreversed:"fecha_asignacion" %}
+<div class="sg-sheet sg-sheet--medium">
+  {% include 'partials/page_head.html' with title='Editar material' desc='Cambie los datos de «'|add:material.nombre|add:'» o ajuste su existencia.' back_url=url_lista back_label='Volver a materiales' %}
 
-<form method="post" class="was-validated">
-{% csrf_token %}
-<div class="container p-3 mx-0">
-
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Nombre:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="text" id="nombre" name="nombre" value="{{material.nombre}}" class="form-control w-75">
-        </div>
-        
+  <form class="al-form" method="post" id="formEditarMaterial" data-material-form data-sg-loading novalidate>
+    {% csrf_token %}
+    <div class="sg-sheet__body">
+      <div class="sg-form-error" role="alert" data-al-resumen{% if not errores %} hidden{% endif %}>
+        {% include 'partials/icon.html' with name='alert' %}<span data-al-resumen-texto>{% if errores %}{% if errores|length == 1 %}Corrija el campo marcado: no se guardó ningún cambio.{% else %}Corrija los {{ errores|length }} campos marcados: no se guardó ningún cambio.{% endif %}{% endif %}</span>
+      </div>
+      {% if errores %}
+        {% include 'almacen_campos.html' with pref='m' nombre=valores.nombre tipo=valores.tipo cantidad=valores.cantidad legado=material.tipo %}
+      {% else %}
+        {% include 'almacen_campos.html' with pref='m' nombre=material.nombre tipo=material.tipo cantidad=material.cantidad|stringformat:'s' legado=material.tipo %}
+      {% endif %}
     </div>
-    
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Cantidad:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="number" id="cantidad" name="cantidad" value="{{material.cantidad}}" class="form-control w-75">
-        </div>
-        
+    <div class="sg-form-actions">
+      <a class="sg-btn sg-btn--secondary" href="{% url 'materiales' %}">Cancelar</a>
+      <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Guardando…">Guardar cambios</button>
     </div>
+  </form>
 
-    <div class="row border-bottom py-3">
-    
-        <div class="col-5">
-            <label for="tipo_material" class="form-label">Tipo de Material</label>
-            <select class="form-select" id="tipo" name="tipo" required>
-                <option value="plomeria" {% if material.tipo == "plomeria" %}selected {% endif %} >Plomería</option>
-                <option value="electricidad" {% if material.tipo == "electricidad" %}selected {% endif %}>Electricidad</option>
-                <option value="infraestructura" {% if material.tipo == "infraestructura" %}selected {% endif %}>Infraestructura</option>
-                <option value="limpieza" {% if material.tipo == "limpieza" %}selected {% endif %}>Saneamiento</option>
-                <option value="seguridad" {% if material.tipo == "seguridad" %}selected {% endif %}>Seguridad</option>
-            </select>
-        </div>
-        
+  <section class="al-section" aria-labelledby="hist-titulo">
+    <h2 id="hist-titulo">Consumos de este material</h2>
+    {% if consumos %}
+    <p class="al-section__lead">Tiene <span class="sg-num sg-mono">{{ consumos|length }}</span> asignaci{{ consumos|length|pluralize:"ón,ones" }} registrada{{ consumos|length|pluralize }}. Cada una descontó su cantidad del inventario.</p>
+    <div class="al-hist">
+      <div class="sg-table-wrap sg-table-wrap--free">
+        <table class="sg-table sg-table--dense sg-table--stack">
+          <caption class="sg-visually-hidden">Asignaciones de este material a incidencias, de la más reciente a la más antigua</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="sg-col-n">Nº</th>
+              <th scope="col">Asignado el</th>
+              <th scope="col">Incidencia</th>
+              <th scope="col" class="sg-num">Unidades</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in consumos|slice:":15" %}
+            <tr>
+              <td class="sg-col-n" data-label="Nº">{{ forloop.counter }}</td>
+              <td class="sg-data" data-label="Asignado el">{{ c.fecha_asignacion|date:"d/m/Y H:i" }}</td>
+              <td data-label="Incidencia"><a href="{% url 'incidencias' %}?q={{ c.incidencia_id }}" aria-label="Buscar la incidencia n.º {{ c.incidencia_id }} en Incidencias">n.º {{ c.incidencia_id }}</a></td>
+              <td class="sg-num sg-data" data-label="Unidades">{{ c.cantidad_usada }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+    {% if consumos|length > 15 %}<p class="al-hist__more">Se muestran las 15 más recientes de {{ consumos|length }}.</p>{% endif %}
+    {% else %}
+    <p class="al-section__lead">Este material todavía no se ha asignado a ninguna incidencia.</p>
+    {% endif %}
+  </section>
 
-
-
-
-
+  <section class="al-section" aria-labelledby="baja-titulo">
+    <h2 id="baja-titulo">Retirar del inventario</h2>
+    {% if consumos %}
+    <div class="sg-alert sg-alert--info">
+      {% include 'partials/icon.html' with name='info' %}
+      <div class="sg-alert__body">
+        <span class="sg-alert__title">Este material no se puede eliminar</span>
+        Ya se asignó a {% if consumos|length == 1 %}una incidencia{% else %}{{ consumos|length }} incidencias{% endif %}, y borrarlo perdería el registro de lo consumido. Si ya no se usa, deje su cantidad en 0: quedará agotado y no se podrá asignar más.
+        <div class="sg-cluster">
+          <button type="button" class="sg-btn sg-btn--secondary sg-btn--sm" data-al-cero="m-cantidad">Poner la cantidad en 0</button>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <p class="al-section__lead">Como nunca se asignó a una incidencia, puede eliminarlo sin perder ningún registro. Si solo quiere dejar de usarlo, también puede poner su cantidad en 0.</p>
+    <button type="button" class="sg-btn sg-btn--danger-outline" data-bs-toggle="modal" data-bs-target="#modalEliminarMaterial" data-id="{{ material.id }}" data-nombre="{{ material.nombre }}">{% include 'partials/icon.html' with name='trash' %}Eliminar material</button>
+    {% include 'modalEliminarMaterial.html' %}
+    {% endif %}
+  </section>
 </div>
+{% endwith %}
+{% endblock %}
 
-
-</div>
-
-<div class="d-flex p-5">
-    <div class="px-5">
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    </div>
-
-    <div>
-    <a type="button" class="btn btn-danger" href="{% url 'materiales' %}">Cancelar</a>
-    </div>
-</form>
-</div>
-
-
-
-{%endblock%}
+{% block scripts %}<script src="{% static 'js/validarMateriales.js' %}"></script>{% endblock %}

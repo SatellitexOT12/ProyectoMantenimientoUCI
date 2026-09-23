@@ -1,0 +1,11 @@
+{% comment %}
+Aviso breve que se muestra por JavaScript (no ocupa lugar en la página hasta que se muestra).
+Parámetros: id, message, kind ('info' por defecto, 'warn', 'ok', 'danger').
+Mostrarlo:  SGUM.showToast('id-del-toast')
+Si el mensaje se decide en el momento (p. ej. «Seleccione al menos una incidencia»), no hace falta este parcial:
+  SGUM.toast('Seleccione al menos una incidencia.', { kind: 'warn' })
+{% endcomment %}<div class="sg-toast sg-toast--{{ kind|default:'info' }}" id="{{ id }}" role="status" data-sg-toast hidden>
+  {% if kind == 'danger' or kind == 'warn' %}{% include 'partials/icon.html' with name='alert' %}{% elif kind == 'ok' %}{% include 'partials/icon.html' with name='check' %}{% else %}{% include 'partials/icon.html' with name='info' %}{% endif %}
+  <div class="sg-toast__body">{{ message }}</div>
+  <button type="button" class="btn-close sg-alert__close" data-sg-dismiss aria-label="Cerrar aviso"></button>
+</div>

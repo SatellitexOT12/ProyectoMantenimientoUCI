@@ -1,0 +1,84 @@
+/* ==========================================================================
+   SGUM-UCI · Almacén (inventario de materiales)
+   Requiere tokens.css y sgum.css. Solo añade lo que el sistema no trae.
+   Prefijo al-  (almacén). Sin sombras, sin degradados decorativos, esquinas rectas.
+   ========================================================================== */
+
+/* Panel de alta: se pliega dentro de la lámina (no es un modal).
+   Sin JavaScript se puede abrir con el ancla #registrar (:target). */
+.al-registro { border-bottom: var(--sg-line-strong) solid var(--sg-ink); background: var(--sg-paper); }
+.al-registro[data-cerrado] { display: none; }
+.al-registro[data-cerrado]:target { display: block; }
+.al-registro__body { padding: var(--sg-s-5); }
+.al-registro__title { margin: 0 0 var(--sg-s-1); font-size: var(--sg-fs-xl); }
+.al-registro__lead { margin: 0 0 var(--sg-s-4); color: var(--sg-text-2); max-width: var(--sg-measure); }
+.al-registro .sg-form-error, .al-form .sg-form-error { margin-bottom: var(--sg-s-4); }
+.al-registro .sg-form-actions { margin-top: 0; border-top: 0; padding-inline: 0; padding-bottom: 0; background: transparent; }
+@media (max-width: 575.98px) {
+  .al-registro__body { padding: var(--sg-s-4); }
+}
+
+/* Existencias: cifra tabulada a la derecha, con su aviso escrito a la izquierda */
+.al-qty { display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--sg-s-3); }
+.al-qty__n { font-family: var(--sg-font-mono); font-variant-numeric: tabular-nums; font-size: var(--sg-fs-md); font-weight: var(--sg-fw-semi); }
+.al-qty--agotado .al-qty__n { color: var(--sg-danger-fg); }
+
+/* Aviso de stock: TEXTO + PATRÓN de la marca (nivel de depósito), nunca solo color.
+   bajo = depósito a un tercio · agotado = depósito vacío tachado. */
+.al-stock { --b-bg: var(--sg-warn-bg); --b-fg: var(--sg-warn-fg); --b-line: var(--sg-warn-line); }
+.al-stock--agotado { --b-bg: var(--sg-danger-bg); --b-fg: var(--sg-danger-fg); --b-line: var(--sg-danger-line); }
+.al-stock--bajo .sg-badge__mark { background: linear-gradient(to top, var(--b-line) 36%, transparent 36%); }
+.al-stock--agotado .sg-badge__mark {
+  background:
+    linear-gradient(45deg, transparent calc(50% - 1px), var(--b-line) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    linear-gradient(-45deg, transparent calc(50% - 1px), var(--b-line) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+}
+
+/* Tipo: si el código no está en la lista vigente (dato antiguo), se muestra tal cual */
+.al-tipo:empty::before { content: attr(data-raw); color: var(--sg-text-2); }
+.al-tipo--legado { color: var(--sg-text-2); }
+
+/* Acciones de fila: «Editar» siempre en la misma columna, haya o no botón de eliminar */
+.al-actions { display: inline-grid; grid-template-columns: auto 2.25rem; gap: var(--sg-s-1); justify-content: end; align-items: center; }
+.al-slot { display: block; width: 2.25rem; height: 1px; }
+@media (pointer: coarse) { .al-actions { grid-template-columns: auto var(--sg-control-h); } .al-slot { width: var(--sg-control-h); } }
+@media (max-width: 767.98px) { .al-actions { justify-content: start; } .al-slot { display: none; } .al-actions { grid-template-columns: auto auto; } }
+
+/* Selector sin elegir: se lee como marcador, no como valor */
+.sg-field select[data-al-campo]:required:invalid { color: var(--sg-text-3); }
+.sg-field select[data-al-campo] option { color: var(--sg-text); }
+
+/* Con el panel de alta abierto, el botón del encabezado deja de ser la acción principal (la principal es la del panel) */
+.sg-btn--primary[data-al-abrir][aria-expanded="true"] {
+  --bs-btn-color: var(--sg-ink); --bs-btn-bg: var(--sg-paper); --bs-btn-border-color: var(--sg-ink);
+  --bs-btn-hover-color: var(--sg-ink-deep); --bs-btn-hover-bg: var(--sg-hover); --bs-btn-hover-border-color: var(--sg-ink-deep);
+}
+
+/* Consumos por material */
+.al-consumos { white-space: nowrap; }
+.al-consumos .sg-data { font-weight: var(--sg-fw-semi); }
+
+/* Nota al pie de la tabla: la regla de eliminación */
+.al-note {
+  display: flex; align-items: flex-start; gap: var(--sg-s-2);
+  margin: 0; padding: var(--sg-s-3) var(--sg-s-5);
+  font-size: var(--sg-fs-sm); color: var(--sg-text-2);
+  background: var(--sg-panel); border-top: var(--sg-line) solid var(--sg-grid-strong);
+}
+.al-note .sg-icon { margin-top: 0.125rem; color: var(--sg-ink); }
+.al-note p { margin: 0; max-width: var(--sg-measure); text-wrap: pretty; }
+@media (max-width: 575.98px) { .al-note { padding-inline: var(--sg-s-4); } }
+
+/* Edición: secciones bajo el formulario */
+.al-section { padding: var(--sg-s-5); border-top: var(--sg-line) solid var(--sg-grid); }
+.al-section > h2 { margin-bottom: var(--sg-s-1); font-size: var(--sg-fs-lg); }
+.al-section__lead { margin: 0 0 var(--sg-s-4); color: var(--sg-text-2); max-width: var(--sg-measure); text-wrap: pretty; }
+.al-section .sg-alert { margin-bottom: 0; }
+.al-section .sg-alert .sg-cluster { margin-top: var(--sg-s-3); }
+.al-hist { border: var(--sg-line) solid var(--sg-grid-strong); }
+.al-hist .sg-table-wrap { --sg-table-max: 22rem; }
+.al-hist__more { margin: var(--sg-s-2) 0 0; font-size: var(--sg-fs-sm); color: var(--sg-text-3); }
+@media (max-width: 575.98px) { .al-section { padding: var(--sg-s-4); } }
+
+/* Confirmación de eliminar: el nombre del material va en negrita dentro del texto */
+#modalEliminarMaterial [data-al-nombre] { font-weight: var(--sg-fw-semi); overflow-wrap: anywhere; }

@@ -1,0 +1,121 @@
+/* ==========================================================================
+   SGUM-UCI · Personas: usuarios, edición de cuenta y personal
+   Se carga con {% block extra_head %} en all_usuarios.html, editar_usuario.html
+   y all_personal.html, DESPUÉS de sgum.css. Solo añade lo que el sistema no trae:
+   identidad en la tabla, acciones de fila, panel de alta y ayuda de contraseña.
+   ========================================================================== */
+
+/* Identidad: usuario (dato principal) y nombre debajo ----------------------- */
+.persona-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.persona-id__user { font-weight: var(--sg-fw-semi); color: var(--sg-text); overflow-wrap: anywhere; }
+.persona-id__name { font-size: var(--sg-fs-sm); color: var(--sg-text-2); overflow-wrap: anywhere; }
+.persona-tag {
+  display: inline-block; margin-left: var(--sg-s-2); padding: 0 var(--sg-s-1);
+  font-size: var(--sg-fs-2xs); font-weight: var(--sg-fw-semi); line-height: 1.5;
+  text-transform: uppercase; letter-spacing: var(--sg-track-label);
+  color: var(--sg-text-2); border: var(--sg-line) solid var(--sg-grid-strong); vertical-align: 0.1em;
+}
+.persona-sub { display: block; font-size: var(--sg-fs-xs); color: var(--sg-text-3); }
+.sg-table td.persona-mail { overflow-wrap: anywhere; min-width: 11rem; }
+
+/* La fila recién creada (enlace #usuario-N) se distingue mientras dure el ancla */
+.sg-table tbody tr[id] { scroll-margin-top: calc(var(--sg-nav-h) + 3.5rem); }
+.sg-table tbody tr:target td { background: var(--sg-selected); }
+
+/* Acciones de fila ---------------------------------------------------------
+   Escritorio: «Editar» con texto y dos botones de ícono. Móvil: los tres con texto. */
+.persona-act.sg-btn { gap: var(--sg-s-1); }
+.persona-act--peligro { --bs-btn-color: var(--sg-danger-fg); --bs-btn-hover-color: var(--sg-danger-deep); --bs-btn-hover-bg: var(--sg-danger-bg); --bs-btn-active-bg: var(--sg-danger-bg); }
+.persona-act[aria-disabled="true"] {
+  --bs-btn-color: var(--sg-text-3);
+  color: var(--sg-text-3); background: transparent; border-color: transparent; cursor: not-allowed; pointer-events: auto; opacity: 1;
+}
+.persona-act[aria-disabled="true"]:hover { background: transparent; color: var(--sg-text-3); }
+@media (min-width: 768px) {
+  .persona-act--icono { padding: 0; width: 2.25rem; }
+  .persona-act--icono .persona-act__txt {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+}
+@media (min-width: 768px) and (pointer: coarse) { .persona-act--icono { width: var(--sg-control-h); } }
+@media (max-width: 767.98px) {
+  .sg-table--stack td.sg-col-actions .sg-actions { display: flex; flex-wrap: wrap; gap: var(--sg-s-2); }
+  .persona-act--icono { border-color: var(--sg-grid-strong); }
+}
+
+/* Los botones de fila no parten su texto en dos líneas; en escritorio se alinean en columnas iguales entre filas */
+.sg-col-actions .sg-btn { white-space: nowrap; }
+@media (min-width: 768px) {
+  .sg-actions.persona-fila { display: grid; grid-template-columns: auto 2.25rem 2.25rem; align-items: center; justify-content: end; }
+}
+@media (min-width: 768px) and (pointer: coarse) { .sg-actions.persona-fila { grid-template-columns: auto var(--sg-control-h) var(--sg-control-h); } }
+
+/* En móvil (lista apilada) la insignia mantiene su tamaño en vez de ocupar todo el ancho */
+.sg-table--stack td > .sg-badge { justify-self: start; }
+
+/* Barra de búsqueda y filtros en un solo formulario ------------------------- */
+.persona-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sg-s-2); }
+.persona-filtros .sg-select { width: auto; min-width: 11.5rem; }
+@media (max-width: 767.98px) {
+  .persona-filtros { flex: 1 1 100%; }
+  .persona-filtros .sg-select { flex: 1 1 10rem; }
+}
+
+/* Panel de alta: se despliega dentro de la lámina, sin modal ---------------- */
+.persona-alta { background: var(--sg-panel); border-bottom: var(--sg-line) solid var(--sg-grid-strong); }
+.persona-alta__intro { max-width: var(--sg-measure); margin: 0 0 var(--sg-s-4); color: var(--sg-text-2); text-wrap: pretty; }
+.persona-alta .sg-form-error, .persona-form .sg-form-error { margin-bottom: var(--sg-s-4); }
+.persona-alta .sg-form-error[hidden], .persona-form .sg-form-error[hidden] { display: none; }
+.persona-acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sg-s-2); margin-top: var(--sg-s-4); }
+@media (max-width: 575.98px) { .persona-acciones .sg-btn { flex: 1 1 auto; } }
+
+/* Formularios de edición (grupos dentro de la lámina) ----------------------- */
+.persona-form .sg-section { border-top: var(--sg-line) solid var(--sg-grid); }
+.persona-form .sg-section:first-child { border-top: 0; }
+.persona-form .sg-section > h2 { font-size: var(--sg-fs-lg); }
+.persona-form .sg-section > .persona-nota { margin: calc(-1 * var(--sg-s-2)) 0 var(--sg-s-4); max-width: var(--sg-measure); color: var(--sg-text-2); text-wrap: pretty; }
+.persona-form .sg-form-actions { border-top: var(--sg-line-strong) solid var(--sg-ink); }
+.persona-ficha { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sg-s-2) var(--sg-s-4); margin-top: var(--sg-s-2); font-size: var(--sg-fs-sm); color: var(--sg-text-2); }
+.persona-ficha dt { display: inline; font-weight: var(--sg-fw-semi); color: var(--sg-text-3); }
+.persona-ficha dd { display: inline; margin: 0 0 0 var(--sg-s-1); }
+.persona-ficha div { display: inline-flex; align-items: center; }
+.persona-aviso { margin: 0 0 var(--sg-s-4); }
+
+/* Ayuda de contraseña: requisitos y seguridad -------------------------------- */
+.sg-field.pw-cell { grid-column: span 12; cursor: default; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--sg-s-3) var(--sg-s-6); align-items: start; padding-block: var(--sg-s-3); }
+.sg-field.pw-cell:hover { background: var(--sg-paper); }
+@media (max-width: 767.98px) { .sg-field.pw-cell { grid-template-columns: minmax(0, 1fr); } }
+.pw-title { margin: 0 0 var(--sg-s-2); font-size: var(--sg-fs-sm); font-weight: var(--sg-fw-semi); color: var(--sg-text-2); }
+.pw-reglas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sg-s-1); font-size: var(--sg-fs-sm); color: var(--sg-text-2); }
+.pw-reglas li { display: flex; gap: var(--sg-s-2); align-items: flex-start; line-height: 1.4; }
+.pw-mark {
+  flex: none; width: 1rem; height: 1rem; margin-top: 0.125rem;
+  border: 1.5px solid var(--sg-line-control); background: var(--sg-paper) center / 100% no-repeat;
+  transition: background-color var(--sg-dur-fast) var(--sg-ease), border-color var(--sg-dur-fast) var(--sg-ease);
+}
+/* Requisito que solo el servidor puede comprobar: guion, sin estado */
+.pw-reglas li.is-info .pw-mark { border-color: var(--sg-grid-strong); background-image: linear-gradient(var(--sg-line-control), var(--sg-line-control)); background-size: 50% 1.5px; }
+.pw-reglas li.is-ok { color: var(--sg-text); }
+.pw-reglas li.is-ok .pw-mark {
+  background-color: var(--sg-ink); border-color: var(--sg-ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='square'%3E%3Cpath d='M5 12.5l5 5L19.5 7'/%3E%3C/svg%3E");
+  background-size: 100%;
+}
+.pw-fuerza { display: flex; flex-direction: column; gap: var(--sg-s-2); }
+.pw-meter { display: flex; gap: 3px; }
+.pw-meter i { flex: 1 1 0; height: 0.5rem; background: transparent; box-shadow: inset 0 0 0 1px var(--sg-grid-strong); transition: background-color var(--sg-dur-fast) var(--sg-ease); }
+.pw-meter[data-nivel="1"] i:nth-child(-n+1),
+.pw-meter[data-nivel="2"] i:nth-child(-n+2),
+.pw-meter[data-nivel="3"] i:nth-child(-n+3),
+.pw-meter[data-nivel="4"] i:nth-child(-n+4) { background: var(--sg-ink); box-shadow: none; }
+.pw-nivel { margin: 0; font-size: var(--sg-fs-sm); color: var(--sg-text-2); }
+.pw-nivel strong { color: var(--sg-text); font-weight: var(--sg-fw-semi); }
+.pw-aviso { margin: 0; font-size: var(--sg-fs-xs); color: var(--sg-text-3); }
+
+/* Texto explicativo dentro de una celda de solo lectura */
+.persona-explica { margin: 0; font-size: var(--sg-fs-sm); line-height: 1.4; color: var(--sg-text-2); text-wrap: pretty; }
+.persona-explica + .persona-explica { margin-top: var(--sg-s-1); }
+
+/* Personal: incidencia abierta más reciente ----------------------------------- */
+.persona-incidencia { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.persona-incidencia__sub { font-size: var(--sg-fs-sm); color: var(--sg-text-2); overflow-wrap: anywhere; }

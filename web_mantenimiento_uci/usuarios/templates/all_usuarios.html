@@ -1,237 +1,136 @@
 {% extends "master.html" %}
 {% load static %}
-    {% block title%}
-    Gestionar Usuarios
-    {%endblock%}
+{% comment %}
+Usuarios (administrador). Lista con búsqueda y filtros por rol y estado de la cuenta, alta en un panel
+dentro de la lámina, y acciones por fila: editar, desactivar o reactivar (POST a cambiar_activo_usuario) y eliminar.
+Contexto del backend: page_obj (cada fila trae rol_codigo, rol_display, es_propio, puede_cambiar_activo), q, rol_filtro,
+activo_filtro, roles, password_ayuda. Los avisos de Django (messages) los pinta master.html.
+Comportamiento: static/sgum/pages/personas.js.
+{% endcomment %}
+{% block title %}Usuarios{% endblock %}
 
-    {%block content%}
-    <div class="container-fluid mt-3 px-4">
-        <div class="row container">
-        <div class="col"><h1>Gestionar Usuarios</h1></div>
-        <div class="col d-flex flex-row-reverse p-3 ">
-            <button class="btn btn-danger mx-5" type="button" onclick="validarSeleccion()">
-            Eliminar
-            </button>
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/personas.css' %}">{% endblock %}
 
-            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#ModalRegistrar" type="button">Registrar</button>
+{% block content %}
+{% include 'persona_iconos.html' %}
+{% firstof q rol_filtro activo_filtro as filtrando %}
+<div class="sg-sheet">
+    <header class="sg-page-head">
+        <div class="sg-page-head__main">
+            <h1 class="sg-page-head__title">Usuarios</h1>
+            <p class="sg-page-head__desc">Cuentas de acceso al sistema: registre usuarios, asigne su rol y desactive las cuentas que ya no deban entrar.</p>
+            <p class="sg-page-head__count"><span class="sg-num">{{ page_obj.paginator.count }}</span> usuario{{ page_obj.paginator.count|pluralize }}{% if filtrando %} con los filtros aplicados{% endif %}</p>
         </div>
-
-        {% include 'modalRegistrarUsuario.html' %}
-        {% include 'modalEliminarUsuario.html' %}
-            
+        <div class="sg-page-head__actions">
+            <button type="button" class="sg-btn sg-btn--primary" id="btn-alta" aria-expanded="false" aria-controls="alta-usuario">{% include 'partials/icon.html' with name='plus' %}Registrar usuario</button>
         </div>
-        <form id="eliminar_usuario" method="post" action="{% url 'usuarios' %}">
-            {% csrf_token %}
-            <input type="hidden" id="action" name="action" value="">
-            
-        <table class="table table-hover" id="userTable">
+    </header>
+
+    {% include 'persona_alta.html' %}
+
+    <form class="sg-toolbar" method="get" role="search" action="{% url 'usuarios' %}">
+        <div class="sg-search">
+            <div class="sg-search__field">
+                {% include 'partials/icon.html' with name='search' %}
+                <label class="sg-visually-hidden" for="sg-q">Buscar usuarios</label>
+                <input class="sg-input" type="search" id="sg-q" name="q" value="{{ q }}" placeholder="Buscar por usuario, nombre o correo" autocomplete="off" enterkeyhint="search">
+                {% if q %}<a class="sg-btn sg-btn--ghost sg-btn--icon sg-search__clear" href="{% url 'usuarios' %}{% if rol_filtro or activo_filtro %}?{% if rol_filtro %}rol={{ rol_filtro }}{% endif %}{% if rol_filtro and activo_filtro %}&amp;{% endif %}{% if activo_filtro %}activo={{ activo_filtro }}{% endif %}{% endif %}" data-sg-clear aria-label="Limpiar búsqueda">{% include 'partials/icon.html' with name='x' %}</a>{% endif %}
+            </div>
+            <button class="sg-btn sg-btn--secondary" type="submit">Buscar</button>
+        </div>
+        <div class="persona-filtros">
+            <label class="sg-visually-hidden" for="filtro-rol">Filtrar por rol</label>
+            <select class="sg-select" id="filtro-rol" name="rol">
+                <option value="">Todos los roles</option>
+                {% for codigo, nombre in roles %}<option value="{{ codigo }}"{% if rol_filtro == codigo %} selected{% endif %}>{{ nombre }}</option>{% endfor %}
+            </select>
+            <label class="sg-visually-hidden" for="filtro-activo">Filtrar por estado de la cuenta</label>
+            <select class="sg-select" id="filtro-activo" name="activo">
+                <option value="">Todas las cuentas</option>
+                <option value="1"{% if activo_filtro == '1' %} selected{% endif %}>Solo activas</option>
+                <option value="0"{% if activo_filtro == '0' %} selected{% endif %}>Solo desactivadas</option>
+            </select>
+        </div>
+        {% if filtrando and page_obj.object_list %}<a class="sg-btn sg-btn--ghost" href="{% url 'usuarios' %}">Quitar filtros</a>{% endif %}
+    </form>
+
+    {% if page_obj.object_list %}
+    <div class="sg-table-wrap">
+        <table class="sg-table sg-table--stack">
+            <caption class="sg-visually-hidden">Usuarios registrados</caption>
             <thead>
-                <tr class="table-dark">
-                    <th>Usuario</th>
-                    <th>Correo</th>
-                    <th>Activo</th>
-                    <th>Última Conexión</th>
-                    <th>Fecha de Creación</th>
-                    <th>Seleccionar Todos
-                        <input class="form-check-input checkbox" type="checkbox" id="selectAll" onclick="toggleCheckboxes(this)">
-                    </th>
-                    <th>Modificar</th>
+                <tr>
+                    <th class="sg-col-n" scope="col">Nº</th>
+                    <th scope="col">Usuario</th>
+                    <th scope="col">Correo</th>
+                    <th scope="col">Rol</th>
+                    <th scope="col">Cuenta</th>
+                    <th scope="col">Último acceso</th>
+                    <th scope="col">Alta</th>
+                    <th class="sg-col-actions" scope="col"><span class="sg-visually-hidden">Acciones</span></th>
                 </tr>
             </thead>
-
-                
             <tbody>
-            {% for x in page_obj %}
-            <tr>
-                <td>{{x.username}}</td>
-                <td>{{x.email}}</td>
-                <td>
-                    {% if x.is_active %}
-                        Activo
-                    {% else %}
-                    Inactivo
-                    {% endif %}
-                </td>
-                <td>{{x.last_login}}</td>
-                <td>{{x.date_joined}}</td>
-                <td> 
-                    <div class="form-check d-flex justify-content-center align-items-centerdiv">
-                        <input class="form-check-input checkbox" type="checkbox" id="checkbox" name="ids" value="{{x.id}}" >
-                    </div>            
-                </td>
-                <td>
-                    <a class="nav-link"  href="{% url 'editar_usuario' x.id %}">Editar...</a>
-                </td>
-            </tr>
-            {% endfor %}
+                {% for x in page_obj %}
+                <tr id="usuario-{{ x.id }}">
+                    <td class="sg-col-n" data-label="Nº">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                    <td data-label="Usuario">
+                        <div class="persona-id">
+                            <span class="persona-id__user">{{ x.username }}{% if x.es_propio %}<span class="persona-tag">Su cuenta</span>{% endif %}</span>
+                            <span class="persona-id__name">{% if x.get_full_name %}{{ x.get_full_name }}{% else %}<span class="sg-muted">Sin nombre registrado</span>{% endif %}</span>
+                        </div>
+                    </td>
+                    <td class="persona-mail" data-label="Correo">{% if x.email %}{{ x.email }}{% else %}<span class="sg-muted">Sin correo</span>{% endif %}</td>
+                    <td data-label="Rol">{{ x.rol_display }}{% if x.is_superuser %}<span class="persona-sub">Superusuario</span>{% endif %}</td>
+                    <td data-label="Cuenta">{% include 'persona_cuenta.html' with activo=x.is_active %}</td>
+                    <td class="sg-data" data-label="Último acceso">{% if x.last_login %}{{ x.last_login|date:"d/m/Y H:i" }}{% else %}<span class="sg-muted">Nunca</span>{% endif %}</td>
+                    <td class="sg-data" data-label="Alta">{{ x.date_joined|date:"d/m/Y" }}</td>
+                    <td class="sg-col-actions">
+                        <div class="sg-actions persona-fila">
+                            <a class="sg-btn sg-btn--secondary sg-btn--sm persona-act" href="{% url 'editar_usuario' x.id %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">{% include 'partials/icon.html' with name='edit' class='sg-icon--sm' %}<span>Editar<span class="sg-visually-hidden"> usuario {{ x.username }}</span></span></a>
+
+                            {% if x.puede_cambiar_activo %}
+                                {% if x.is_active %}
+                                <button type="button" class="sg-btn sg-btn--ghost sg-btn--sm persona-act persona-act--icono" data-bs-toggle="modal" data-bs-target="#confirmarDesactivar" data-url="{% url 'cambiar_activo_usuario' x.id %}" data-usuario="{{ x.username }}" title="Desactivar cuenta">{% include 'partials/icon.html' with name='lock' class='sg-icon--sm' %}<span class="persona-act__txt">Desactivar<span class="sg-visually-hidden"> la cuenta de {{ x.username }}</span></span></button>
+                                {% else %}
+                                <form method="post" action="{% url 'cambiar_activo_usuario' x.id %}" data-sg-loading>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="is_active" value="1">
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit" class="sg-btn sg-btn--ghost sg-btn--sm persona-act persona-act--icono" title="Reactivar cuenta">{% include 'partials/icon.html' with name='unlock' class='sg-icon--sm' %}<span class="persona-act__txt">Reactivar<span class="sg-visually-hidden"> la cuenta de {{ x.username }}</span></span></button>
+                                </form>
+                                {% endif %}
+                                <button type="button" class="sg-btn sg-btn--ghost sg-btn--sm persona-act persona-act--icono persona-act--peligro" data-bs-toggle="modal" data-bs-target="#confirmarEliminar" data-url="{% url 'usuarios' %}" data-id="{{ x.id }}" data-usuario="{{ x.username }}" title="Eliminar cuenta">{% include 'partials/icon.html' with name='trash' class='sg-icon--sm' %}<span class="persona-act__txt">Eliminar<span class="sg-visually-hidden"> la cuenta de {{ x.username }}</span></span></button>
+                            {% else %}
+                                {% if x.es_propio %}{% firstof "No puede desactivar ni eliminar su propia cuenta. Pídale a otro administrador que lo haga." as motivo %}{% else %}{% firstof "Solo otro superusuario puede desactivar o eliminar esta cuenta." as motivo %}{% endif %}
+                                <button type="button" class="sg-btn sg-btn--ghost sg-btn--sm persona-act persona-act--icono" aria-disabled="true" data-motivo="{{ motivo }}" title="{{ motivo }}">{% include 'partials/icon.html' with name='lock' class='sg-icon--sm' %}<span class="persona-act__txt">Desactivar<span class="sg-visually-hidden"> la cuenta de {{ x.username }} (no disponible: {{ motivo }})</span></span></button>
+                                <button type="button" class="sg-btn sg-btn--ghost sg-btn--sm persona-act persona-act--icono" aria-disabled="true" data-motivo="{{ motivo }}" title="{{ motivo }}">{% include 'partials/icon.html' with name='trash' class='sg-icon--sm' %}<span class="persona-act__txt">Eliminar<span class="sg-visually-hidden"> la cuenta de {{ x.username }} (no disponible: {{ motivo }})</span></span></button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
-            </form>
         </table>
-
-        {% include 'paginacion.html' %}
-
-        </form>
-
-        <!-- Mensaje tipo Toast -->
-<div class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="polite" aria-atomic="true" id="toastSeleccionar">
-    <div class="d-flex">
-        <div class="toast-body bg-warning">
-            Debes seleccionar al menos 1 usuario para eliminar.
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
+    {% include 'paginacion.html' %}
+    {% elif filtrando %}
+    {% include 'partials/empty.html' with icon='search' title='Ningún usuario coincide' text='Revise la búsqueda o pruebe con otro rol o estado de cuenta.' action2_url=request.path action2_label='Quitar filtros' %}
+    {% else %}
+    {% include 'partials/empty.html' with icon='users' title='Aún no hay usuarios' text='Registre la primera cuenta para que pueda entrar al sistema.' action_url='#registrar' action_label='Registrar usuario' action_icon='plus' %}
+    {% endif %}
 </div>
 
-    </div>
+{# Formulario compartido por las confirmaciones: personas.js le pone la URL y los campos del botón que abrió el modal #}
+<form id="usuario-accion" method="post" action="{% url 'usuarios' %}" data-sg-loading hidden>
+    {% csrf_token %}
+    <input type="hidden" name="is_active" value="0" disabled>
+    <input type="hidden" name="action" value="delete" disabled>
+    <input type="hidden" name="ids" value="" disabled>
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+</form>
+{% include 'partials/modal_confirm.html' with id='confirmarDesactivar' title='¿Desactivar esta cuenta?' text='La persona ya no podrá iniciar sesión.' detail='Sus incidencias, solicitudes y notificaciones se conservan.' confirm_label='Desactivar cuenta' form='usuario-accion' safe=True %}
+{% include 'partials/modal_confirm.html' with id='confirmarEliminar' title='¿Eliminar esta cuenta?' text='Se borrará la cuenta de forma permanente.' detail='Si tiene incidencias registradas o atendidas no se eliminará: desactívela para conservar el historial.' confirm_label='Eliminar cuenta' form='usuario-accion' %}
+{% endblock %}
 
-
-
-<script src="{% static 'js/scripts.js'  %}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('registroForm');
-    const camposValidacion = [
-        { inputId: 'username', errorId: 'errorUsuario' },
-        { inputId: 'name', errorId: 'errorNombre' },
-        { inputId: 'lastname', errorId: 'errorApellido' }
-    ];
-
-    const password = document.getElementById('password');
-    const confirmPassword = document.getElementById('confirmPassword');
-    const errorMessage = document.getElementById('error-message');
-
-    // Validación de campo texto
-    function validarCampoTexto(inputId, errorId) {
-        const input = document.getElementById(inputId);
-        const errorElement = document.getElementById(errorId);
-        const valor = input.value.trim();
-
-        if (valor === '') {
-            input.classList.add('is-invalid');
-            input.classList.remove('is-valid');
-            errorElement.textContent = 'Este campo es obligatorio';
-            return false;
-        }
-
-        const regex = inputId === 'username'
-            ? /^[a-zA-Z0-9À-ÿ\u00f1\u00d1\s]+$/
-            : /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/;
-
-        if (!regex.test(valor)) {
-            input.classList.add('is-invalid');
-            input.classList.remove('is-valid');
-            errorElement.textContent = inputId === 'username'
-                ? 'No se permiten caracteres especiales'
-                : 'No se permiten caracteres especiales ni números';
-
-            return false;
-        }
-
-        input.classList.remove('is-invalid');
-        input.classList.add('is-valid');
-        errorElement.textContent = '';
-        return true;
-    }
-
-    // Validación de contraseñas
-    function validarContraseñas() {
-        if (password.value !== confirmPassword.value) {
-            confirmPassword.classList.add('is-invalid');
-            confirmPassword.classList.remove('is-valid');
-            errorMessage.style.display = 'block';
-            return false;
-        }
-
-        confirmPassword.classList.remove('is-invalid');
-        confirmPassword.classList.add('is-valid');
-        errorMessage.style.display = 'none';
-        return true;
-    }
-
-    // Validación general antes de enviar
-    function validarFormulario() {
-        let esValido = true;
-
-        camposValidacion.forEach(campo => {
-            if (!validarCampoTexto(campo.inputId, campo.errorId)) {
-                esValido = false;
-            }
-        });
-
-        if (!validarContraseñas()) {
-            esValido = false;
-        }
-
-        return esValido;
-    }
-
-    // Submit con AJAX
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();  // Evitar submit tradicional
-        e.stopPropagation();
-
-        // Ejecutar todas las validaciones frontend
-        if (!validarFormulario()) {
-            form.classList.add('was-validated');
-            return;
-        }
-
-        // Si pasa validación frontend → Enviar con fetch()
-        const formData = new FormData(form);
-
-        fetch("{% url 'usuarios' %}", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            const errorContainer = document.getElementById("error-container");
-            const errorUsuario = document.getElementById("error-usuario");
-            const errorEmail = document.getElementById("error-email");
-
-            errorContainer.style.display = "none";
-            errorUsuario.style.display = "none";
-            errorEmail.style.display = "none";
-
-            if (data.errors) {
-                if (data.errors.usuario) {
-                    errorUsuario.textContent = data.errors.usuario;
-                    errorUsuario.style.display = "block";
-                }
-                if (data.errors.email) {
-                    errorEmail.textContent = data.errors.email;
-                    errorEmail.style.display = "block";
-                }
-                if (data.errors.general) {
-                    errorContainer.textContent = data.errors.general;
-                    errorContainer.style.display = "block";
-                }
-            } else if (data.success) {
-                alert("Usuario creado exitosamente.");
-                $('#ModalRegistrar').modal('hide');
-                location.reload();  // O mejor aún, actualizar tabla dinámicamente
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById("error-container").textContent = "Ocurrió un error al procesar la solicitud.";
-            document.getElementById("error-container").style.display = "block";
-        });
-    });
-});
-
-function validarSeleccion() {
-    const checkboxes = document.querySelectorAll('input[name="ids"]:checked');
-
-    if (checkboxes.length === 0) {
-        // Muestra el toast si no hay selección
-        mostrarToast();
-        return;
-    }
-
-    // Si hay elementos seleccionados → abre el modal
-    $('#ModalEliminar').modal('show');
-}
-</script>
-
-    {%endblock%}
+{% block scripts %}<script src="{% static 'sgum/pages/personas.js' %}"></script>{% endblock %}

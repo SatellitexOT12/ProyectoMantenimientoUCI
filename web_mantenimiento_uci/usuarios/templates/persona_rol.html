@@ -1,0 +1,18 @@
+{% comment %}
+Dos celdas de cajetín: selector de rol (nombres legibles; «cliente» se muestra «Solicitante») y, a su derecha,
+qué puede hacer el rol elegido (se actualiza al cambiar, ver personas.js).
+Parámetros: id, nuevo (rol escrito, si el formulario volvió con errores), anterior (rol guardado o por defecto),
+            error, disabled (bool), nota (aviso extra bajo la descripción).
+Requiere en el contexto «roles» = [(código, nombre visible)].
+{% endcomment %}<div class="sg-field sg-field--6{% if error %} is-error{% endif %}{% if disabled %} is-disabled{% endif %}">
+  <label class="sg-field__label" for="{{ id }}"><span>Rol</span></label>
+  <select id="{{ id }}" name="rol" required{% if disabled %} disabled{% endif %}{% if error %} aria-invalid="true" aria-describedby="{{ id }}-msg"{% endif %}>
+    {% for codigo, nombre in roles %}<option value="{{ codigo }}" data-desc="{% if codigo == 'administrador' %}Gestiona usuarios, personal, materiales y todas las incidencias.{% elif codigo == 'tecnico' %}Atiende las incidencias que se le asignan y actualiza su estado.{% elif codigo == 'almacenero' %}Controla el inventario y asigna materiales a las incidencias.{% else %}Reporta incidencias y sigue su estado.{% endif %}"{% if codigo == nuevo or not nuevo and codigo == anterior %} selected{% endif %}>{{ nombre }}</option>{% endfor %}
+  </select>
+  {% if error %}<p class="sg-field__msg" id="{{ id }}-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ error }}</span></p>{% endif %}
+</div>
+<div class="sg-field sg-field--6 sg-field--static">
+  <span class="sg-field__label"><span>Qué puede hacer</span></span>
+  <p class="persona-explica" data-rol-desc></p>
+  {% if nota %}<p class="persona-explica persona-explica--nota">{{ nota }}</p>{% endif %}
+</div>

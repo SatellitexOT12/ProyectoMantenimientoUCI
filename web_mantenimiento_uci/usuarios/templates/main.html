@@ -1,317 +1,282 @@
 {% extends "master.html" %}
 {% load static %}
-
-{% block title %}
-MainPage
-{% endblock %}
-
-<style>
-    /* Estilos personalizados */
-    .service-card {
-        transition: transform 0.3s ease;
-    }
-    .service-card:hover {
-        transform: translateY(-10px);
-    }
-
-    .role-title {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .role-description {
-        font-style: italic;
-        color: #6c757d;
-    }
-</style>
+{% comment %}
+Portada: pantalla de trabajo por rol. Datos de la vista `main` (ver .impeccable/agents/backend-contract.md §3.3).
+Un usuario con varios roles ve los bloques de cada uno, en este orden: administrador, técnico, almacenero.
+Listas opcionales que la vista aún no envía (ver .impeccable/agents/requests-portada.md): materiales_bajos, asignaciones_recientes.
+Los tamaños de los documentos (KB) son los de los archivos actuales de static/docs/: actualícelos si se sustituyen.
+{% endcomment %}
+{% block title %}Inicio{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/portada.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container p-5 my-5 bg-dark text-white rounded">
-    <h1>Mantenimiento UCI</h1>
-    <p>Sistema de gestión de mantenimiento de la Universidad de Ciencias Informáticas</p>
-</div>
+{% url 'reportar_incidencia' as url_reportar %}
+<div class="sg-sheet">
 
-<!-- Contenido dinámico por rol -->
-<div class="container py-5">
-    {% if is_admin %}
-    <div class="text-center mb-5">
-        <h2 class="role-title">Panel del Administrador</h2>
-        <p class="role-description">Gestiona usuarios, incidencias, materiales y reportes.</p>
+  <header class="sg-page-head">
+    <div class="sg-page-head__main">
+      <h1 class="sg-page-head__title">Inicio</h1>
+      <p class="sg-page-head__desc">{% if is_admin %}Lo que requiere su acción, de lo más urgente a lo menos urgente.{% elif is_tecnico %}Sus incidencias abiertas, de mayor a menor prioridad.{% elif is_almacenero %}Existencias que necesitan reposición e incidencias donde asignar materiales.{% else %}Siga el estado de sus incidencias o registre una nueva.{% endif %}</p>
+      <p class="sg-page-head__count">Datos al <span class="sg-mono">{% now "d/m/Y H:i" %}</span></p>
     </div>
-
-    <div class="row">
-        <!-- Gestión de Usuarios -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Usuarios</h4>
-                    <p class="card-text flex-grow-1">Administra usuarios y roles del sistema.</p>
-                    <a href="{% url 'usuarios' %}" class="btn btn-primary mt-auto">Ver Usuarios</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Incidencias -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Incidencias</h4>
-                    <p class="card-text flex-grow-1">Revisa, asigna y gestiona todas las incidencias del sistema.</p>
-                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Incidencias</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Materiales -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Materiales</h4>
-                    <p class="card-text flex-grow-1">Controla el inventario de materiales y realiza reportes.</p>
-                    <a href="/materiales" class="btn btn-primary mt-auto">Ver Materiales</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dashboard -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Dashboard</h4>
-                    <p class="card-text flex-grow-1">Visualiza estadísticas, gráficos y reportes completos.</p>
-                    <a href="/reportes" class="btn btn-primary mt-auto">Ir al Dashboard</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Soporte técnico -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Solicitudes de Soporte</h4>
-                    <p class="card-text flex-grow-1">Revisa y responde solicitudes de soporte técnico.</p>
-                    <a href="/soporte" class="btn btn-primary mt-auto">Ver Solicitudes</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Personal -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Personal </h4>
-                    <p class="card-text flex-grow-1">Revisa el listado del personal de mantenimiento.</p>
-                    <a href="/personal" class="btn btn-primary mt-auto">Ver Personal</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% elif is_almacenero %}
-    <div class="text-center mb-5">
-        <h2 class="role-title">Área del Almacenero</h2>
-        <p class="role-description">Gestiona materiales y verifica incidencias.</p>
-    </div>
-
-    <div class="row">
-        <!-- Materiales -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Materiales</h4>
-                    <p class="card-text flex-grow-1">Gestiona el inventario de materiales.</p>
-                    <a href="/materiales" class="btn btn-primary mt-auto">Ver Materiales</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Incidencias -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Incidencias</h4>
-                    <p class="card-text flex-grow-1">Consulta las incidencias y su estado actual.</p>
-                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Incidencias</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% elif is_tecnico %}
-    <div class="text-center mb-5">
-        <h2 class="role-title">Área del Técnico</h2>
-        <p class="role-description">Gestiona tus incidencias asignadas y marca como resueltas.</p>
-    </div>
-
-    <div class="row">
-        <!-- Mis Incidencias -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Mis Incidencias</h4>
-                    <p class="card-text flex-grow-1">Ve las incidencias que te han sido asignadas.</p>
-                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Incidencias</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bandeja de Soporte -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Soporte Técnico</h4>
-                    <p class="card-text flex-grow-1">Responde preguntas o detalles sobre incidencias técnicas.</p>
-                    <a href="/soporte" class="btn btn-primary mt-auto">Ver Soporte</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% elif is_cliente %}
-    <div class="text-center mb-5">
-        <h2 class="role-title">Área del Cliente</h2>
-        <p class="role-description">Reporta incidencias y revisa el estado de tus solicitudes.</p>
-    </div>
-
-    <div class="row justify-content-center">
-        <!-- Reportar Incidencia -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Reportar Incidencia</h4>
-                    <p class="card-text flex-grow-1">Describe el problema que estás teniendo.</p>
-                    <a href="/reportar_incidencia" class="btn btn-primary mt-auto">Nueva Incidencia</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mis Incidencias -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">Mis Incidencias</h4>
-                    <p class="card-text flex-grow-1">Revisa el estado de tus incidencias.</p>
-                    <a href="/incidencias" class="btn btn-primary mt-auto">Ver Mis Incidencias</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% else %}
-    <div class="text-center mb-5">
-        <h2 class="role-title">Bienvenido</h2>
-        <p class="role-description">Por favor contacta al administrador si no tienes un rol definido.</p>
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card h-100 service-card">
-                <div class="card-body d-flex flex-column">
-                    <h4 class="card-title">¿Eres nuevo?</h4>
-                    <p class="card-text flex-grow-1">Pide al administrador que te asigne un rol para poder acceder a más funcionalidades.</p>
-                    <a href="#" class="btn btn-secondary mt-auto">Contactar Admin</a>
-                </div>
-            </div>
-        </div>
+    {% if is_cliente %}
+    <div class="sg-page-head__actions">
+      <a class="sg-btn sg-btn--primary sg-btn--lg" href="{% url 'reportar_incidencia' %}">{% include 'partials/icon.html' with name='plus' %}Registrar incidencia</a>
     </div>
     {% endif %}
-</div>
+  </header>
 
-<!-- Sección de Documentación -->
-<div class="container py-5">
-    <h3 class="text-center mb-4">Documentación del Sistema</h3>
-    <p class="text-center text-muted mb-4">Aquí puedes encontrar guías, manuales y soporte técnico.</p>
+  <div class="pt-layout">
+    <div class="pt-main">
 
-    <div class="row justify-content-center">
-        <!-- Manual de Usuario -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm service-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Manual de Usuario</h5>
-                    <p class="card-text flex-grow-1">Guía completa sobre cómo usar el sistema de incidencias y soporte técnico.</p>
-                    <a href="{% static 'docs/manual_usuario.pdf' %}" 
-                       class="btn btn-outline-primary mt-auto" 
-                       target="_blank">
-                        <i class="fas fa-book me-2"></i>Ver Manual
-                    </a>
-                </div>
+      {# ---------------------------------------------------------------- Administrador #}
+      {% if is_admin %}
+        {% if conteos.total == 0 %}
+        <section class="pt-block" aria-label="Sin incidencias">
+          {% include 'partials/empty.html' with icon='inbox' title='Aún no hay incidencias registradas' text='Cuando un solicitante registre una incidencia aparecerá aquí para que usted confirme su prioridad y le asigne un técnico. También puede registrar la primera usted mismo.' action_url=url_reportar action_label='Registrar incidencia' action_icon='plus' %}
+        </section>
+        {% elif conteos.sin_tecnico or conteos.sin_confirmar or soporte_pendientes %}
+
+          {% if conteos.sin_tecnico %}
+          <section class="pt-block" aria-labelledby="pt-sin-tecnico">
+            <div class="pt-block__head">
+              <h2 id="pt-sin-tecnico">Sin técnico asignado</h2>
+              <span class="pt-total" aria-label="{{ conteos.sin_tecnico }} incidencias">{{ conteos.sin_tecnico }}</span>
+              <a class="pt-block__more" href="{% url 'incidencias' %}?tecnico=sin&amp;orden=prioridad" aria-label="Ver todas las incidencias sin técnico">Ver todas</a>
             </div>
-        </div>
+            <p class="pt-block__hint">Asigne un técnico a cada una. Van primero las de prioridad alta y, dentro de cada prioridad, las más antiguas.</p>
+            {% include 'portada_incidencias.html' with rows=incidencias_sin_tecnico|slice:":6" mode='sin_tecnico' caption='Incidencias sin técnico asignado' %}
+            {% if conteos.sin_tecnico > 6 %}<p class="pt-block__foot">Se muestran las 6 más urgentes de {{ conteos.sin_tecnico }}.</p>{% endif %}
+          </section>
+          {% endif %}
 
-        <!-- Guía Rápida -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm service-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Guía Rápida</h5>
-                    <p class="card-text flex-grow-1">Aprende lo básico del sistema en menos de 5 minutos.</p>
-                    <a href="{% static 'docs/guia_rapida.pdf' %}" 
-                       class="btn btn-outline-success mt-auto"
-                       target="_blank">
-                        <i class="fas fa-file-pdf me-2"></i>Descargar Guía
-                    </a>
-                </div>
+          {% if conteos.sin_confirmar %}
+          <section class="pt-block" aria-labelledby="pt-sin-confirmar">
+            <div class="pt-block__head">
+              <h2 id="pt-sin-confirmar">Prioridad por confirmar</h2>
+              <span class="pt-total" aria-label="{{ conteos.sin_confirmar }} incidencias">{{ conteos.sin_confirmar }}</span>
+              <a class="pt-block__more" href="{% url 'incidencias' %}?confirmada=0&amp;orden=prioridad" aria-label="Ver todas las incidencias con prioridad por confirmar">Ver todas</a>
             </div>
-        </div>
+            <p class="pt-block__hint">El solicitante propuso la prioridad. Confírmela con un clic o cámbiela con el lápiz.</p>
+            {% include 'portada_incidencias.html' with rows=incidencias_sin_confirmar|slice:":6" mode='confirmar' caption='Incidencias con prioridad por confirmar' %}
+            {% if conteos.sin_confirmar > 6 %}<p class="pt-block__foot">Se muestran las 6 más urgentes de {{ conteos.sin_confirmar }}.</p>{% endif %}
+          </section>
+          {% endif %}
 
-        <!-- Preguntas Frecuentes -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm service-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Preguntas Frecuentes</h5>
-                    <p class="card-text flex-grow-1">Encuentra respuestas rápidas a las preguntas más comunes.</p>
-                    <a href="{% static 'docs/faqs.pdf' %}" 
-                       class="btn btn-outline-info mt-auto"
-                       target="_blank">
-                        <i class="fas fa-question-circle me-2"></i>Ver FAQ
-                    </a>
-                </div>
+          {% if soporte_pendientes %}
+          <section class="pt-block" aria-labelledby="pt-soporte">
+            <div class="pt-block__head">
+              <h2 id="pt-soporte">Soporte pendiente</h2>
+              <span class="pt-total" aria-label="{{ soporte_pendientes }} solicitudes">{{ soporte_pendientes }}</span>
             </div>
-        </div>
+            <p class="pt-block__hint">Hay {{ soporte_pendientes }} solicitud{{ soporte_pendientes|pluralize:"es" }} de soporte sin completar. Ábralas para responder o cerrarlas.</p>
+            <a class="sg-btn sg-btn--secondary" href="{% url 'bandeja_entrada_soporte' %}">Abrir la bandeja de soporte</a>
+          </section>
+          {% endif %}
 
-        <!-- Contacto con Soporte -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm service-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Soporte Técnico</h5>
-                    <p class="card-text flex-grow-1">¿Tienes dudas? Contáctanos por correo o chat.</p>
-                    <a href="/soporte" 
-                       class="btn btn-outline-secondary mt-auto"
-                       target="_blank">
-                        <i class="fas fa-envelope me-2"></i>Contactar Soporte
-                    </a>
-                </div>
+        {% else %}
+        <section class="pt-block" aria-labelledby="pt-al-dia">
+          <div class="pt-none">
+            <div class="pt-none__mark" aria-hidden="true">{% include 'partials/icon.html' with name='check' %}</div>
+            <div>
+              <h2 id="pt-al-dia">Nada pendiente de su parte</h2>
+              <p>Todas las incidencias abiertas tienen técnico y prioridad confirmada, y no hay solicitudes de soporte sin completar. Revise cómo avanzan o consulte las estadísticas.</p>
+              <div class="sg-cluster">
+                <a class="sg-btn sg-btn--secondary" href="{% url 'incidencias' %}?estado=en_proceso">Ver incidencias en proceso</a>
+                <a class="sg-btn sg-btn--secondary" href="{% url 'reportes' %}">Ver estadísticas</a>
+              </div>
             </div>
-        </div>
+          </div>
+        </section>
+        {% endif %}
+      {% endif %}
 
-        <!-- Video tutorial -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm service-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Video Tutorial</h5>
-                    <p class="card-text flex-grow-1">Mira un video rápido sobre cómo reportar incidencias y gestionar solicitudes.</p>
-                    <a href="https://youtube.com/tu-video"  
-                       class="btn btn-outline-danger mt-auto"
-                       target="_blank">
-                        <i class="fab fa-youtube me-2"></i>Ver Video
-                    </a>
-                </div>
-            </div>
+      {# ---------------------------------------------------------------------- Técnico #}
+      {% if is_tecnico %}
+      <section class="pt-block" aria-labelledby="pt-asignadas">
+        <div class="pt-block__head">
+          <h2 id="pt-asignadas">{% if is_admin %}Incidencias asignadas a usted{% else %}Sus incidencias abiertas{% endif %}</h2>
+          <span class="pt-total" aria-label="{{ incidencias_asignadas|length }} incidencias">{{ incidencias_asignadas|length }}</span>
+          <a class="pt-block__more" href="{% url 'incidencias' %}?estado=abiertas&amp;orden=prioridad" aria-label="Ver todas sus incidencias abiertas">Ver todas</a>
         </div>
+        {% if incidencias_asignadas %}
+        <p class="pt-block__hint">Actualice el estado al empezar el trabajo y al terminarlo, para que el solicitante lo sepa.</p>
+        {% include 'portada_incidencias.html' with rows=incidencias_asignadas|dictsortreversed:"prioridad" mode='asignadas' caption='Incidencias abiertas asignadas a usted' %}
+        {% if incidencias_asignadas|length >= 8 %}<p class="pt-block__foot">Se muestran las 8 más recientes; «Ver todas» abre la lista completa.</p>{% endif %}
+        {% else %}
+        <div class="pt-none pt-none--inline">
+          <div class="pt-none__mark" aria-hidden="true">{% include 'partials/icon.html' with name='check' %}</div>
+          <p>No tiene incidencias abiertas asignadas. Cuando el despachador le asigne una, aparecerá aquí y recibirá una notificación.</p>
+        </div>
+        {% endif %}
+      </section>
+      {% if not is_admin and soporte_pendientes %}
+      <section class="pt-block" aria-labelledby="pt-soporte-tec">
+        <div class="pt-block__head">
+          <h2 id="pt-soporte-tec">Soporte pendiente</h2>
+          <span class="pt-total" aria-label="{{ soporte_pendientes }} solicitudes">{{ soporte_pendientes }}</span>
+        </div>
+        <p class="pt-block__hint">Hay {{ soporte_pendientes }} solicitud{{ soporte_pendientes|pluralize:"es" }} de soporte sin completar. Puede responderlas desde la bandeja.</p>
+        <a class="sg-btn sg-btn--secondary" href="{% url 'bandeja_entrada_soporte' %}">Abrir la bandeja de soporte</a>
+      </section>
+      {% endif %}
+      {% endif %}
 
-        <!-- Descarga todo -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 shadow-sm service-card">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Descargar Todo</h5>
-                    <p class="card-text flex-grow-1">Accede a todos los documentos en un solo paquete.</p>
-                    <a href="{% static 'docs/documentacion_completa.zip' %}" 
-                       class="btn btn-primary mt-auto">
-                        <i class="fas fa-download me-2"></i>Descargar ZIP
-                    </a>
-                </div>
-            </div>
+      {# ------------------------------------------------------------------- Almacenero #}
+      {% if is_almacenero and not is_admin %}
+      <section class="pt-block" aria-labelledby="pt-existencias">
+        <div class="pt-block__head">
+          <h2 id="pt-existencias">Existencias</h2>
+          {% if materiales_bajos or not materiales_resumen.agotados %}<a class="pt-block__more" href="{% url 'materiales' %}" aria-label="Abrir el inventario de materiales">Ver materiales</a>{% endif %}
         </div>
+        {% if materiales_bajos %}
+        <div class="pt-list">
+          <table class="sg-table sg-table--dense pt-table">
+            <caption class="sg-visually-hidden">Materiales agotados o con poca existencia</caption>
+            <thead><tr><th class="sg-col-n" scope="col">Nº</th><th scope="col">Estado</th><th scope="col">Material</th><th scope="col">Tipo</th><th scope="col" class="sg-num">Existencia</th><th scope="col"><span class="sg-visually-hidden">Acción</span></th></tr></thead>
+            <tbody>
+              {% for m in materiales_bajos %}
+              <tr>
+                <td class="sg-col-n pt-c-n">{{ forloop.counter }}</td>
+                <td class="pt-c-state">{% if m.cantidad == 0 %}<span class="sg-badge sg-badge--alta"><span class="sg-badge__mark" aria-hidden="true"></span>Agotado</span>{% else %}<span class="sg-badge sg-badge--media"><span class="sg-badge__mark" aria-hidden="true"></span>Poca existencia</span>{% endif %}</td>
+                <td class="pt-c-what"><span class="pt-what__t">{{ m.nombre }}</span></td>
+                <td class="pt-c-who" data-label="Tipo:">{{ m.tipo }}</td>
+                <td class="pt-c-date sg-num sg-data" data-label="Existencia:">{{ m.cantidad }}</td>
+                <td class="pt-c-act sg-col-actions"><div class="pt-act"><a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'editar_material' m.pk %}" aria-label="Actualizar la existencia de {{ m.nombre }}">Actualizar existencia</a></div></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% elif materiales_resumen.agotados %}
+        <div class="pt-stock">
+          <div class="sg-alert sg-alert--warn" role="status">
+            {% include 'partials/icon.html' with name='alert' %}
+            <div class="sg-alert__body"><span class="sg-alert__title">{{ materiales_resumen.agotados }} material{{ materiales_resumen.agotados|pluralize:"es" }} agotado{{ materiales_resumen.agotados|pluralize }}</span>No se puede asignar hasta que registre nueva existencia. Abra el inventario y actualice la cantidad.</div>
+          </div>
+          <a class="sg-btn sg-btn--secondary" href="{% url 'materiales' %}">Ver materiales</a>
+        </div>
+        {% else %}
+        <div class="pt-none pt-none--inline">
+          <div class="pt-none__mark" aria-hidden="true">{% include 'partials/icon.html' with name='box' %}</div>
+          <p>{% if materiales_resumen.total %}Ningún material agotado entre los {{ materiales_resumen.total }} registrados.{% else %}Aún no hay materiales registrados. Registre el primero para poder asignarlo a incidencias.{% endif %}</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="pt-block" aria-labelledby="pt-para-materiales">
+        <div class="pt-block__head">
+          <h2 id="pt-para-materiales">Incidencias abiertas</h2>
+          {% if conteos.abiertas %}<span class="pt-total" aria-label="{{ conteos.abiertas }} incidencias">{{ conteos.abiertas }}</span>{% endif %}
+          <a class="pt-block__more" href="{% url 'incidencias' %}?estado=abiertas" aria-label="Ver todas las incidencias abiertas">Ver todas</a>
+        </div>
+        {% if incidencias_abiertas %}
+        <p class="pt-block__hint">Asigne los materiales usados en cada trabajo para que el inventario refleje lo real.</p>
+        {% include 'portada_incidencias.html' with rows=incidencias_abiertas mode='almacen' caption='Incidencias abiertas donde asignar materiales' %}
+        {% with n=incidencias_abiertas|length %}{% if conteos.abiertas > n %}<p class="pt-block__foot">Se muestran las {{ n }} más recientes de {{ conteos.abiertas }}.</p>{% endif %}{% endwith %}
+        {% else %}
+        <div class="pt-none pt-none--inline">
+          <div class="pt-none__mark" aria-hidden="true">{% include 'partials/icon.html' with name='check' %}</div>
+          <p>No hay incidencias abiertas: no hay materiales que asignar por ahora.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      {% if asignaciones_recientes %}
+      <section class="pt-block" aria-labelledby="pt-asignaciones">
+        <div class="pt-block__head"><h2 id="pt-asignaciones">Últimas asignaciones de materiales</h2></div>
+        <div class="pt-list">
+          <table class="sg-table sg-table--dense pt-table">
+            <caption class="sg-visually-hidden">Últimas asignaciones de materiales a incidencias</caption>
+            <thead><tr><th class="sg-col-n" scope="col">Nº</th><th scope="col">Material</th><th scope="col" class="sg-num">Cantidad</th><th scope="col">Incidencia</th><th scope="col">Fecha</th></tr></thead>
+            <tbody>
+              {% for a in asignaciones_recientes %}
+              <tr>
+                <td class="sg-col-n pt-c-n">{{ forloop.counter }}</td>
+                <td class="pt-c-what"><span class="pt-what__t">{{ a.material.nombre }}</span></td>
+                <td class="pt-c-state sg-num sg-data" data-label="Cantidad:">{{ a.cantidad_usada }}</td>
+                <td class="pt-c-who" data-label="Incidencia:">n.º <span class="sg-mono">{{ a.incidencia_id }}</span></td>
+                <td class="pt-c-date sg-data" data-label="Fecha:">{{ a.fecha_asignacion|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+      {% endif %}
+
+      {# ------------------------------------------------------------------ Solicitante #}
+      {% if is_cliente %}
+      {% if conteos.total == 0 %}
+      <section class="pt-block" aria-label="Sin incidencias">
+        {% include 'partials/empty.html' with icon='wrench' title='Aún no ha registrado incidencias' text='Si algo falla en su residencia, aula u oficina, use «Registrar incidencia»: indique qué ocurre y dónde, y añada una foto si puede. Aquí verá su estado y recibirá un aviso cuando un técnico la atienda.' %}
+      </section>
+      {% else %}
+      <section class="pt-block" aria-labelledby="pt-mias">
+        <div class="pt-block__head">
+          <h2 id="pt-mias">Sus incidencias abiertas</h2>
+          {% if conteos.abiertas %}<span class="pt-total" aria-label="{{ conteos.abiertas }} incidencias">{{ conteos.abiertas }}</span>{% endif %}
+          <a class="pt-block__more" href="{% url 'incidencias' %}" aria-label="Ver todas sus incidencias, también las resueltas">Ver todas</a>
+        </div>
+        {% if incidencias_abiertas %}
+        {% include 'portada_incidencias.html' with rows=incidencias_abiertas mode='solicitante' caption='Sus incidencias abiertas y su estado' %}
+        {% with n=incidencias_abiertas|length %}{% if conteos.abiertas > n %}<p class="pt-block__foot">Se muestran las {{ n }} más recientes de {{ conteos.abiertas }}.</p>{% endif %}{% endwith %}
+        {% else %}
+        <div class="pt-none pt-none--inline">
+          <div class="pt-none__mark" aria-hidden="true">{% include 'partials/icon.html' with name='check' %}</div>
+          <p>No tiene incidencias abiertas. Las {{ conteos.resuelto }} que ya se resolvieron quedan en su historial.</p>
+        </div>
+        {% endif %}
+      </section>
+      {% endif %}
+      {% endif %}
+
     </div>
-</div>
 
+    {# ------------------------------------------------------------ Resumen y ayuda #}
+    <aside class="pt-side" aria-label="Resumen y ayuda">
+
+      {% if conteos.total %}
+      <section class="pt-block" aria-labelledby="pt-estado">
+        <h2 id="pt-estado">{% if is_admin or is_almacenero %}Estado de las incidencias{% else %}Sus incidencias por estado{% endif %}</h2>
+        <table class="pt-tally">
+          <caption class="sg-visually-hidden">Incidencias por estado</caption>
+          <tbody>
+            <tr><th scope="row"><a class="pt-tally__link" href="{% url 'incidencias' %}?estado=pendiente">{% include 'partials/badge_estado.html' with estado='pendiente' %}{% include 'partials/icon.html' with name='chevron-right' class='sg-icon--sm' %}</a></th><td>{{ conteos.pendiente }}</td></tr>
+            <tr><th scope="row"><a class="pt-tally__link" href="{% url 'incidencias' %}?estado=en_proceso">{% include 'partials/badge_estado.html' with estado='en_proceso' %}{% include 'partials/icon.html' with name='chevron-right' class='sg-icon--sm' %}</a></th><td>{{ conteos.en_proceso }}</td></tr>
+            <tr><th scope="row"><a class="pt-tally__link" href="{% url 'incidencias' %}?estado=resuelto">{% include 'partials/badge_estado.html' with estado='resuelto' %}{% include 'partials/icon.html' with name='chevron-right' class='sg-icon--sm' %}</a></th><td>{{ conteos.resuelto }}</td></tr>
+            <tr class="pt-tally__total"><th scope="row">Total</th><td>{{ conteos.total }}</td></tr>
+          </tbody>
+        </table>
+      </section>
+      {% endif %}
+
+      {% if is_admin and materiales_resumen %}
+      <section class="pt-block" aria-labelledby="pt-materiales">
+        <h2 id="pt-materiales">Materiales</h2>
+        <dl class="pt-facts">
+          <div><dt>Registrados</dt><dd>{{ materiales_resumen.total }}</dd></div>
+          <div><dt>Agotados</dt><dd{% if materiales_resumen.agotados %} class="is-alert"{% endif %}>{{ materiales_resumen.agotados }}</dd></div>
+        </dl>
+        {% if materiales_resumen.agotados %}<p class="pt-help">Hay materiales sin existencia: no podrán asignarse a incidencias.</p>{% endif %}
+        <a class="pt-sidelink" href="{% url 'materiales' %}">Ver materiales {% include 'partials/icon.html' with name='chevron-right' class='sg-icon--sm' %}</a>
+      </section>
+      {% endif %}
+
+      <section class="pt-block" aria-labelledby="pt-docs">
+        <h2 id="pt-docs">Ayuda y documentación</h2>
+        <ul class="pt-docs">
+          <li><a class="pt-doc" href="{% static 'docs/manual_usuario.pdf' %}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='book' %}<span class="pt-doc__txt"><strong>Manual de usuario</strong><small>PDF · 95 KB · se abre en otra pestaña</small></span></a></li>
+          <li><a class="pt-doc" href="{% static 'docs/guia_rapida.pdf' %}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='file' %}<span class="pt-doc__txt"><strong>Guía rápida</strong><small>PDF · 92 KB · se abre en otra pestaña</small></span></a></li>
+          <li><a class="pt-doc" href="{% static 'docs/faqs.pdf' %}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='help' %}<span class="pt-doc__txt"><strong>Preguntas frecuentes</strong><small>PDF · 73 KB · se abre en otra pestaña</small></span></a></li>
+          <li><a class="pt-doc" href="{% static 'docs/documentacion_completa.zip' %}" download>{% include 'partials/icon.html' with name='download' %}<span class="pt-doc__txt"><strong>Toda la documentación</strong><small>ZIP · 251 KB · descarga</small></span></a></li>
+        </ul>
+        <p class="pt-help">Es posible que algunos pasos de los documentos no coincidan con lo que ve en pantalla.</p>
+        <p class="pt-help">¿Otra duda o un problema con el sistema? {% if is_admin or is_tecnico %}Abra una solicitud en <a href="{% url 'solicitar_soporte' %}">Soporte</a>{% else %}Envíe una <a href="{% url 'solicitar_soporte' %}">solicitud de soporte</a>{% endif %} o escriba a <a href="mailto:soporte@uci.cu">soporte@uci.cu</a>.</p>
+      </section>
+
+    </aside>
+  </div>
+</div>
 {% endblock %}

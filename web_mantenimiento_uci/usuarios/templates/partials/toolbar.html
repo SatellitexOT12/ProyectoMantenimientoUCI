@@ -1,0 +1,10 @@
+{% comment %}
+Barra de herramientas con búsqueda (GET q) y contador de resultados. Va debajo de page_head.
+Parámetros opcionales: placeholder, label, count (número) + count_label (por defecto «resultados»).
+Si necesita filtros, arme la barra a mano:
+  <div class="sg-toolbar"> (incluya partials/search_form.html) <div class="sg-toolbar__filters"> selects .sg-select </div></div>
+Ejemplo: include 'partials/toolbar.html' with placeholder='Buscar por ubicación o descripción' count=page_obj.paginator.count
+{% endcomment %}<div class="sg-toolbar">
+  {% include 'partials/search_form.html' %}
+  {% if count is not None %}<p class="sg-toolbar__count" aria-live="polite"><span class="sg-num">{{ count }}</span> {{ count_label|default:'resultados' }}{% if request.GET.q %} para «{{ request.GET.q }}»{% endif %}</p>{% endif %}
+</div>

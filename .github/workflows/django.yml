@@ -2,32 +2,74 @@ name: Django CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # manage.py está en web_mantenimiento_uci/, no en la raíz del repositorio.
+    defaults:
+      run:
+        working-directory: web_mantenimiento_uci
+
+    # Base de datos PostgreSQL: es la misma que usa el proyecto en producción.
+    # Los valores coinciden con los predeterminados de settings.py, por lo que
+    # no hace falta definir variables DB_* (se dejan explícitas para claridad).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: mantenimientouci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: mantenimientouci
+      DB_USER: postgres
+      DB_PASSWORD: root
+      DJANGO_SECRET_KEY: clave-solo-para-integracion-continua
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        cache: pip
+        cache-dependency-path: requirements.txt
 
     - name: Install dependencies
+      # requirements.txt está en la raíz del repositorio.
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r ../requirements.txt
+
+    - name: Check project
+      run: python manage.py check
+
+    - name: Check that migrations are up to date
+      run: python manage.py makemigrations --check --dry-run
 
     - name: Migrate database
-      run: python manage.py migrate
+      run: python manage.py migrate --noinput
 
     - name: Collect static files
       run: python manage.py collectstatic --noinput
 
     - name: Run tests
+      # Las pruebas de navegador (Selenium) son opcionales y se omiten aquí.
       run: python manage.py test

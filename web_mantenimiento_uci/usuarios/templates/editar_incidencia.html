@@ -1,104 +1,194 @@
 {% extends 'master.html' %}
 {% load static %}
-{% load auth_extras %}
-{% block title%}
-    Editar incidencia
-{%endblock%}
+{% block title %}Incidencia n.º {{ incidencia.id }}{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'sgum/pages/incidencias.css' %}">{% endblock %}
 
 {% block content %}
-<h1 class="display-1">Editar Incidencia</h1>
-<h3 class="display-6">{{incidencia.id}}</h3>
+{% url 'incidencias' as url_lista %}
+{% with idtxt=incidencia.id|stringformat:'s' %}
+<div class="sg-sheet sg-sheet--medium">
+  {% with titulo="Editar incidencia n.º "|add:idtxt %}
+  {% include 'partials/page_head.html' with title=titulo desc='Modifique solo lo que su rol permite; los demás datos se muestran bloqueados.' back_url=url_lista back_label='Volver a incidencias' %}
+  {% endwith %}
 
-<form method="post" class="was-validated">
-{% csrf_token %}
-<div class="container p-3 mx-0">
+  <div class="inc-ficha">
+    <span>N.º <b class="sg-mono">{{ incidencia.id }}</b></span>
+    <span>{% include 'partials/badge_estado.html' with estado=incidencia.estado %}</span>
+    <span>{% include 'partials/badge_prioridad.html' with prioridad=incidencia.prioridad %} <b>{{ incidencia.prioridad_situacion }}</b></span>
+    <span>Registrada el <b class="sg-mono">{{ incidencia.fecha|date:"d/m/Y H:i" }}</b> por <b>{{ incidencia.usuario_reporte.get_full_name|default:incidencia.usuario_reporte.username }}</b></span>
+  </div>
 
-    <div class="row border-bottom py-3">
-    
-        <div class="col-5">
-            <label for="tipo_incidencia" class="form-label">Tipo de Incidencia</label>
-            <select class="form-select" id="tipo" name="tipo" required>
-                <option value="plomeria" {% if incidencia.tipo == "plomeria" %}selected {% endif %} >Plomería</option>
-                <option value="electricidad" {% if incidencia.tipo == "electricidad" %}selected {% endif %}>Electricidad</option>
-                <option value="infraestructura" {% if incidencia.tipo == "infraestructura" %}selected {% endif %}>Infraestructura</option>
-                <option value="limpieza" {% if incidencia.tipo == "limpieza" %}selected {% endif %}>Saneamiento</option>
-                <option value="seguridad" {% if incidencia.tipo == "seguridad" %}selected {% endif %}>Seguridad</option>
-            </select>
+  {% if not permisos.gestionar_prioridad %}
+  <div class="inc-aviso">
+    <div class="sg-alert sg-alert--info" role="note">
+      {% include 'partials/icon.html' with name='info' %}
+      <div class="sg-alert__body">
+        {% if permisos.editar_datos and permisos.cambiar_estado %}Puede corregir el tipo, la ubicación y la descripción, y cambiar el estado. La prioridad la confirma el administrador.
+        {% elif permisos.editar_datos %}Puede corregir el tipo, la ubicación y la descripción mientras la incidencia esté Pendiente. La prioridad y el estado los gestiona la Dirección de Mantenimiento.
+        {% elif permisos.cambiar_estado %}Usted atiende esta incidencia, así que solo puede cambiar su estado. Los demás datos los edita quien la reportó (mientras esté Pendiente) o el administrador.
+        {% else %}Su rol solo permite consultar esta incidencia.{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <form id="editar-form" method="post" action="{% url 'editar_incidencia' incidencia.id %}" data-sg-validate data-sg-loading>
+    {% csrf_token %}
+    <div class="inc-edit-body">
+      {% if errores %}
+      <div class="sg-form-error" role="alert" tabindex="-1" id="edit-errores">
+        {% include 'partials/icon.html' with name='alert' %}
+        <div>{% if errores|length == 1 %}Corrija el campo marcado para guardar los cambios.{% else %}Corrija los {{ errores|length }} campos marcados para guardar los cambios.{% endif %}</div>
+      </div>
+      {% endif %}
+
+      <div class="sg-fields">
+        {# Tipo #}
+        <div class="sg-field sg-field--6{% if errores.tipo %} is-error{% endif %}{% if not permisos.editar_datos %} is-disabled{% endif %}">
+          <label class="sg-field__label" for="tipo"><span>Tipo de incidencia</span></label>
+          <select id="tipo" name="tipo" required data-msg-required="Elija el tipo de incidencia."{% if not permisos.editar_datos %} disabled{% endif %}{% if errores.tipo %} aria-invalid="true" aria-describedby="tipo-msg"{% endif %}>
+            {% for valor, etiqueta in tipos %}<option value="{{ valor }}"{% if permisos.editar_datos and errores %}{% if valores.tipo == valor %} selected{% endif %}{% elif incidencia.tipo == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+          </select>
+          {% if not permisos.editar_datos %}<p class="sg-field__hint">Solo quien la reportó (mientras esté Pendiente) o el administrador.</p>{% endif %}
+          {% if errores.tipo %}<p class="sg-field__msg" id="tipo-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.tipo }}</span></p>{% endif %}
         </div>
-        
+
+        {# Estado #}
+        <div class="sg-field sg-field--6{% if errores.estado %} is-error{% endif %}{% if not permisos.cambiar_estado %} is-disabled{% endif %}">
+          <label class="sg-field__label" for="estado"><span>Estado</span></label>
+          <select id="estado" name="estado"{% if not permisos.cambiar_estado %} disabled{% endif %}{% if errores.estado %} aria-invalid="true" aria-describedby="estado-msg"{% endif %}>
+            {% for valor, etiqueta in estados %}{% if permisos.gestionar_prioridad or valor != 'pendiente' or incidencia.estado == valor %}<option value="{{ valor }}"{% if permisos.cambiar_estado and errores %}{% if valores.estado == valor %} selected{% endif %}{% elif incidencia.estado == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endif %}{% endfor %}
+          </select>
+          {% if not permisos.cambiar_estado %}<p class="sg-field__hint">Lo cambia el técnico asignado o el administrador.</p>
+          {% elif permisos.gestionar_prioridad %}<p class="sg-field__hint">Al pasar a Resuelto se registra la fecha de resolución; si reabre la incidencia, se borra. El solicitante recibe un aviso.</p>
+          {% else %}<p class="sg-field__hint">Puede marcarla En proceso o Resuelto. El solicitante recibe un aviso.</p>{% endif %}
+          {% if errores.estado %}<p class="sg-field__msg" id="estado-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.estado }}</span></p>{% endif %}
+        </div>
+
+        {# Ubicación #}
+        <div class="sg-field{% if errores.ubicacion %} is-error{% endif %}{% if not permisos.editar_datos %} is-disabled{% endif %}">
+          <label class="sg-field__label" for="ubicacion"><span>Ubicación</span></label>
+          <input id="ubicacion" name="ubicacion" type="text" maxlength="{{ ubicacion_max }}" required autocomplete="off" data-msg-required="Escriba dónde ocurre el problema."
+                 value="{% if permisos.editar_datos and errores %}{{ valores.ubicacion }}{% else %}{{ incidencia.ubicacion }}{% endif %}"{% if not permisos.editar_datos %} disabled{% endif %}{% if errores.ubicacion %} aria-invalid="true" aria-describedby="ubicacion-msg"{% endif %}>
+          {% if permisos.editar_datos %}<span class="rep-count" id="ubicacion-count" aria-hidden="true">0/{{ ubicacion_max }}</span>{% endif %}
+          {% if errores.ubicacion %}<p class="sg-field__msg" id="ubicacion-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.ubicacion }}</span></p>{% endif %}
+        </div>
+
+        {# Descripción #}
+        <div class="sg-field{% if errores.descripcion %} is-error{% endif %}{% if not permisos.editar_datos %} is-disabled{% endif %}">
+          <label class="sg-field__label" for="descripcion"><span>Descripción</span></label>
+          <textarea id="descripcion" name="descripcion" rows="5" maxlength="{{ descripcion_max }}" required data-msg-required="Describa qué ocurre, con sus palabras."{% if not permisos.editar_datos %} disabled{% endif %}{% if errores.descripcion %} aria-invalid="true" aria-describedby="descripcion-msg"{% endif %}>{% if permisos.editar_datos and errores %}{{ valores.descripcion }}{% else %}{{ incidencia.descripcion }}{% endif %}</textarea>
+          {% if permisos.editar_datos %}<span class="rep-count" id="descripcion-count" aria-hidden="true">0/{{ descripcion_max }}</span>{% endif %}
+          {% if errores.descripcion %}<p class="sg-field__msg" id="descripcion-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.descripcion }}</span></p>{% endif %}
+        </div>
+
+        {# Prioridad, su situación y la fecha #}
+        {% if permisos.gestionar_prioridad %}
+        <div class="sg-field sg-field--4{% if errores.prioridad %} is-error{% endif %}">
+          <label class="sg-field__label" for="prioridad"><span>Prioridad</span></label>
+          <select id="prioridad" name="prioridad"{% if errores.prioridad %} aria-invalid="true" aria-describedby="prioridad-msg"{% endif %}>
+            {% for valor, etiqueta in prioridades %}<option value="{{ valor }}"{% if errores %}{% if valores.prioridad == valor %} selected{% endif %}{% elif incidencia.prioridad == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+          </select>
+          {% if errores.prioridad %}<p class="sg-field__msg" id="prioridad-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.prioridad }}</span></p>{% endif %}
+        </div>
+        <div class="sg-field sg-field--4 sg-field--static">
+          <span class="sg-field__label"><span>Situación de la prioridad</span></span>
+          <input type="hidden" name="prioridad_confirmada" value="0">
+          <div class="inc-check">
+            <input class="form-check-input" type="checkbox" id="prioridad_confirmada" name="prioridad_confirmada" value="1"{% if incidencia.prioridad_confirmada %} checked{% endif %}>
+            <label for="prioridad_confirmada">Prioridad confirmada</label>
+          </div>
+          <p class="sg-field__hint">{% if incidencia.prioridad_confirmada %}Ya está confirmada.{% else %}La propuso quien reportó. Corregirla la confirma.{% endif %}</p>
+        </div>
+        <div class="sg-field sg-field--4{% if errores.fecha %} is-error{% endif %}">
+          <label class="sg-field__label" for="fecha"><span>Fecha de la incidencia</span></label>
+          <input id="fecha" name="fecha" type="datetime-local" required data-msg-required="Indique la fecha y la hora." max="{% now 'Y-m-d\TH:i' %}"
+                 value="{% if errores %}{{ valores.fecha }}{% else %}{{ incidencia.fecha|date:'Y-m-d\TH:i' }}{% endif %}"{% if errores.fecha %} aria-invalid="true" aria-describedby="fecha-msg"{% endif %}>
+          {% if errores.fecha %}<p class="sg-field__msg" id="fecha-msg" role="alert">{% include 'partials/icon.html' with name='alert' %}<span>{{ errores.fecha }}</span></p>{% else %}<p class="sg-field__hint">Solo puede ser pasada o de ahora.</p>{% endif %}
+        </div>
+        {% else %}
+        <div class="sg-field sg-field--6 sg-field--static">
+          <span class="sg-field__label"><span>Prioridad</span></span>
+          <div class="sg-field__value">{{ incidencia.get_prioridad_display }} · {{ incidencia.prioridad_situacion }}</div>
+          <p class="sg-field__hint">La confirma el administrador.</p>
+        </div>
+        <div class="sg-field sg-field--6 sg-field--static">
+          <span class="sg-field__label"><span>Fecha de la incidencia</span></span>
+          <div class="sg-field__value sg-mono">{{ incidencia.fecha|date:"d/m/Y H:i" }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="inc-relacion">
+        <div>
+          <h2 class="inc-panel__h">Técnico</h2>
+          <p>{% if incidencia.tecnico_asignado %}{{ incidencia.tecnico_asignado.trabajador.get_full_name|default:incidencia.tecnico_asignado.trabajador.username }}{% else %}Sin técnico asignado{% endif %}</p>
+          {% if permisos.asignar_tecnico %}<p class="inc-nota"><a href="{{ url_lista }}?q={{ incidencia.id }}">Asignar, cambiar o quitar el técnico en la lista</a>. Al asignar pasa a En proceso; al quitarlo, vuelve a Pendiente.</p>{% endif %}
+        </div>
+        <div>
+          <h2 class="inc-panel__h">Materiales</h2>
+          {% if materiales_asignados %}
+          <ul class="inc-mats">{% for mi in materiales_asignados %}<li><span class="inc-mats__name">{{ mi.material.nombre }}</span><span class="inc-mats__qty">× {{ mi.cantidad_usada }}</span></li>{% endfor %}</ul>
+          {% else %}<p class="inc-vacio">Sin materiales asignados.</p>{% endif %}
+          {% if permisos.asignar_material %}<p class="inc-nota"><a href="{{ url_lista }}?q={{ incidencia.id }}">Asignar o retirar materiales en la lista</a>.</p>{% endif %}
+        </div>
+        <div>
+          <h2 class="inc-panel__h">Foto</h2>
+          {% if incidencia.imagen %}
+          <a class="inc-foto" href="{{ incidencia.imagen.url }}" target="_blank" rel="noopener"><img src="{{ incidencia.imagen.url }}" alt="Foto adjunta a la incidencia {{ incidencia.id }}" loading="lazy"><span class="inc-foto__cap">Abrir foto a tamaño completo</span></a>
+          {% else %}<p class="inc-vacio">Sin foto adjunta.</p>{% endif %}
+        </div>
+      </div>
     </div>
 
-    <div class="row border-bottom py-3">
-
-        <div class="col-5">
-            <label for="prioridad" class="form-label">Prioridad</label>
-            <select class="form-select" id="prioridad" name="prioridad"  required>
-                <option value="3" {% if incidencia.prioridad == "3" %}selected {% endif %} >Alta</option>
-                <option value="2" {% if incidencia.prioridad == "2" %}selected {% endif %} >Media</option>
-                <option value="1" {% if incidencia.prioridad == "1" %}selected {% endif %}>Baja</option>
-            </select>
-        </div>
+    <div class="inc-edit-actions">
+      {% if permisos.eliminar %}
+        {% if materiales_asignados %}
+        <button type="button" class="sg-btn sg-btn--danger-outline" disabled title="Retire antes los materiales asignados">{% include 'partials/icon.html' with name='trash' %}Eliminar incidencia</button>
+        {% else %}
+        <button type="button" class="sg-btn sg-btn--danger-outline" data-bs-toggle="modal" data-bs-target="#eliminarUna">{% include 'partials/icon.html' with name='trash' %}Eliminar incidencia</button>
+        {% endif %}
+      {% endif %}
+      <div class="inc-edit-actions__end">
+        <a class="sg-btn sg-btn--secondary" href="{{ url_lista }}">Cancelar</a>
+        <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Guardando…">Guardar cambios</button>
+      </div>
     </div>
-
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Fecha:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="text" id="fecha" name="fecha" value="{{ incidencia.fecha|date:'Y-m-d H:i' }}" class="form-control w-75 " >
-        </div>
-        
-    </div>
-
-    <div class="row border-bottom py-3">
-        <div class="col-2">
-            <p class="form-label"><strong>Ubicación:</strong></p>
-        </div>
-        <div class="col-5">
-            <input type="text" id="ubicacion" name="ubicacion" value="{{incidencia.ubicacion}}" class="form-control w-75">
-        </div>
-        
-    </div>
-
-    <div class="row border-bottom py-3">
-
-        <div class="col-5">
-
-            <label for="descripcion" class="form-label">Descripción</label>
-            <textarea class="form-control" id="descripcion" name="descripcion" rows="4" placeholder="Describa la incidencia..."  > {{incidencia.descripcion}}</textarea>
-        </div>
-    </div>
-
-    {% if request.user|has_groups:"tecnico,administrador" %}
-    <div class="row border-bottom py-3">
-    <div class="col-5">
-    <label for="estado" class="form-label">Estado</label>
-            <select class="form-select" id="estado" name="estado" >
-                <option value="pendiente" {% if incidencia.estado == "pendiente" %}selected {% endif %}>Pendiente</option>
-                <option value="en_proceso"{% if incidencia.estado == "en_proceso" %}selected {% endif %}>En Proceso</option>
-                <option value="resuelto" {% if incidencia.estado == "resuelto" %}selected {% endif %}>Resuelto</option>
-            </select>
-    </div>
-    </div>
-    {%endif%}
-
-
+  </form>
 </div>
 
-
-</div>
-
-<div class="d-flex p-5">
-    <div class="px-5">
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    </div>
-
-    <div>
-    <a type="button" class="btn btn-danger" href="{% url 'incidencias' %}">Cancelar</a>
-    </div>
+{% if permisos.eliminar and not materiales_asignados %}
+<form id="form-eliminar-una" method="post" action="{% url 'incidencias' %}" data-sg-loading>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="eliminar">
+  <input type="hidden" name="ids" value="{{ incidencia.id }}">
+  <input type="hidden" name="next" value="{{ url_lista }}">
 </form>
-</div>
+{% with texto="Se borrará de forma definitiva la incidencia n.º "|add:idtxt %}
+{% include 'partials/modal_confirm.html' with id='eliminarUna' title='¿Eliminar esta incidencia?' text=texto confirm_label='Eliminar incidencia' form='form-eliminar-una' %}
+{% endwith %}
+{% endif %}
+{% endwith %}
+{% endblock %}
 
-
-
-{%endblock%}
+{% block scripts %}
+<script>
+(function () {
+  'use strict';
+  function contador(id, out, max) {
+    var i = document.getElementById(id), o = document.getElementById(out);
+    if (!i || !o) { return; }
+    var f = function () { o.textContent = i.value.length + '/' + max; o.classList.toggle('is-limit', i.value.length >= max); };
+    i.addEventListener('input', f); f();
+  }
+  contador('ubicacion', 'ubicacion-count', {{ ubicacion_max }});
+  contador('descripcion', 'descripcion-count', {{ descripcion_max }});
+  // Corregir la prioridad equivale a confirmarla (así lo aplica el servidor); la casilla lo refleja
+  var prio = document.getElementById('prioridad'), conf = document.getElementById('prioridad_confirmada');
+  if (prio && conf) { prio.addEventListener('change', function () { conf.checked = true; }); }
+  var err = document.getElementById('edit-errores');
+  if (err) { err.focus(); }
+}());
+</script>
+{% endblock %}

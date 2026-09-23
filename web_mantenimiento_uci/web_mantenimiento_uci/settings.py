@@ -12,20 +12,70 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+
+from django.contrib.messages import constants as message_constants
+
+try:
+    import dj_database_url  # noqa: E402
+except ImportError:
+    dj_database_url = None  # noqa: N806
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _entorno_bool(nombre, por_defecto):
+    valor = os.environ.get(nombre)
+    if valor is None:
+        return por_defecto
+    return valor.strip().lower() in ('1', 'true', 'yes', 'on', 'si')
+
+
+def _entorno_lista(nombre):
+    return [x.strip() for x in os.environ.get(nombre, '').split(',') if x.strip()]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+#
+# Los valores siguientes se pueden fijar con variables de entorno. Si no se
+# definen, se usan los de siempre, de modo que quien ya ejecuta el proyecto
+# no tiene que cambiar nada. EN PRODUCCION defina al menos DJANGO_SECRET_KEY,
+# DJANGO_DEBUG=0, DJANGO_ALLOWED_HOSTS y DB_PASSWORD.
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1r7h7@3*c6@56lx)x9(iime84yp#ilu-rglf*(zko!*az+c#ps'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-1r7h7@3*c6@56lx)x9(iime84yp#ilu-rglf*(zko!*az+c#ps',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# En Vercel, DATABASE_URL está definida → producción.
+DEBUG = _entorno_bool('DJANGO_DEBUG', 'DATABASE_URL' not in os.environ)
 
-ALLOWED_HOSTS = []
+# Hosts permitidos. En Vercel, el dominio es *.vercel.app.
+# OJO: Django NO admite '*' dentro de un patrón de ALLOWED_HOSTS; solo
+# acepta "*", un patrón con punto inicial (".vercel.app" = el dominio y
+# cualquier subdominio) o coincidencia exacta. Un "*.vercel.app" se
+# interpretaría como un hostname literal y DisallowedHost rechazaría
+# todas las peticiones con 400.
+_allowed = _entorno_lista('DJANGO_ALLOWED_HOSTS')
+if 'DATABASE_URL' in os.environ and not _allowed:
+    _allowed.append('.vercel.app')
+ALLOWED_HOSTS = _allowed
+
+# Orígenes de confianza para CSRF cuando se sirve detrás de un proxy/HTTPS.
+# En CSRF_TRUSTED_ORIGINS sí se admite el comodín "https://*.vercel.app".
+_csrf = _entorno_lista('DJANGO_CSRF_TRUSTED_ORIGINS')
+if 'DATABASE_URL' in os.environ and not _csrf:
+    _csrf.append('https://*.vercel.app')
+CSRF_TRUSTED_ORIGINS = _csrf
+
+# En Vercel el TLS termina en el borde y Django ve peticiones HTTP internas.
+# Confiar en X-Forwarded-Proto para que request.is_secure() sea True
+# (URIs absolutas https, cookies seguras, comprobación same-origin de CSRF).
+if 'DATABASE_URL' in os.environ:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -38,12 +88,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'usuarios',
-    'bootstrap5',
     'django_extensions',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Servir /static/ desde el propio proceso WSGI: obligatorio en Vercel
+    # (serverless, DEBUG=False — no hay servidor web que los sirva).
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -65,6 +117,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'usuarios.context_processors.roles',
             ],
         },
     },
@@ -75,17 +128,48 @@ WSGI_APPLICATION = 'web_mantenimiento_uci.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mantenimientouci',
-        'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '5432'
+#
+# Vercel/Supabase proveen DATABASE_URL o SUPABASE_URL.
+# Si no existe, usa las variables DB_* individuales (desarrollo local / CI).
+# Supabase en Vercel inyecta SUPABASE_URL que es la API URL (https://...),
+# NO el connection string de PostgreSQL. Solo DATABASE_URL sirve para la BD.
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    # Supabase puede proveer URL con esquema 'https://'.
+    # dj_database_url solo soporta 'postgresql://', así que normalizamos.
+    if DATABASE_URL.startswith('https://'):
+        DATABASE_URL = DATABASE_URL.replace('https://', 'postgresql://', 1)
+    # En serverless (Vercel) usar el pooler de Supabase (6543) en vez del
+    # puerto directo (5432), y desactivar conn_max_age (invocaciones efímeras).
+    _db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=0)
+    # dj_database_url a veces no extrae NAME de URLs Supabase.
+    # Fallback: extraer el NAME manualmente del path de la URL.
+    if not _db_config.get('NAME') and DATABASE_URL.startswith('postgresql'):
+        from urllib.parse import urlparse
+        _parsed = urlparse(DATABASE_URL)
+        _name = _parsed.path.lstrip('/') if _parsed.path else 'postgres'
+        if _name:
+            _db_config['NAME'] = _name
+    # Pooler de Supabase: puerto 6543 (6543 en vez de 5432 para serverless)
+    if _db_config.get('HOST', '').endswith('supabase.co') and _db_config.get('PORT') == '5432':
+        _db_config['PORT'] = '6543'
+    # SSL + timeout corto para que falle rápido en vez de colgar el build
+    _db_config['OPTIONS'] = _db_config.get('OPTIONS', {})
+    _db_config['OPTIONS']['sslmode'] = _db_config['OPTIONS'].get('sslmode', 'require')
+    _db_config['OPTIONS']['connect_timeout'] = 10
+    _db_config['OPTIONS']['keepalives'] = 1
+    DATABASES = {'default': _db_config}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
+            'NAME': os.environ.get('DB_NAME', 'mantenimientouci'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
 
 
 # Password validation
@@ -110,9 +194,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# Django no trae la variante 'es-cu'; 'es' cubre el español general.
+LANGUAGE_CODE = 'es'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Havana'
 
 USE_I18N = True
 
@@ -134,7 +219,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'main'
+LOGOUT_REDIRECT_URL = 'login'
+
+# Clases de las alertas de django.contrib.messages: success, info, warning y
+# danger (Django etiqueta «error» como 'error'; el sistema de diseño usa 'danger').
+MESSAGE_TAGS = {
+    message_constants.DEBUG: 'info',
+    message_constants.INFO: 'info',
+    message_constants.SUCCESS: 'success',
+    message_constants.WARNING: 'warning',
+    message_constants.ERROR: 'danger',
+}
 
 MEDIA_URL = '/media/'  # URL para acceder a los archivos multimedia
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

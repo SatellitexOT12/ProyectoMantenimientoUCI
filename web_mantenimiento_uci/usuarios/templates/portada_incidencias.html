@@ -1,0 +1,69 @@
+{% comment %}
+Lista de trabajo de la portada: incidencias en una tabla compacta (en el móvil, tres líneas por fila).
+Parámetros: rows (lista de incidencias), caption (nombre accesible de la tabla), mode:
+  sin_tecnico  · cola del administrador: prioridad, qué, quién la pidió, acción «Asignar técnico»
+  confirmar    · cola del administrador: prioridad propuesta, acción «Confirmar prioridad» (POST) y corregir
+  asignadas    · técnico: prioridad y estado, acción «Actualizar estado»
+  solicitante  · solicitante: estado y técnico, acción «Ver»
+  almacen      · almacenero: estado y técnico, acción «Asignar materiales»
+La numeración es el orden de urgencia en pantalla; el número de la incidencia va en «n.º».
+{% endcomment %}<div class="pt-list">
+<table class="sg-table sg-table--dense pt-table">
+  <caption class="sg-visually-hidden">{{ caption }}</caption>
+  <thead>
+    <tr>
+      <th class="sg-col-n" scope="col">Nº</th>
+      {% if mode == 'sin_tecnico' or mode == 'confirmar' %}<th scope="col">Prioridad</th>
+      {% elif mode == 'asignadas' %}<th scope="col">Prioridad y estado</th>
+      {% else %}<th scope="col">Estado</th>{% endif %}
+      <th scope="col">Incidencia</th>
+      <th scope="col">{% if mode == 'solicitante' or mode == 'almacen' %}Técnico{% else %}Solicitó{% endif %}</th>
+      <th scope="col">Reportada</th>
+      <th scope="col"><span class="sg-visually-hidden">Acción</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for x in rows %}
+    <tr>
+      <td class="sg-col-n pt-c-n">{{ forloop.counter }}</td>
+      <td class="pt-c-state">
+        {% if mode == 'sin_tecnico' or mode == 'confirmar' %}{% include 'partials/badge_prioridad.html' with prioridad=x.prioridad %}{% if mode == 'confirmar' or not x.prioridad_confirmada %}<span class="pt-prop">Propuesta</span>{% endif %}
+        {% elif mode == 'asignadas' %}{% include 'partials/badge_prioridad.html' with prioridad=x.prioridad %} {% include 'partials/badge_estado.html' with estado=x.estado %}
+        {% else %}{% include 'partials/badge_estado.html' with estado=x.estado %}{% endif %}
+      </td>
+      <td class="pt-c-what">
+        <span class="pt-what__t">{{ x.get_tipo_display }}</span>
+        <span class="pt-what__s">n.º <span class="sg-mono">{{ x.pk }}</span> · {{ x.ubicacion }}</span>
+        <span class="pt-what__d">{{ x.descripcion|truncatechars:110 }}</span>
+      </td>
+      <td class="pt-c-who" data-label="{% if mode == 'solicitante' or mode == 'almacen' %}Técnico:{% else %}Solicitó:{% endif %}">
+        {% if mode == 'solicitante' or mode == 'almacen' %}{% if x.tecnico_asignado %}{{ x.tecnico_asignado.trabajador.username }}{% else %}<span class="pt-none-tech">Sin asignar</span>{% endif %}
+        {% else %}{{ x.usuario_reporte.username }}{% endif %}
+      </td>
+      <td class="pt-c-date sg-data" data-label="Reportada:">{{ x.fecha|date:"d/m/Y" }}</td>
+      <td class="pt-c-act sg-col-actions">
+        <div class="pt-act">
+        {% if mode == 'sin_tecnico' %}
+          <a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'incidencias' %}?tecnico=sin&amp;orden=prioridad&amp;q={{ x.pk }}" aria-label="Asignar técnico a la incidencia n.º {{ x.pk }}">Asignar técnico</a>
+        {% elif mode == 'confirmar' %}
+          <form method="post" action="{% url 'confirmar_prioridad' %}" data-sg-loading>
+            {% csrf_token %}
+            <input type="hidden" name="incidencia_id" value="{{ x.pk }}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="sg-btn sg-btn--secondary sg-btn--sm" data-loading-label="Confirmando…" aria-label="Confirmar prioridad {{ x.get_prioridad_display }} de la incidencia n.º {{ x.pk }}">Confirmar prioridad</button>
+          </form>
+          <a class="sg-btn sg-btn--ghost sg-btn--icon sg-btn--sm" href="{% url 'editar_incidencia' x.pk %}" aria-label="Cambiar la prioridad de la incidencia n.º {{ x.pk }}" title="Cambiar prioridad">{% include 'partials/icon.html' with name='edit' %}</a>
+        {% elif mode == 'asignadas' %}
+          <a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'editar_incidencia' x.pk %}" aria-label="Actualizar el estado de la incidencia n.º {{ x.pk }}">Actualizar estado</a>
+        {% elif mode == 'almacen' %}
+          <a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'incidencias' %}?q={{ x.pk }}" aria-label="Asignar materiales a la incidencia n.º {{ x.pk }}">Asignar materiales</a>
+        {% else %}
+          <a class="sg-btn sg-btn--secondary sg-btn--sm" href="{% url 'incidencias' %}?q={{ x.pk }}" aria-label="Ver la incidencia n.º {{ x.pk }}">Ver</a>
+        {% endif %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-21T00:00:00.000Z",
+  "title": "Design System: SGUM-UCI",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "primary", "displayName": "Blueprint Ink", "canonical": "#0b4a7f", "tonalRamp": ["#021522", "#062d50", "#083a66", "#0b4a7f", "#2a6d9e", "#4d8fc7", "#7ab8da", "#a8d3ec"] },
+      "ink-deep": { "role": "primary", "displayName": "Ink Deep", "canonical": "#083a66", "tonalRamp": ["#010e18", "#031c30", "#042942", "#083a66", "#255577", "#4d7288", "#748f99", "#9bacbd"] },
+      "ink-press": { "role": "primary", "displayName": "Ink Press", "canonical": "#062d50", "tonalRamp": ["#01090f", "#021320", "#031d31", "#062d50", "#1f4a69", "#456887", "#6c85a6", "#93a2c5"] },
+      "text": { "role": "neutral", "displayName": "Ink Text", "canonical": "#0b2a44", "tonalRamp": ["#020810", "#051525", "#0b2a44", "#254560", "#41607c", "#5e7b98", "#7c96b4", "#9bB2d0"] },
+      "text-2": { "role": "neutral", "displayName": "Secondary Text", "canonical": "#33536b", "tonalRamp": ["#0a1620", "#142a3e", "#33536b", "#506e82", "#6e8a9c", "#8cA6b6", "#aaa1c0", "#c8bcd8"] },
+      "text-3": { "role": "neutral", "displayName": "Tertiary Text", "canonical": "#46667f", "tonalRamp": ["#0e1820", "#1c3040", "#46667f", "#658095", "#849aab", "#a3b4c5", "#c2ced6", "#e1e8ee"] },
+      "sheet": { "role": "neutral", "displayName": "Blueprint Sheet", "canonical": "#f3f6f9", "tonalRamp": ["#e8edf2", "#eef2f6", "#f3f6f9", "#f8fafc", "#fdfeff", "#ffffff"] },
+      "panel": { "role": "neutral", "displayName": "Panel", "canonical": "#f9fbfd", "tonalRamp": ["#eef2f6", "#f4f7fa", "#f9fbfd", "#fdfeff", "#ffffff"] },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#ffffff", "tonalRamp": ["#f5f7f9", "#f8f9fa", "#ffffff"] },
+      "hover": { "role": "neutral", "displayName": "Hover", "canonical": "#e4eef6", "tonalRamp": ["#c6d8e8", "#d3e2f0", "#e4eef6", "#f0f6fc", "#f8fafd"] },
+      "selected": { "role": "neutral", "displayName": "Selected", "canonical": "#d7e8f5", "tonalRamp": ["#b4cfdd", "#c5dbe6", "#d7e8f5", "#e5eff6", "#f0f5fa"] },
+      "grid": { "role": "neutral", "displayName": "Grid", "canonical": "#c9d3dc", "tonalRamp": ["#a4b2c0", "#b4c0cc", "#c9d3dc", "#d9dde3", "#e9edf1"] },
+      "grid-strong": { "role": "neutral", "displayName": "Grid Strong", "canonical": "#9db3c6", "tonalRamp": ["#7792a8", "#8aa0b8", "#9db3c6", "#b0c5d4", "#c2d7e2"] },
+      "line-control": { "role": "neutral", "displayName": "Line Control", "canonical": "#5d7d97", "tonalRamp": ["#3a566e", "#4a6a7e", "#5d7d97", "#7290ac", "#87a3bf"] },
+      "cyan": { "role": "accent", "displayName": "Registration Cyan", "canonical": "#2a94d4", "tonalRamp": ["#0e568a", "#1a709e", "#2a94d4", "#52a9e0", "#79bede", "#a1d3e8", "#c8e8f2", "#eef5fa"] },
+      "focus": { "role": "neutral", "displayName": "Focus Ring", "canonical": "#1a7fbd", "tonalRamp": ["#0e568a", "#1a7fbd", "#3d94cd", "#62aad8", "#86c0e2"] },
+      "warn-bg": { "role": "state", "displayName": "Warning Background", "canonical": "#fdf1d0", "tonalRamp": ["#f7e4a8", "#fbe6b8", "#fdf1d0", "#fdecc0", "#fce8b0"] },
+      "warn-fg": { "role": "state", "displayName": "Warning Foreground", "canonical": "#5a3c00", "tonalRamp": ["#221400", "#3c2600", "#5a3c00", "#785010", "#966820"] },
+      "warn-line": { "role": "state", "displayName": "Warning Line", "canonical": "#8a5a00", "tonalRamp": ["#542e00", "#704400", "#8a5a00", "#a4700e", "#be881c"] },
+      "ok-bg": { "role": "state", "displayName": "OK Background", "canonical": "#e2f3e8", "tonalRamp": ["#c4e6d4", "#d4eeda", "#e2f3e8", "#eef7ef", "#f8fbf9"] },
+      "ok-fg": { "role": "state", "displayName": "OK Foreground", "canonical": "#0f5a30", "tonalRamp": ["#062216", "#0a3e22", "#0f5a30", "#1d7844", "#31965c"] },
+      "ok-line": { "role": "state", "displayName": "OK Line", "canonical": "#17643a", "tonalRamp": ["#0c361e", "#10482c", "#17643a", "#22804e", "#389c64"] },
+      "danger-bg": { "role": "state", "displayName": "Danger Background", "canonical": "#fbe4e5", "tonalRamp": ["#f6cacd", "#f9d5d7", "#fbe4e5", "#fde5e6", "#fdf0f0"] },
+      "danger-fg": { "role": "state", "displayName": "Danger Foreground", "canonical": "#8f161d", "tonalRamp": ["#4a080a", "#660e11", "#8f161d", "#b32028", "#d93840"] },
+      "danger-line": { "role": "state", "displayName": "Danger Line", "canonical": "#a61d24", "tonalRamp": ["#661116", "#85161c", "#a61d24", "#c5252c", "#e33940"] },
+      "info-bg": { "role": "state", "displayName": "Info Background", "canonical": "#dcebf7", "tonalRamp": ["#b8d4ed", "#c8dfee", "#dcebf7", "#e9f2fc", "#f4f8fe"] },
+      "info-fg": { "role": "state", "displayName": "Info Foreground", "canonical": "#0a4470", "tonalRamp": ["#041828", "#062e48", "#0a4470", "#18608e", "#2e7cac"] },
+      "info-line": { "role": "state", "displayName": "Info Line", "canonical": "#0b4a7f", "tonalRamp": ["#051e36", "#083a66", "#0b4a7f", "#1a6d9e", "#388fc7"] },
+      "neutral-bg": { "role": "neutral", "displayName": "Neutral Background", "canonical": "#eaeff4", "tonalRamp": ["#c8d2dc", "#d6dce4", "#eaeff4", "#f2f5f8", "#f9fbfc"] },
+      "neutral-fg": { "role": "neutral", "displayName": "Neutral Foreground", "canonical": "#33536b", "tonalRamp": ["#0e1c28", "#1c3040", "#33536b", "#506e82", "#6e8a9c"] },
+      "neutral-line": { "role": "neutral", "displayName": "Neutral Line", "canonical": "#6a8aa4", "tonalRamp": ["#405a6e", "#557088", "#6a8aa4", "#82a4b8", "#9ab0c4"] },
+      "danger": { "role": "primary", "displayName": "Danger", "canonical": "#a61d24", "tonalRamp": ["#540c0e", "#6f1014", "#8f161d", "#a61d24", "#bd3038", "#d5484f", "#eb6067", "#f08088"] },
+      "ok": { "role": "primary", "displayName": "OK", "canonical": "#17643a", "tonalRamp": ["#082418", "#0c3824", "#17643a", "#22804e", "#389c64", "#52b480", "#6cc49a", "#88d8b4"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page headings (h1) — the title of the current work surface." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings (h2) — grouping labels within a sheet." },
+      "title": { "displayName": "Title", "purpose": "Card titles, modal headers, panel heads (h3)." },
+      "body": { "displayName": "Body", "purpose": "All prose, instructions, and readable text. Measure capped at 68ch." },
+      "label": { "displayName": "Label", "purpose": "Field labels, table headers — uppercase with tracking." },
+      "mono": { "displayName": "Mono", "purpose": "Numeric data, dates, codes, reference numbers — tabular figures." }
+    },
+    "shadows": [
+      { "name": "pop", "value": "0 6px 16px -6px rgba(11, 42, 68, 0.28)", "purpose": "Dropdown menus and toasts that float above content." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Exponential ease-out for state transitions." },
+      { "name": "dur-fast", "value": "150ms", "purpose": "Quick state transitions (hover, focus)." },
+      { "name": "dur", "value": "200ms", "purpose": "Standard transitions (modal, toast)." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "576px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "992px" },
+      { "name": "xl", "value": "1200px" },
+      { "name": "2xl", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "btn-primary",
+      "description": "The sole primary action per screen. Ink background with white text.",
+      "html": "<button class=\"sg-btn sg-btn--primary\">Asignar técnico</button>",
+      "css": ".sg-btn--primary { background: #0b4a7f; color: #ffffff; border: 1.5px solid #0b4a7f; border-radius: 0; padding: 8px 16px; font-size: 15px; font-weight: 600; font-family: var(--sg-font); min-height: 44px; transition: color 200ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms cubic-bezier(0.22, 1, 0.36, 1), border-color 200ms cubic-bezier(0.22, 1, 0.36, 1); }.sg-btn--primary:hover { background: #083a66; border-color: #083a66; }.sg-btn--primary:active { background: #062d50; border-color: #062d50; }.sg-btn--primary:focus-visible { outline: 2px solid #1a7fbd; outline-offset: 2px; box-shadow: none; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Cajetín field with label, control, hint, and error states.",
+      "html": "<div class=\"sg-field\"><label class=\"sg-field__label\" for=\"campo\">Ubicación</label><input class=\"sg-input\" id=\"campo\" type=\"text\"></div>",
+      "css": ".sg-field { display: flex; flex-direction: column; justify-content: center; min-height: 4.75rem; padding: 8px 16px 8px; background: #ffffff; border-right: 1.5px solid #0b4a7f; border-bottom: 1.5px solid #0b4a7f; }.sg-field__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #46667f; }.sg-input { display: block; width: 100%; min-height: 44px; padding: 8px 12px; font-family: var(--sg-font); font-size: 17px; color: #0b2a44; background: #ffffff; border: 1px solid #5d7d97; border-radius: 0; transition: border-color 150ms cubic-bezier(0.22, 1, 0.36, 1); }.sg-input:focus { border-color: #0b4a7f; outline: 2px solid #1a7fbd; outline-offset: 1px; }"
+    },
+    {
+      "name": "State Badge",
+      "kind": "badge",
+      "refersTo": "badge-state",
+      "description": "Status indicator with text and pattern mark — never color alone.",
+      "html": "<span class=\"sg-badge sg-badge--pendiente\"><span class=\"sg-badge__mark\"></span>Pendiente</span>",
+      "css": ".sg-badge--pendiente { background: #fdf1d0; color: #5a3c00; border: 1px solid #8a5a00; border-radius: 0; display: inline-flex; align-items: center; gap: 0.4375rem; height: 24px; padding: 0 8px 0 4px; font-size: 12px; font-weight: 600; }.sg-badge--pendiente .sg-badge__mark { width: 8px; height: 8px; background: repeating-linear-gradient(135deg, #8a5a00 0 1.5px, transparent 1.5px 3.5px); }"
+    },
+    {
+      "name": "Table",
+      "kind": "table",
+      "refersTo": "table-row",
+      "description": "Data table with sticky header, hover/select states, and mobile stack mode.",
+      "html": "<table class=\"sg-table\"><thead><tr><th>Nº</th><th>Ubicación</th></tr></thead><tbody><tr><td class=\"sg-col-n\">1</td><td data-label=\"Ubicación\">Edificio A</td></tr></tbody></table>",
+      "css": ".sg-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; color: #0b2a44; }.sg-table th { background: #f9fbfd; color: #33536b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1.5px solid #0b4a7f; position: sticky; top: 0; z-index: 2; }.sg-table td { padding: 8px 16px; border-bottom: 1px solid #c9d3dc; }.sg-table tbody tr:hover td { background: #e4eef6; }.sg-table tbody tr.is-selected td { background: #d7e8f5; }"
+    },
+    {
+      "name": "Modal",
+      "kind": "modal",
+      "refersTo": "modal",
+      "description": "Square modal with ink border, no shadow, confirmation variant available.",
+      "html": "<div class=\"modal\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><h5 class=\"modal-title\">¿Eliminar?</h5></div><div class=\"modal-body\">Texto de confirmación.</div></div></div></div>",
+      "css": ".modal-content { background: #ffffff; border: 2px solid #0b4a7f; border-radius: 0; box-shadow: none; }.modal-header { background: #f9fbfd; border-bottom: 1.5px solid #0b4a7f; }.modal-title { font-size: 19px; font-weight: 700; color: #0b4a7f; margin: 0; }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "navbar",
+      "description": "Sticky top bar with brand, navigation links, user menu, and notification count.",
+      "html": "<nav class=\"sg-nav\"><div class=\"sg-brand\"><span class=\"sg-brand__name\"><strong>SGUM-UCI</strong></span></div><div class=\"sg-nav__tools\"><button class=\"sg-nav__iconbtn\" aria-label=\"Notificaciones\"><span class=\"sg-count\">3</span></button></div></nav>",
+      "css": ".sg-nav { position: sticky; top: 0; z-index: 1030; background: #ffffff; border-bottom: 2px solid #0b4a7f; }.sg-brand__name strong { font-size: 19px; font-weight: 700; color: #0b4a7f; }.sg-count { position: absolute; top: 3px; right: 1px; min-width: 18px; height: 18px; font-size: 11px; font-weight: 700; color: #ffffff; background: #a61d24; border: 1.5px solid #ffffff; border-radius: 0; }"
+    },
+    {
+      "name": "Sheet Container",
+      "kind": "custom",
+      "refersTo": "sheet",
+      "description": "The primary page container with registration marks and ink border.",
+      "html": "<div class=\"sg-sheet\"><div class=\"sg-sheet__body\">Contenido de la página</div></div>",
+      "css": ".sg-sheet { position: relative; width: min(100% - 40px, 1440px); margin: 24px auto 32px; background: #ffffff; border: 1.5px solid #0b4a7f; }.sg-sheet::before { content: \"\"; position: absolute; inset: -11px; pointer-events: none; z-index: 1; background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M10 0V20M0 10H20' stroke='%232a94d4' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\"), url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M10 0V20M0 10H20' stroke='%232a94d4' stroke-width='1.5' fill='none'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: left top, right top, left bottom, right bottom; background-size: 20px 20px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Architect's Draft",
+    "overview": "SGUM-UCI is a sheet of architectural blueprint — a clean, ordered, methodical workspace where every element earns its place and nothing is decorative for its own sake. The interface evokes the precision of a drafting table: ink lines on white paper, a fine grid underlying everything, right angles everywhere. This is an institutional maintenance dispatch system designed for an administrator who spends a full workday scanning, prioritizing, and assigning — speed and clarity are not luxuries, they are the job description. The system is institutional yet approachable, with formal Spanish addressing users as 'usted' throughout. Components feel tactile and confident — buttons respond like physical switches, fields have clear boundaries, every interaction yields a visible result. The flat, shadowless aesthetic reinforces trust: nothing is hidden behind decorative effects, everything is legible at a glance.",
+    "keyCharacteristics": [
+      "Blueprint precision: zero border-radius, strict 8px module grid, fine grid lines",
+      "Institutional Spanish with 'usted' throughout, never casual language",
+      "Flat by default: shadows appear only as functional responses to state",
+      "One primary action per screen; the rest recede to secondary or ghost variants",
+      "SVG icon system, no external dependencies, purely local intranet",
+      "State and priority always conveyed by text + pattern, never color alone"
+    ],
+    "rules": [
+      { "name": "The One Ink Rule", "body": "The primary ink (#0b4a7f) is the sole source of visual authority. One primary action per screen wears ink; everything else defers to paper, hover, or secondary states. The cyan (#2a94d4) is reserved exclusively for registration marks and active-state indicators — it never appears as text, button fill, or background.", "section": "colors" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows appear only as a functional response to state: dropdowns pop up, toasts float, and the sole shadow (--sg-shadow-pop) marks those transitions. Nothing else carries a shadow.", "section": "elevation" },
+      { "name": "The Label Rule", "body": "Field labels are always uppercase, 11px, semi-bold, with 0.08em tracking. They mark territory, not content — never mixed with body text weight or size.", "section": "typography" },
+      { "name": "The Data Rule", "body": "Dates, quantities, codes, and reference numbers live in monospace with tabular numerals. Names, locations, and descriptions live in the regular face. Never let monospace touch a button, label, or casual sentence.", "section": "typography" },
+      { "name": "The Border-As-Structure Rule", "body": "Where a flat world needs separation, it uses borders — 1px grid lines, 1.5px cajetín borders, 2px frame borders for modals and the navbar. Depth is a property of borders and tonal contrast, not of shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the 8px module grid for all spacing — every margin, padding, and gap is a multiple of 4px or 8px",
+      "Do use ink (#0b4a7f) as the sole primary action color, and cyan (#2a94d4) only for registration marks and active indicators",
+      "Do mark state badges with text AND pattern, never color alone",
+      "Do use monospace for numeric data, dates, codes, and reference numbers only",
+      "Do include aria-label on icon-only buttons and name action buttons with their verb"
+    ],
+    "donts": [
+      "Don't use border-radius on any component — the right angle is the design system's signature",
+      "Don't use color as the sole carrier of meaning for state or priority",
+      "Don't use --sg-cyan as text color, button fill, or background",
+      "Don't use decorative shadows — the only acceptable shadow is --sg-shadow-pop on dropdowns and toasts",
+      "Don't use gradient text, glass effects, or blur as decoration",
+      "Don't use cards as page structure — the sheet is the container",
+      "Don't place a kicker or eyebrow above a heading",
+      "Don't load anything from the internet — CDNs, Google Fonts, Font Awesome, Bootstrap Icons, or emoji as icons"
+    ]
+  }
+}

@@ -1,0 +1,103 @@
+/* ==========================================================================
+   SGUM-UCI · Soporte (solicitar, bandeja y conversación)
+   Se carga con {% block extra_head %} DESPUÉS de sgum.css. Prefijo so-.
+   Solo usa tokens de tokens.css; sin sombras, degradados ni radios.
+   ========================================================================== */
+
+/* Secciones de la lámina */
+.so-section { padding: var(--sg-s-5); border-bottom: var(--sg-line) solid var(--sg-grid); }
+.so-section:last-child { border-bottom: 0; }
+.so-section > h2 { margin: 0 0 var(--sg-s-3); font-size: var(--sg-fs-lg); }
+.so-section__hint { margin: 0 0 var(--sg-s-4); max-width: var(--sg-measure); color: var(--sg-text-2); text-wrap: pretty; }
+.so-section--flush { padding: 0; }
+.so-section--flush > h2 { padding: var(--sg-s-4) var(--sg-s-5) var(--sg-s-3); margin: 0; }
+@media (max-width: 575.98px) {
+  .so-section { padding: var(--sg-s-4); }
+  .so-section--flush { padding: 0; }
+  .so-section--flush > h2 { padding: var(--sg-s-4) var(--sg-s-4) var(--sg-s-3); }
+}
+
+/* Formulario de nueva solicitud */
+.so-form .sg-form-actions { border-top: 0; padding-inline: 0; background: transparent; padding-bottom: 0; }
+.so-hintrow { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sg-s-3); flex-wrap: wrap; }
+.so-hintrow .sg-field__hint { margin: 2px 0 0; }
+.so-count { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.so-count.is-near { color: var(--sg-warn-fg); font-weight: var(--sg-fw-semi); }
+.so-count .sg-mono { color: var(--sg-text); }
+.so-note { font-size: var(--sg-fs-md); color: var(--sg-text-2); line-height: 1.4; }
+
+/* Tabla de solicitudes (usuario y bandeja) */
+.so-table td { vertical-align: middle; }
+.so-table .sg-col-n { width: 3.25rem; min-width: 3.25rem; }
+.so-table .so-c-tipo, .so-table .so-c-fecha, .so-table .so-c-estado, .so-table .so-c-quien { white-space: nowrap; }
+.so-table .so-c-desc { min-width: 12rem; max-width: 30rem; }
+.so-desc { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.so-table tr.is-unread .so-desc { font-weight: var(--sg-fw-semi); color: var(--sg-text); }
+.so-unread {
+  display: inline-flex; align-items: center; gap: var(--sg-s-1); margin-left: var(--sg-s-2);
+  font-size: var(--sg-fs-xs); font-weight: var(--sg-fw-semi); color: var(--sg-ink); white-space: nowrap;
+}
+.so-unread__mark { width: 0.5rem; height: 0.5rem; background: var(--sg-ink); flex: none; }
+/* Tabla propia (solicitudes del usuario, en lámina de 64 rem): descripción más corta y marca de «respuesta nueva» bajo el estado */
+.so-table--own .so-c-desc { max-width: 17rem; }
+.so-table--own .so-unread { display: flex; margin: 3px 0 0; }
+
+/* Móvil: tres líneas por fila (selección, estado y acción / descripción / datos) */
+@media (max-width: 767.98px) {
+  .so-table, .so-table tbody { display: block; width: 100%; }
+  .so-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .so-table tbody tr {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--sg-s-1) var(--sg-s-3);
+    padding: var(--sg-s-2) var(--sg-s-4) var(--sg-s-3); border-bottom: var(--sg-line) solid var(--sg-grid);
+  }
+  .so-table tbody tr:last-child { border-bottom: 0; }
+  .so-table td { display: block; padding: 0; border: 0; width: auto; min-width: 0; }
+  .so-table td.so-c-n { display: none; }
+  .so-table td.sg-col-check { order: 0; width: var(--sg-touch); margin-left: calc(-1 * var(--sg-s-3)); }
+  .so-table td.so-c-estado { order: 1; }
+  .so-table td.so-c-act { order: 2; margin-left: auto; width: auto; }
+  .so-table td.so-c-desc { order: 3; flex: 0 0 100%; max-width: none; }
+  .so-table td.so-c-quien { order: 4; }
+  .so-table td.so-c-tipo { order: 5; }
+  .so-table td.so-c-fecha { order: 6; }
+  .so-table td.so-c-quien, .so-table td.so-c-tipo, .so-table td.so-c-fecha { font-size: var(--sg-fs-sm); color: var(--sg-text-2); }
+  .so-table td.so-c-fecha { font-size: var(--sg-fs-sm); }
+  .so-desc { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+  .so-table tbody tr:hover td { background: transparent; }
+  .so-table--own .so-c-desc { max-width: none; }
+  .so-table--own .so-unread { display: inline-flex; margin: 0 0 0 var(--sg-s-2); }
+}
+
+/* Encabezado de la conversación */
+.so-head-badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sg-s-2); margin-top: var(--sg-s-2); }
+.so-actions-note { margin: 0; align-self: center; font-size: var(--sg-fs-sm); color: var(--sg-text-2); }
+.so-meta .sg-field__value { font-size: var(--sg-fs-md); min-height: 1.75rem; flex-wrap: wrap; gap: var(--sg-s-1) var(--sg-s-2); }
+@media (max-width: 767.98px) { .so-meta .sg-field[class*="sg-field--"] { grid-column: span 6; min-height: 4rem; } }
+@media (min-width: 576px) { .so-meta { border-left: 0; } .so-meta .sg-field:last-child { border-right: 0; } }
+@media (min-width: 576px) and (max-width: 767.98px) { .so-meta .sg-field:nth-child(even) { border-right: 0; } }
+
+/* Conversación: cada mensaje dice quién, con qué rol y cuándo. Propios: a la derecha, línea de tinta y «Usted». Ajenos: a la izquierda, línea fina. */
+.so-thread { display: flex; flex-direction: column; gap: var(--sg-s-3); margin: 0; padding: 0; list-style: none; }
+.so-msg { max-width: min(46rem, 92%); padding: var(--sg-s-3) var(--sg-s-4); background: var(--sg-paper); border: var(--sg-line) solid var(--sg-grid-strong); }
+.so-msg--mine { align-self: flex-end; background: var(--sg-info-bg); border: var(--sg-line-strong) solid var(--sg-ink); }
+.so-msg--other { align-self: flex-start; }
+.so-msg__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sg-s-1) var(--sg-s-2); margin-bottom: var(--sg-s-1); }
+.so-msg__who { font-weight: var(--sg-fw-bold); color: var(--sg-ink); }
+.so-msg__time { margin-left: auto; font-size: var(--sg-fs-xs); color: var(--sg-text-2); white-space: nowrap; }
+.so-role, .so-tag {
+  display: inline-block; padding: 1px var(--sg-s-2); font-size: var(--sg-fs-xs); font-weight: var(--sg-fw-semi); line-height: 1.4;
+  color: var(--sg-text-2); background: var(--sg-panel); border: var(--sg-line) solid var(--sg-neutral-line);
+}
+.so-msg--mine .so-role, .so-msg--mine .so-tag { background: var(--sg-paper); }
+.so-tag { color: var(--sg-info-fg); border-color: var(--sg-info-line); }
+.so-msg__body { margin: 0; color: var(--sg-text); overflow-wrap: anywhere; text-wrap: pretty; max-width: var(--sg-measure); }
+.so-thread__empty { margin: var(--sg-s-3) 0 0; color: var(--sg-text-2); max-width: var(--sg-measure); }
+@media (max-width: 575.98px) {
+  .so-msg { max-width: 100%; }
+  .so-msg--mine { margin-left: var(--sg-s-4); }
+  .so-msg--other { margin-right: var(--sg-s-4); }
+}
+
+/* Escribir un mensaje */
+.so-composer .sg-form-actions { padding-inline: 0; background: transparent; border-top: 0; padding-bottom: 0; }
+.so-recovered { margin-bottom: var(--sg-s-3); }

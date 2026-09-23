@@ -1,0 +1,28 @@
+{% comment %}
+Celda «Materiales consumidos». Solo se dibuja si el servidor envía la lista `materiales_consumo` (ver requests-almacen.md):
+cada elemento con nombre, tipo (código), unidades (suma de cantidad_usada) e incidencias (cuántas), de mayor a menor consumo.
+{% endcomment %}<section class="dash-cell" aria-labelledby="t-materiales">
+  <div class="dash-cell__head">
+    <div>
+      <h2 id="t-materiales">Materiales consumidos</h2>
+      <p class="dash-cell__sub">Unidades asignadas a incidencias reportadas en {% include 'dash_periodo.html' %}</p>
+    </div>
+  </div>
+  <div class="sg-table-wrap sg-table-wrap--free">
+    <table class="sg-table sg-table--dense sg-table--stack">
+      <caption class="sg-visually-hidden">Materiales consumidos, de mayor a menor cantidad de unidades</caption>
+      <thead><tr><th scope="col" class="sg-col-n">Nº</th><th scope="col">Material</th><th scope="col" class="sg-num">Unidades</th><th scope="col">Proporción</th><th scope="col" class="sg-num">Incidencias</th></tr></thead>
+      <tbody>
+        {% for m in materiales_consumo %}
+        <tr>
+          <td class="sg-col-n" data-label="Nº">{{ forloop.counter }}</td>
+          <td data-label="Material">{{ m.nombre }}</td>
+          <td class="sg-num sg-data" data-label="Unidades">{{ m.unidades }}</td>
+          <td data-label="Proporción"><span class="dash-consumo" role="img" aria-label="{% widthratio m.unidades materiales_consumo.0.unidades 100 %} % del material más consumido"><span style="width: {% widthratio m.unidades materiales_consumo.0.unidades 100 %}%"></span></span></td>
+          <td class="sg-num sg-data" data-label="Incidencias">{{ m.incidencias }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

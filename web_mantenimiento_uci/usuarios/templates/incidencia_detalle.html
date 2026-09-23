@@ -1,0 +1,155 @@
+{% comment %}
+Detalle desplegable de una incidencia dentro de la lista (fila oculta bajo la incidencia «x»).
+Descripción y foto sin modal; asignar técnico y materiales según los permisos de la fila.
+Variables: x (fila de page_obj), tecnicos, materiales_disponibles, prioridades, puede.*
+{% endcomment %}{% with mats=x.materialincidencia_set.all %}
+<div class="inc-panel">
+  <section class="inc-panel__col" aria-labelledby="inc-{{ x.id }}-h-detalle">
+    <h3 class="inc-panel__h" id="inc-{{ x.id }}-h-detalle">Detalle</h3>
+    <p class="inc-panel__desc">{{ x.descripcion }}</p>
+    <dl class="inc-meta">
+      <dt>Ubicación</dt><dd>{{ x.ubicacion }}</dd>
+      <dt>Solicitante</dt><dd>{{ x.usuario_reporte.get_full_name|default:x.usuario_reporte.username }}{% if x.es_mia %} (usted){% endif %}</dd>
+      <dt>Registrada</dt><dd class="sg-mono">{{ x.fecha|date:"d/m/Y H:i" }}</dd>
+      {% if x.fecha_asignacion %}<dt>Asignada</dt><dd class="sg-mono">{{ x.fecha_asignacion|date:"d/m/Y H:i" }}</dd>{% endif %}
+      {% if x.fecha_resolucion %}<dt>Resuelta</dt><dd class="sg-mono">{{ x.fecha_resolucion|date:"d/m/Y H:i" }}</dd>{% endif %}
+    </dl>
+    {% if x.imagen %}
+    <a class="inc-foto" href="{{ x.imagen.url }}" target="_blank" rel="noopener">
+      <img src="{{ x.imagen.url }}" alt="Foto adjunta a la incidencia {{ x.id }}" loading="lazy">
+      <span class="inc-foto__cap">Abrir foto a tamaño completo</span>
+    </a>
+    {% else %}
+    <p class="inc-vacio">Sin foto adjunta.</p>
+    {% endif %}
+  </section>
+
+  <section class="inc-panel__col" id="inc-{{ x.id }}-tecnico" aria-labelledby="inc-{{ x.id }}-h-tecnico">
+    <h3 class="inc-panel__h" id="inc-{{ x.id }}-h-tecnico">Prioridad y técnico</h3>
+
+    {% if x.puede_gestionar_prioridad %}
+    <form class="inc-form" method="post" action="{% url 'confirmar_prioridad' %}" data-sg-loading>
+      {% csrf_token %}
+      <input type="hidden" name="incidencia_id" value="{{ x.id }}">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <label class="sg-label" for="inc-{{ x.id }}-prio">Prioridad {% if x.prioridad_confirmada %}confirmada{% else %}propuesta por el solicitante{% endif %}</label>
+      <div class="inc-form__row">
+        <select class="sg-select" id="inc-{{ x.id }}-prio" name="prioridad">
+          {% for valor, etiqueta in prioridades %}<option value="{{ valor }}"{% if x.prioridad == valor %} selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="sg-btn sg-btn--secondary">{% if x.prioridad_confirmada %}Corregir prioridad{% else %}Confirmar prioridad{% endif %}</button>
+      </div>
+    </form>
+    <div class="inc-sep"></div>
+    {% else %}
+    <dl class="inc-meta">
+      <dt>Prioridad</dt><dd>{{ x.get_prioridad_display }} · {{ x.prioridad_situacion }}</dd>
+    </dl>
+    {% endif %}
+
+    {% if x.puede_asignar_tecnico %}
+      {% if x.estado == 'resuelto' %}
+      <dl class="inc-meta">
+        <dt>Técnico</dt><dd>{% if x.tecnico_asignado %}{{ x.tecnico_asignado.trabajador.get_full_name|default:x.tecnico_asignado.trabajador.username }}{% else %}Sin técnico{% endif %}</dd>
+      </dl>
+      <p class="inc-nota">La incidencia está resuelta. Para cambiar de técnico, reábrala desde «Editar» y cambie su estado.</p>
+      {% else %}
+      <form class="inc-form" method="post" action="{% url 'asignar_tecnico' %}" data-inc-asignar data-sg-loading>
+        {% csrf_token %}
+        <input type="hidden" name="incidencia_id" value="{{ x.id }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <fieldset>
+          <legend>{% if x.tecnico_asignado %}Cambiar de técnico{% else %}Asignar técnico{% endif %}</legend>
+          {% if tecnicos %}
+          <ul class="inc-tecs">
+            {% for t in tecnicos %}
+            <li>
+              <label class="inc-tec">
+                <input class="form-check-input" type="radio" name="tecnico_id" value="{{ t.id }}"{% if x.tecnico_asignado_id == t.id %} checked disabled{% endif %}>
+                <span class="inc-tec__name">{{ t.trabajador.get_full_name|default:t.trabajador.username }}{% if x.tecnico_asignado_id == t.id %} <span class="inc-tec__actual">(actual)</span>{% endif %}</span>
+                <span class="inc-tec__carga">{% if t.abiertas == 0 %}Libre{% else %}<b>{{ t.abiertas }}</b> abierta{{ t.abiertas|pluralize }}{% endif %}</span>
+              </label>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="inc-vacio">No hay técnicos activos. Asigne el rol Técnico a un usuario en «Usuarios».</p>
+          {% endif %}
+        </fieldset>
+        <p class="inc-nota">Al asignar, la incidencia pasa a En proceso. Un técnico puede atender varias a la vez; la lista muestra cuántas tiene abiertas.</p>
+        {% if tecnicos %}
+        <div class="inc-form__actions">
+          <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Asignando…" data-inc-asignar-btn>{% if x.tecnico_asignado %}Cambiar técnico{% else %}Asignar técnico{% endif %}</button>
+          {% if x.tecnico_asignado %}
+          <button type="button" class="sg-btn sg-btn--danger-outline" data-bs-toggle="modal" data-bs-target="#quitarTecnico"
+                  data-action="{% url 'quitar_tecnico' x.id %}" data-incidencia="{{ x.id }}" data-tecnico="{{ x.tecnico_asignado.trabajador.get_full_name|default:x.tecnico_asignado.trabajador.username }}">Quitar técnico</button>
+          {% endif %}
+        </div>
+        {% endif %}
+      </form>
+      {% if x.tecnico_asignado and not tecnicos %}
+      <div class="inc-form__actions">
+        <button type="button" class="sg-btn sg-btn--danger-outline" data-bs-toggle="modal" data-bs-target="#quitarTecnico"
+                data-action="{% url 'quitar_tecnico' x.id %}" data-incidencia="{{ x.id }}" data-tecnico="{{ x.tecnico_asignado.trabajador.get_full_name|default:x.tecnico_asignado.trabajador.username }}">Quitar técnico</button>
+      </div>
+      {% endif %}
+      {% endif %}
+    {% else %}
+    <dl class="inc-meta">
+      <dt>Técnico</dt><dd>{% if x.tecnico_asignado %}{{ x.tecnico_asignado.trabajador.get_full_name|default:x.tecnico_asignado.trabajador.username }}{% if x.es_asignada_a_mi %} (usted){% endif %}{% else %}Sin técnico asignado{% endif %}</dd>
+    </dl>
+    {% endif %}
+  </section>
+
+  <section class="inc-panel__col" id="inc-{{ x.id }}-materiales" aria-labelledby="inc-{{ x.id }}-h-mat">
+    <h3 class="inc-panel__h" id="inc-{{ x.id }}-h-mat">Materiales</h3>
+    {% if mats %}
+    <ul class="inc-mats">
+      {% for mi in mats %}
+      <li>
+        <span class="inc-mats__name">{{ mi.material.nombre }}</span>
+        <span class="inc-mats__qty">× {{ mi.cantidad_usada }}</span>
+        {% if x.puede_asignar_material %}
+        <form class="inc-inline" method="post" action="{% url 'quitar_material' %}" data-sg-loading>
+          {% csrf_token %}
+          <input type="hidden" name="material_incidencia_id" value="{{ mi.id }}">
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="sg-btn sg-btn--ghost sg-btn--sm" aria-label="Retirar {{ mi.material.nombre }} de la incidencia {{ x.id }}; {{ mi.cantidad_usada }} unidades vuelven al inventario" title="Devuelve {{ mi.cantidad_usada }} al inventario">Retirar</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% if x.puede_asignar_material %}<p class="inc-nota">Al retirar un material, sus unidades vuelven al inventario.</p>{% endif %}
+    {% else %}
+    <p class="inc-vacio">Sin materiales asignados.</p>
+    {% endif %}
+
+    {% if x.puede_asignar_material %}
+      {% if mats %}<div class="inc-sep"></div>{% endif %}
+      {% if materiales_disponibles %}
+      <form class="inc-form" method="post" action="{% url 'asignar_material' %}" data-inc-material novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="incidencia_id" value="{{ x.id }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <label class="sg-label" for="inc-{{ x.id }}-mat">Asignar material</label>
+        <select class="sg-select" id="inc-{{ x.id }}-mat" name="material" required data-inc-mat-sel>
+          <option value="" data-stock="0">Elija un material…</option>
+          {% for m in materiales_disponibles %}<option value="{{ m.id }}" data-stock="{{ m.cantidad }}">{{ m.nombre }} · {{ m.cantidad }} disponible{{ m.cantidad|pluralize }}</option>{% endfor %}
+        </select>
+        <p class="inc-stock" aria-live="polite" data-inc-stock>Elija un material para ver cuántas unidades hay.</p>
+        <label class="sg-label" for="inc-{{ x.id }}-cant">Cantidad a usar</label>
+        <div class="inc-form__row">
+          <input class="sg-input" type="number" id="inc-{{ x.id }}-cant" name="cantidad" min="1" step="1" inputmode="numeric" required data-inc-cant>
+          <button type="submit" class="sg-btn sg-btn--primary" data-loading-label="Asignando…">Asignar material</button>
+        </div>
+        <p class="inc-form__err" role="alert" hidden data-inc-err>{% include 'partials/icon.html' with name='alert' %}<span></span></p>
+        <p class="inc-nota">Las unidades se descuentan del inventario al asignar.</p>
+      </form>
+      {% else %}
+      <p class="inc-vacio">No hay materiales con existencias.{% if puede.materiales %} Reponga o registre uno en <a href="{% url 'materiales' %}">Materiales</a>.{% endif %}</p>
+      {% endif %}
+    {% endif %}
+  </section>
+</div>
+{% endwith %}
